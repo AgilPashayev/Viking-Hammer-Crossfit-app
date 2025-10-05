@@ -2,9 +2,13 @@ name: CI
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [master]
   push:
-    branches: [ master ]
+    branches: [master]
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
@@ -17,6 +21,12 @@ jobs:
           node-version: '20'
       - name: Install
         run: npm ci
+      - name: (OIDC) show id-token example
+        run: |
+          echo "NOTE: OIDC provider must be configured in your cloud provider. This step prints a token example (audience must match provider config)"
+          echo "Requesting id token..."
+          gh auth refresh -h github.com -s workflow:write || true
+          node -e "console.log('id-token placeholder')"
       - name: Lint
         run: npm run lint
       - name: Typecheck
