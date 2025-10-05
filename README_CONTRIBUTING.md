@@ -1,0 +1,3 @@
+- Use conventional commits
+- Run `npm run lint && npm run typecheck` before opening PR
+- Follow CODEOWNERS for reviews
