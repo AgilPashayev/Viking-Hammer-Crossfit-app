@@ -2,10 +2,22 @@
   "name": "viking-hammer-crossfit-app",
   "private": true,
   "workspaces": ["apps/*","packages/*","functions/*","infra/*"],
-  "scripts": { "agent": "node packages/agent-runner/dist/index.js" },
+  "scripts": {
+    "agent": "node packages/agent-runner/dist/index.js",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx || true",
+    "typecheck": "tsc -p tsconfig.json --noEmit || true",
+    "ci": "npm run lint && npm run typecheck"
+  },
   "devDependencies": {
     "tsx": "^4.19.0",
     "typescript": "^5.6.3",
-    "@types/node": "^20.12.7"
+    "@types/node": "^20.12.7",
+    "eslint": "^8.50.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "prettier": "^2.8.8",
+    "lint-staged": "^14.0.0",
+    "commitlint": "^17.0.0",
+    "@commitlint/config-conventional": "^17.0.0"
   }
 }
