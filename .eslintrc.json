@@ -18,6 +18,13 @@
         "@typescript-eslint/no-var-requires": "off"
       }
     }
+    ,
+    {
+      "files": ["packages/agent-runner/**"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
   ]
 }
 
