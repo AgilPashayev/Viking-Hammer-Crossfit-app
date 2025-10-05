@@ -1,0 +1,11 @@
+﻿{
+  "name": "viking-hammer-crossfit-app",
+  "private": true,
+  "workspaces": ["apps/*","packages/*","functions/*","infra/*"],
+  "scripts": { "agent": "node packages/agent-runner/dist/index.js" },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.3",
+    "@types/node": "^20.12.7"
+  }
+}
