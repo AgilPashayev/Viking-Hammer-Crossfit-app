@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Button } from 'react-native';
 
 type Props = {
   onStart?: () => void;
+  onOpenDashboard?: () => void;
 };
 
 const mockedData = {
@@ -19,6 +20,9 @@ export default function MainScreen({ onStart }: Props) {
       <Text style={styles.item}>Notifications: {mockedData.notifications}</Text>
       <View style={styles.button}>
         <Button title="Book Class" onPress={onStart} />
+      </View>
+      <View style={styles.button}>
+        <Button title="Open Dashboard" onPress={onOpenDashboard} />
       </View>
     </View>
   );
