@@ -1,5 +1,1 @@
-#!/usr/bin/env sh
-. "$HUSKY_HOME/_/husky.sh"
-
-npx lint-staged
-npx --no-install lint-staged
+﻿
