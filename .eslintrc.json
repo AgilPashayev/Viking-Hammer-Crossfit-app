@@ -8,4 +8,16 @@
     "no-console": "warn",
     "@typescript-eslint/explicit-module-boundary-types": "off"
   }
+  ,
+  "overrides": [
+    {
+      "files": ["**/dist/**", "**/*.config.js", "commitlint.config.js"],
+      "env": { "node": true },
+      "rules": {
+        "no-undef": "off",
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
 }
+
