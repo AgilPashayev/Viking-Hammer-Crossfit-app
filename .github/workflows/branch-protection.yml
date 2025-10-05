@@ -1,0 +1,12 @@
+# This workflow is a template. Branch protection rules must be configured in repository settings or via GH API.
+# Use this file as documentation or implement via GitHub CLI/REST API with proper permissions.
+name: Branch protection (template)
+
+on: workflow_dispatch
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Template
+        run: echo "Use GH API or web UI to apply branch protection: require PR reviews and passing checks."
