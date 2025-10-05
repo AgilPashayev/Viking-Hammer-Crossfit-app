@@ -1,4 +1,4 @@
-# Viking Hammer Crossfit App
+﻿# Viking Hammer Crossfit App
 
 Monorepo for mobile apps, infra, and serverless functions.
 
@@ -13,3 +13,5 @@ Monorepo for mobile apps, infra, and serverless functions.
 
 ## Contributing
 Follow conventional commits. Pull requests require a review and passing CI.
+
+# test commit to exercise hooks
