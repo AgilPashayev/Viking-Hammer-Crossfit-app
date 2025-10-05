@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [master]
+    branches: [ master ]
   push:
-    branches: [master]
+    branches: [ master ]
 
 permissions:
   id-token: write
@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build:
+    name: CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
