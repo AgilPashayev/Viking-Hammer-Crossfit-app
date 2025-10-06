@@ -24,7 +24,12 @@ Write-Host "Supabase local deploy runner"
 
 $required = @('SUPABASE_ACCESS_TOKEN','SUPABASE_PROJECT_REF','SUPABASE_DB_URL')
 $missing = @()
-foreach ($v in $required) { if (-not $env:$v) { $missing += $v } }
+foreach ($v in $required) {
+    $val = [System.Environment]::GetEnvironmentVariable($v)
+    if ([string]::IsNullOrEmpty($val)) {
+        $missing += $v
+    }
+}
 if ($missing.Count -gt 0) {
     Write-Host "Missing environment variables: $($missing -join ', ')" -ForegroundColor Yellow
     Write-Host "Cannot proceed. Please set these env vars locally or add them to CI secrets." -ForegroundColor Yellow
@@ -49,26 +54,29 @@ if (-not (Get-Command supabase -ErrorAction SilentlyContinue)) {
 }
 
 Write-Host "Logging into supabase CLI..."
-supabase login --no-open --token $env:SUPABASE_ACCESS_TOKEN
+$token = [System.Environment]::GetEnvironmentVariable('SUPABASE_ACCESS_TOKEN')
+supabase login --no-open --token $token
 
-Write-Host "Linking to project ref: $env:SUPABASE_PROJECT_REF"
-supabase link --project-ref $env:SUPABASE_PROJECT_REF
+Write-Host "Linking to project ref: $([System.Environment]::GetEnvironmentVariable('SUPABASE_PROJECT_REF'))"
+supabase link --project-ref $([System.Environment]::GetEnvironmentVariable('SUPABASE_PROJECT_REF'))
 
 # Apply migrations and seeds using psql if available
 if (Get-Command psql -ErrorAction SilentlyContinue) {
     Write-Host "Applying migrations (via psql)"
     $migrationsPath = Join-Path $PSScriptRoot 'migrations/0001_init.sql'
     if (Test-Path $migrationsPath) {
-        Write-Host "Running: psql $env:SUPABASE_DB_URL -f $migrationsPath"
-        & psql $env:SUPABASE_DB_URL -f $migrationsPath
+    $dbUrl = [System.Environment]::GetEnvironmentVariable('SUPABASE_DB_URL')
+    Write-Host "Running: psql $dbUrl -f $migrationsPath"
+    & psql $dbUrl -f $migrationsPath
     } else {
         Write-Host "Migration file not found at $migrationsPath" -ForegroundColor Yellow
     }
 
     $seedPath = Join-Path $PSScriptRoot 'seeds/seed_initial.sql'
     if (Test-Path $seedPath) {
-        Write-Host "Running seeds: psql $env:SUPABASE_DB_URL -f $seedPath"
-        & psql $env:SUPABASE_DB_URL -f $seedPath
+    $dbUrl = [System.Environment]::GetEnvironmentVariable('SUPABASE_DB_URL')
+    Write-Host "Running seeds: psql $dbUrl -f $seedPath"
+    & psql $dbUrl -f $seedPath
     } else {
         Write-Host "Seed file not found at $seedPath" -ForegroundColor Yellow
     }
@@ -78,7 +86,7 @@ if (Get-Command psql -ErrorAction SilentlyContinue) {
 
 Write-Host "Ensuring storage bucket 'avatars' exists (best-effort)"
 try {
-    supabase storage create-bucket avatars --public --project-ref $env:SUPABASE_PROJECT_REF -y
+    supabase storage create-bucket avatars --public --project-ref $([System.Environment]::GetEnvironmentVariable('SUPABASE_PROJECT_REF')) -y
 } catch {
     Write-Host "Bucket create step failed or bucket may already exist. Proceeding." -ForegroundColor Yellow
 }
@@ -90,7 +98,7 @@ if (Test-Path $functionsDir) {
         $funcName = $_.BaseName
         Write-Host "Deploying function: $funcName"
         try {
-            supabase functions deploy $funcName --project-ref $env:SUPABASE_PROJECT_REF --no-verify
+            supabase functions deploy $funcName --project-ref $([System.Environment]::GetEnvironmentVariable('SUPABASE_PROJECT_REF')) --no-verify
         } catch {
             Write-Host "Failed to deploy function $funcName. Continue to next." -ForegroundColor Yellow
         }
