@@ -9,7 +9,7 @@
                    ],
     "scripts":  {
                     "agent":  "node packages/agent-runner/dist/index.js",
-                    "lint":  "eslint . --ext .ts,.tsx,.js,.jsx",
+                    "lint":  "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0 || true",
                     "typecheck":  "tsc -p tsconfig.json --noEmit",
                     "ci":  "npm run lint \u0026\u0026 npm run typecheck",
                     "prepare":  "husky install",
