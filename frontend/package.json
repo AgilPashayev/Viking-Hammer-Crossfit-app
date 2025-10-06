@@ -4,11 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "dev:open": "vite --open --port 3001",
+    "dev:strict": "vite --strictPort --port 3001",
     "start": "npm run dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:3001": "vite preview --port 3001"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.0.0",
     "vite": "^7.1.9"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   }
 }
