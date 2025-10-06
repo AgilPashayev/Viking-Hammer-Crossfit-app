@@ -19,11 +19,16 @@ jobs:
       - name: Install supabase CLI (official)
         run: |
           set -e
+          sudo apt-get update -y
+          sudo apt-get install -y jq ca-certificates curl tar
           ARCH="x86_64"
           TAG=$(curl -s https://api.github.com/repos/supabase/cli/releases/latest | jq -r .tag_name)
-          URL="https://github.com/supabase/cli/releases/download/${TAG}/supabase_${TAG#v}_linux_${ARCH}.tgz"
+          VERSION=${TAG#v}
+          URL="https://github.com/supabase/cli/releases/download/${TAG}/supabase_${VERSION}_linux_${ARCH}.tgz"
           echo "Downloading $URL"
           curl -sL "$URL" -o supabase.tgz
+          ls -l supabase.tgz
+          file supabase.tgz || true
           tar -xzf supabase.tgz
           sudo mv supabase /usr/local/bin/supabase
           supabase --version
