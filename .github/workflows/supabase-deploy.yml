@@ -21,17 +21,21 @@ jobs:
           set -e
           sudo apt-get update -y
           sudo apt-get install -y jq ca-certificates curl tar
-          ARCH="x86_64"
           TAG=$(curl -s https://api.github.com/repos/supabase/cli/releases/latest | jq -r .tag_name)
-          VERSION=${TAG#v}
-          URL="https://github.com/supabase/cli/releases/download/${TAG}/supabase_${VERSION}_linux_${ARCH}.tgz"
+          URL="https://github.com/supabase/cli/releases/download/${TAG}/supabase_linux_amd64.tar.gz"
           echo "Downloading $URL"
           curl -sL "$URL" -o supabase.tgz
           ls -l supabase.tgz
           file supabase.tgz || true
           tar -xzf supabase.tgz
           sudo mv supabase /usr/local/bin/supabase
+          sudo chmod +x /usr/local/bin/supabase
           supabase --version
+
+      - name: Set up PowerShell
+        uses: PowerShell/PowerShell@v3
+        with:
+          enablePSRemoting: false
 
       - name: Run supabase deploy script
         env:
