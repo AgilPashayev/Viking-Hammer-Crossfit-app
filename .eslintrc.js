@@ -23,10 +23,13 @@ module.exports = {
     __filename: 'readonly',
     global: 'readonly',
     Buffer: 'readonly',
+    React: 'readonly',
+    JSX: 'readonly',
   },
   rules: {
     'no-console': 'off',
     'no-undef': 'off',
+    'no-unused-vars': 'off',
   },
   overrides: [
     {
@@ -36,6 +39,12 @@ module.exports = {
       },
       env: {
         node: true,
+      },
+    },
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        'no-unused-vars': 'off',
       },
     },
     {
