@@ -32,10 +32,11 @@ jobs:
           sudo chmod +x /usr/local/bin/supabase
           supabase --version
 
-      - name: Set up PowerShell
-        uses: PowerShell/PowerShell@v3
-        with:
-          enablePSRemoting: false
+      - name: Install PowerShell (pwsh)
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y powershell
+          pwsh -v || true
 
       - name: Run supabase deploy script
         env:
