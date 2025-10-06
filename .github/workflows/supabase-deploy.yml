@@ -16,8 +16,17 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Install supabase CLI
-        run: npm install -g supabase
+      - name: Install supabase CLI (official)
+        run: |
+          set -e
+          ARCH="x86_64"
+          TAG=$(curl -s https://api.github.com/repos/supabase/cli/releases/latest | jq -r .tag_name)
+          URL="https://github.com/supabase/cli/releases/download/${TAG}/supabase_${TAG#v}_linux_${ARCH}.tgz"
+          echo "Downloading $URL"
+          curl -sL "$URL" -o supabase.tgz
+          tar -xzf supabase.tgz
+          sudo mv supabase /usr/local/bin/supabase
+          supabase --version
 
       - name: Run supabase deploy script
         env:
