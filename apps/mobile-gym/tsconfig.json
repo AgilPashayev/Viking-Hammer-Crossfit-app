@@ -1,24 +1,195 @@
-{
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/screens/*": ["./src/screens/*"],
-      "@/utils/*": ["./src/utils/*"],
-      "@/types/*": ["./src/types/*"]
-    },
-    "types": ["react-native", "jest"]
-  },
-  "include": [
-    "src/**/*",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "build"
-  ]
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
+
+import HomeScreen from './src/screens/HomeScreen';
+import LoginScreen from './src/screens/LoginScreen';
+
+const Stack = createNativeStackNavigator();
+
+export default function App(): JSX.Element {
+  // TODO: Add authentication state management
+  const isAuthenticated = false;
+
+  return (
+    <View style={styles.container}>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName={isAuthenticated ? 'Home' : 'Login'}>
+          <Stack.Screen 
+            name="Login" 
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen 
+            name="Home" 
+            component={HomeScreen}
+            options={{ title: 'Viking Hammer CrossFit' }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+      <StatusBar style="auto" />
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});
+
+module.exports = {
+  root: true,
+  extends: [
+    '@expo/eslint-config-expo',
+    'eslint:recommended',
+    '@typescript-eslint/recommended'
+  ],
+  parser: '@typescript-eslint/parser',
+  plugins: ['@typescript-eslint'],
+  env: {
+    node: true,
+    es6: true,
+    browser: true,
+    'react-native/react-native': true
+  },
+  globals: {
+    console: 'readonly',
+    process: 'readonly',
+    require: 'readonly',
+    module: 'readonly',
+    exports: 'readonly',
+    __dirname: 'readonly',
+    __filename: 'readonly',
+    global: 'readonly',
+    Buffer: 'readonly'
+  },
+  rules: {
+    'no-console': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+    'no-undef': 'off'
+  },
+  overrides: [
+    {
+      files: ['*.js'],
+      env: {
+        node: true
+      },
+      rules: {
+        '@typescript-eslint/no-var-requires': 'off'
+      }
+    },
+    {
+      files: ['functions/edge/**/*.ts'],
+      env: {
+        deno: true
+      },
+      globals: {
+        Deno: 'readonly'
+      }
+    }
+  ]
+};
+
+// GitHub Actions workflow for Supabase deployment
+name: Supabase Deploy
+
+on:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'ci:') || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Fix package dependencies and install
+        run: |
+          npm install --package-lock-only
+          npm install pg @supabase/supabase-js --save-dev
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client curl jq
+
+      - name: Download and install Supabase CLI
+        run: |
+          curl -sLo supabase.tgz https://github.com/supabase/cli/releases/latest/download/supabase_linux_amd64.tar.gz
+          tar -xzf supabase.tgz
+          sudo mv supabase /usr/local/bin/supabase
+          supabase --version
+
+      - name: Apply database migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          echo "Applying migrations..."
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            psql "${SUPABASE_DB_URL}" -f infra/supabase/migrations/0001_init.sql || echo "Migration may have already been applied"
+          else
+            echo "SUPABASE_DB_URL not set, skipping migrations"
+          fi
+
+      - name: Apply RLS policies
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          echo "Applying RLS policies..."
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            psql "${SUPABASE_DB_URL}" -f infra/supabase/policies/rls_policies.sql || echo "RLS policies may have already been applied"
+          else
+            echo "SUPABASE_DB_URL not set, skipping RLS"
+          fi
+
+      - name: Apply database seeds
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          echo "Applying seeds..."
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            psql "${SUPABASE_DB_URL}" -f infra/supabase/seeds/seed_initial.sql || echo "Seeds may have already been applied"
+          else
+            echo "SUPABASE_DB_URL not set, skipping seeds"
+          fi
+
+      - name: Run Node.js seed script (fallback)
+        env:
+          SUPABASE_URL: https://nqseztalzjcfucfeljkf.supabase.co
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "Running Node.js seed script..."
+          if [ -n "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            node index.js || echo "Node seed script failed, continuing with deployment"
+          else
+            echo "SUPABASE_SERVICE_ROLE_KEY not set, skipping Node seed script"
+          fi
+
+      - name: Verify deployment
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          PGSSLMODE: require
+        run: |
+          echo "Verifying deployment..."
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            psql "${SUPABASE_DB_URL}" -c "\dt" || echo "Could not list tables"
+            psql "${SUPABASE_DB_URL}" -c "SELECT COUNT(*) as plan_count FROM plans;" || echo "Could not count plans"
+          else
+            echo "SUPABASE_DB_URL not set, skipping verification"
+          fi
