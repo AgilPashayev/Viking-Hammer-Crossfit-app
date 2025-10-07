@@ -27,7 +27,11 @@ interface Announcement {
   type: 'info' | 'warning' | 'success';
 }
 
-const MemberDashboard: React.FC = () => {
+interface MemberDashboardProps {
+  onNavigate?: (page: string) => void;
+}
+
+const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate }) => {
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: 'John Viking',
     membershipType: 'Premium Monthly',
@@ -93,7 +97,11 @@ const MemberDashboard: React.FC = () => {
 
   const handleViewProfile = () => {
     // Navigate to profile page
-    console.log('Navigate to profile');
+    if (onNavigate) {
+      onNavigate('profile');
+    } else {
+      console.log('Navigate to profile');
+    }
   };
 
   const handleGenerateQR = () => {
