@@ -43,8 +43,10 @@ module.exports = {
     },
     {
       files: ['*.ts', '*.tsx'],
+      parser: '@typescript-eslint/parser',
       rules: {
         'no-unused-vars': 'off',
+        'no-undef': 'off',
       },
     },
     {
