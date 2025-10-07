@@ -29,7 +29,7 @@
   height: 60px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid #ff6b35;
+  border: 3px solid #0b5eff;
 }
 
 .user-avatar img {
@@ -42,7 +42,7 @@
   margin: 0;
   font-size: 1.8rem;
   font-weight: 700;
-  color: #ff6b35;
+  color: #0b5eff;
 }
 
 .membership-info {
@@ -70,7 +70,7 @@
 }
 
 .btn-primary {
-  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  background: linear-gradient(45deg, #0b5eff, #4a90e2);
   color: white;
 }
 
@@ -92,20 +92,20 @@
 
 .btn-outline {
   background: transparent;
-  color: #ff6b35;
-  border: 2px solid #ff6b35;
+  color: #0b5eff;
+  border: 2px solid #0b5eff;
   padding: 8px 16px;
   font-size: 0.9rem;
 }
 
 .btn-outline:hover {
-  background: #ff6b35;
+  background: #0b5eff;
   color: white;
 }
 
 .btn-link {
   background: none;
-  color: #ff6b35;
+  color: #0b5eff;
   border: none;
   font-size: 0.9rem;
   cursor: pointer;
@@ -143,7 +143,7 @@
   margin: 0;
   font-size: 2rem;
   font-weight: 700;
-  color: #ff6b35;
+  color: #0b5eff;
 }
 
 .stat-content p {
@@ -183,7 +183,7 @@
 .section-header h2 {
   margin: 0;
   font-size: 1.3rem;
-  color: #ff6b35;
+  color: #0b5eff;
 }
 
 .classes-list {
@@ -199,7 +199,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-left: 4px solid #ff6b35;
+  border-left: 4px solid #0b5eff;
 }
 
 .class-info h4 {
@@ -221,7 +221,7 @@
 }
 
 .date {
-  color: #ff6b35;
+  color: #0b5eff;
   font-weight: 600;
 }
 
@@ -254,7 +254,7 @@
 
 .menu-item:hover {
   background: rgba(255, 255, 255, 0.1);
-  border-left-color: #ff6b35;
+  border-left-color: #0b5eff;
   transform: translateX(5px);
 }
 
@@ -342,7 +342,7 @@
 
 .qr-card h3 {
   margin: 0 0 20px 0;
-  color: #ff6b35;
+  color: #0b5eff;
 }
 
 .qr-placeholder {

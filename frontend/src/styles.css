@@ -1,4 +1,15 @@
-/* Global Styles */
+/* Global Styles - Viking Hammer CrossFit with Brand Colors */
+
+:root {
+  /* Viking Hammer Brand Colors - Blue & White Theme */
+  --viking-primary: #0b5eff;        /* Main blue from logo */
+  --viking-secondary: #ffffff;      /* White - clean/professional */
+  --viking-accent: #4a90e2;         /* Light blue - accent */
+  --viking-dark: #1a1a1a;           /* Dark - depth */
+  --viking-light: #f5f7ff;          /* Light blue tint */
+  --viking-steel: #606c76;          /* Steel grey - tools/strength */
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -19,7 +30,9 @@ body {
 /* Landing Page Styles */
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #ff6b35 0%, #f7941d 50%, #d62d20 100%);
+  background: linear-gradient(135deg, var(--viking-primary) 0%, var(--viking-secondary) 30%, var(--viking-accent) 70%, var(--viking-primary) 100%);
+  background-size: 400% 400%;
+  animation: gradientWave 8s ease-in-out infinite;
   color: white;
   display: flex;
   flex-direction: column;
@@ -150,7 +163,7 @@ body {
 
 .cta-button.primary {
   background: rgba(255, 255, 255, 0.95);
-  color: #ff6b35;
+  color: var(--viking-primary);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
 }
 
@@ -179,15 +192,15 @@ body {
   padding: 20px;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  box-shadow: 0 2px 20px rgba(255, 107, 53, 0.1);
-  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
+  box-shadow: 0 2px 20px rgba(211, 47, 47, 0.1);
+  border-bottom: 1px solid rgba(211, 47, 47, 0.2);
 }
 
 .nav-btn {
   padding: 12px 24px;
   border: 2px solid transparent;
-  background: rgba(255, 107, 53, 0.1);
-  color: #ff6b35;
+  background: rgba(211, 47, 47, 0.1);
+  color: var(--viking-primary);
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -196,14 +209,14 @@ body {
 }
 
 .nav-btn:hover {
-  background: rgba(255, 107, 53, 0.2);
+  background: rgba(211, 47, 47, 0.2);
   transform: translateY(-1px);
 }
 
 .nav-btn.active {
-  background: linear-gradient(135deg, #ff6b35, #f7941d);
+  background: linear-gradient(135deg, var(--viking-primary), var(--viking-accent));
   color: white;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4px 12px rgba(11, 94, 255, 0.3);
 }
 
 .nav-btn.logout {
@@ -229,7 +242,7 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  background: linear-gradient(45deg, var(--viking-primary), var(--viking-accent));
   color: white;
 }
 
@@ -252,12 +265,12 @@ body {
 
 .btn-outline {
   background: transparent;
-  color: #ff6b35;
-  border: 2px solid #ff6b35;
+  color: var(--viking-primary);
+  border: 2px solid var(--viking-primary);
 }
 
 .btn-outline:hover {
-  background: #ff6b35;
+  background: var(--viking-primary);
   color: white;
   transform: translateY(-3px);
 }
@@ -293,7 +306,7 @@ body {
 }
 
 .nav-btn.active {
-  background: linear-gradient(45deg, #ff6b35, #f7931e);
+  background: linear-gradient(45deg, var(--viking-primary), var(--viking-accent));
   opacity: 1;
   color: white;
   font-weight: 600;

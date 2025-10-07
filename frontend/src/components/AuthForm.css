@@ -1,4 +1,17 @@
-/* AuthForm.css - Authentication Form Styling */
+/* AuthForm.css - Authentication Form Styling with Viking Hammer Blue & White Theme */
+
+:root {
+  /* Viking Hammer Brand Colors - Blue & White Theme */
+  --viking-primary: #0b5eff;        /* Main blue from logo */
+  --viking-secondary: #ffffff;      /* White - clean/professional */
+  --viking-accent: #4a90e2;         /* Light blue - accent */
+  --viking-dark: #1a1a1a;           /* Dark - depth */
+  --viking-light: #f5f7ff;          /* Light blue tint */
+  --viking-steel: #606c76;          /* Steel grey - tools/strength */
+  --viking-success: #4caf50;        /* Success green */
+  --viking-error: #f44336;          /* Error red */
+  --viking-warning: #ff9800;        /* Warning orange */
+}
 
 .auth-container {
   min-height: 100vh;
@@ -17,11 +30,11 @@
   right: 0;
   bottom: 0;
   background: linear-gradient(135deg, 
-    #ff6b35 0%, 
-    #f7941d 25%, 
-    #ff6b35 50%, 
-    #d62d20 75%, 
-    #8b0000 100%);
+    var(--viking-primary) 0%, 
+    var(--viking-accent) 25%, 
+    var(--viking-secondary) 50%, 
+    var(--viking-accent) 75%, 
+    var(--viking-primary) 100%);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
 }
@@ -46,10 +59,10 @@
   backdrop-filter: blur(20px);
   border-radius: 24px;
   box-shadow: 
-    0 32px 64px rgba(255, 107, 53, 0.3),
+    0 32px 64px rgba(211, 47, 47, 0.3),
     0 16px 32px rgba(0, 0, 0, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(211, 47, 47, 0.2);
   max-width: 500px;
   width: 100%;
   padding: 40px;
@@ -76,10 +89,10 @@
 
 .auth-logo h1 {
   font-size: 2rem;
-  color: #ff6b35;
+  color: var(--viking-primary);
   margin: 0 0 16px 0;
   font-weight: 800;
-  text-shadow: 2px 2px 4px rgba(255, 107, 53, 0.3);
+  text-shadow: 2px 2px 4px rgba(211, 47, 47, 0.3);
 }
 
 .auth-title h2 {
@@ -106,6 +119,38 @@
   gap: 20px;
 }
 
+/* General Error Display */
+.general-error {
+  background: rgba(244, 67, 54, 0.1);
+  border: 1px solid var(--viking-error);
+  color: var(--viking-error);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Demo Mode Banner */
+.demo-banner {
+  background: linear-gradient(45deg, #4caf50, #66bb6a);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3); }
+  50% { box-shadow: 0 4px 16px rgba(76, 175, 80, 0.5); }
+  100% { box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3); }
+}
+
 /* Step Indicator */
 .step-indicator {
   margin-bottom: 24px;
@@ -114,7 +159,7 @@
 .step-progress {
   width: 100%;
   height: 4px;
-  background: rgba(255, 107, 53, 0.2);
+  background: rgba(211, 47, 47, 0.2);
   border-radius: 2px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -122,14 +167,14 @@
 
 .progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ff6b35, #f7941d);
+  background: linear-gradient(90deg, var(--viking-primary), var(--viking-secondary));
   border-radius: 2px;
   transition: width 0.3s ease;
 }
 
 .step-text {
   font-size: 0.875rem;
-  color: #ff6b35;
+  color: var(--viking-primary);
   font-weight: 600;
 }
 
@@ -165,21 +210,67 @@
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #ff6b35;
-  box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+  border-color: var(--viking-primary);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
   background: rgba(255, 255, 255, 1);
 }
 
 .form-group input.error,
 .form-group select.error {
-  border-color: #e74c3c;
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  border-color: var(--viking-error);
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
 }
 
 .error-message {
-  color: #e74c3c;
+  color: var(--viking-error);
   font-size: 0.8rem;
   font-weight: 500;
+}
+
+/* Phone Input Container */
+.phone-input-container {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.country-code-select {
+  flex: 0 0 120px;
+  padding: 12px 8px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.country-code-select:focus {
+  outline: none;
+  border-color: var(--viking-primary);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+}
+
+.phone-number-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.phone-number-input:focus {
+  outline: none;
+  border-color: var(--viking-primary);
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+  background: rgba(255, 255, 255, 1);
+}
+
+.phone-number-input.error {
+  border-color: var(--viking-error);
+  box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.1);
 }
 
 /* Form Sections */
@@ -213,14 +304,14 @@
 }
 
 .membership-option:hover {
-  border-color: #ff6b35;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.15);
+  border-color: var(--viking-primary);
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.15);
 }
 
 .membership-option.selected {
-  border-color: #ff6b35;
-  background: rgba(255, 107, 53, 0.1);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.2);
+  border-color: var(--viking-primary);
+  background: rgba(211, 47, 47, 0.1);
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
 }
 
 .plan-header {
@@ -238,7 +329,7 @@
 }
 
 .plan-price {
-  color: #ff6b35;
+  color: var(--viking-primary);
   font-weight: 700;
   font-size: 0.95rem;
 }
@@ -259,7 +350,7 @@
 
 /* Buttons */
 .submit-button {
-  background: linear-gradient(135deg, #ff6b35, #f7941d);
+  background: linear-gradient(135deg, var(--viking-primary), var(--viking-secondary));
   color: white;
   border: none;
   padding: 14px 24px;
@@ -268,13 +359,13 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
   width: 100%;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
 }
 
 .submit-button:active:not(:disabled) {
@@ -299,8 +390,8 @@
 }
 
 .back-button:hover {
-  border-color: #ff6b35;
-  color: #ff6b35;
+  border-color: var(--viking-primary);
+  color: var(--viking-primary);
 }
 
 .form-actions {
@@ -320,7 +411,7 @@
 .auth-footer {
   text-align: center;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 107, 53, 0.2);
+  border-top: 1px solid rgba(211, 47, 47, 0.2);
 }
 
 .auth-footer p {
@@ -332,7 +423,7 @@
 .toggle-button {
   background: none;
   border: none;
-  color: #ff6b35;
+  color: var(--viking-primary);
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
@@ -340,7 +431,7 @@
 }
 
 .toggle-button:hover:not(:disabled) {
-  color: #e55a2b;
+  color: var(--viking-dark);
 }
 
 .toggle-button:disabled {
@@ -360,7 +451,7 @@
 }
 
 .forgot-password a:hover {
-  color: #ff6b35;
+  color: var(--viking-primary);
   text-decoration: underline;
 }
 

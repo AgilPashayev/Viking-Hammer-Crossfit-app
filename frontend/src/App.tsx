@@ -10,6 +10,12 @@ interface UserData {
   firstName: string;
   lastName: string;
   phone?: string;
+  countryCode?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactCountryCode?: string;
   membershipType: string;
   joinDate: string;
   isAuthenticated: boolean;
@@ -126,7 +132,7 @@ export default function App() {
               🚪 Logout
             </button>
           </div>
-          <MemberDashboard onNavigate={handleNavigate} />
+          <MemberDashboard onNavigate={handleNavigate} user={user} />
         </div>
       ) : (
         <div>
@@ -142,7 +148,7 @@ export default function App() {
               🚪 Logout
             </button>
           </div>
-          <MyProfile onNavigate={handleNavigate} />
+          <MyProfile onNavigate={handleNavigate} user={user} />
         </div>
       )}
     </div>

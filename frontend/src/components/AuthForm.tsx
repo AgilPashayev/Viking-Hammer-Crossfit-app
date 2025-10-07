@@ -1,5 +1,13 @@
 import React, { useState } from 'react';
 import './AuthForm.css';
+import {
+  signUpUser,
+  signInUser,
+  countryCodes,
+  validateDateFormat,
+  formatDateForStorage,
+  updateUserProfile,
+} from '../services/supabaseService';
 
 interface AuthFormProps {
   onLogin: (userData: any) => void;
@@ -12,28 +20,26 @@ interface FormData {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  countryCode?: string;
   dateOfBirth?: string;
   gender?: string;
-  emergencyContactName?: string;
-  emergencyContactPhone?: string;
-  membershipType?: string;
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
+  const [maxSteps] = useState(2); // Only 2 steps now
   const [isLoading, setIsLoading] = useState(false);
+  const [createdUser, setCreatedUser] = useState<any>(null); // Store user created in step 1
   const [formData, setFormData] = useState<FormData>({
     email: '',
     password: '',
     firstName: '',
     lastName: '',
     phone: '',
+    countryCode: '+994',
     dateOfBirth: '',
     gender: '',
-    emergencyContactName: '',
-    emergencyContactPhone: '',
-    membershipType: 'Viking Warrior Basic',
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -57,16 +63,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
 
     if (step === 2 && !isLogin) {
       if (!formData.phone) newErrors.phone = 'Phone number is required';
-      if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
-      if (!formData.gender) newErrors.gender = 'Gender is required';
-    }
+      else if (!/^\d{7,15}$/.test(formData.phone)) newErrors.phone = 'Invalid phone number format';
 
-    if (step === 3 && !isLogin) {
-      if (!formData.emergencyContactName)
-        newErrors.emergencyContactName = 'Emergency contact name is required';
-      if (!formData.emergencyContactPhone)
-        newErrors.emergencyContactPhone = 'Emergency contact phone is required';
-      if (!formData.membershipType) newErrors.membershipType = 'Membership type is required';
+      if (!formData.dateOfBirth) newErrors.dateOfBirth = 'Date of birth is required';
+      else if (!validateDateFormat(formData.dateOfBirth))
+        newErrors.dateOfBirth = 'Date must be in DD-MM-YYYY format';
+
+      if (!formData.gender) newErrors.gender = 'Gender is required';
     }
 
     setErrors(newErrors);
@@ -88,54 +91,144 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
 
       setIsLoading(true);
 
-      // Simulate API call for login
-      setTimeout(() => {
-        const userData = {
-          id: 'vh-' + Date.now(),
+      try {
+        const { user, error } = await signInUser({
           email: formData.email,
-          firstName: 'Erik',
-          lastName: 'Andersson',
-          phone: '+46 70 123 4567',
-          membershipType: 'Viking Warrior Premium',
-          joinDate: new Date().toISOString(),
-          isAuthenticated: true,
-        };
+          password: formData.password,
+        });
 
-        setIsLoading(false);
-        onLogin(userData);
-      }, 1500);
-    } else {
-      // For signup, validate current step
-      if (!validateStep(currentStep)) return;
+        if (error) {
+          setErrors({ general: error });
+          setIsLoading(false);
+          return;
+        }
 
-      if (currentStep < 3) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        // Final step - submit signup
-        setIsLoading(true);
-
-        // Simulate API call for signup
-        setTimeout(() => {
+        if (user) {
           const userData = {
-            id: 'vh-' + Date.now(),
-            email: formData.email,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            phone: formData.phone,
-            dateOfBirth: formData.dateOfBirth,
-            gender: formData.gender,
-            emergencyContact: {
-              name: formData.emergencyContactName,
-              phone: formData.emergencyContactPhone,
-            },
-            membershipType: formData.membershipType,
-            joinDate: new Date().toISOString(),
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            phone: user.phone || '',
+            countryCode: user.countryCode || '',
+            dateOfBirth: user.dateOfBirth || '',
+            gender: user.gender || '',
+            emergencyContactName: user.emergencyContactName || '',
+            emergencyContactPhone: user.emergencyContactPhone || '',
+            emergencyContactCountryCode: user.emergencyContactCountryCode || '',
+            membershipType: user.membershipType,
+            joinDate: user.joinDate,
             isAuthenticated: true,
           };
 
           setIsLoading(false);
           onLogin(userData);
-        }, 2000);
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        setErrors({ general: 'An unexpected error occurred. Please try again.' });
+        setIsLoading(false);
+      }
+    } else {
+      // For signup, validate current step
+      if (!validateStep(currentStep)) return;
+
+      if (currentStep === 1) {
+        // Step 1: Create basic account
+        setIsLoading(true);
+
+        try {
+          const signupData = {
+            email: formData.email!,
+            password: formData.password!,
+            firstName: formData.firstName!,
+            lastName: formData.lastName!,
+            phone: '', // Will be updated in step 2
+            countryCode: '+994', // Default, will be updated in step 2
+            dateOfBirth: '', // Will be updated in step 2
+            gender: '', // Will be updated in step 2
+            emergencyContactName: '',
+            emergencyContactPhone: '',
+            emergencyContactCountryCode: '+994',
+            membershipType: 'Viking Warrior Basic',
+          };
+
+          const { user, error } = await signUpUser(signupData);
+
+          if (error) {
+            setErrors({ general: error });
+            setIsLoading(false);
+            return;
+          }
+
+          if (user) {
+            // Store the created user for step 2
+            setCreatedUser(user);
+            setCurrentStep(2);
+          }
+
+          setIsLoading(false);
+        } catch (error) {
+          console.error('Signup error:', error);
+          setErrors({ general: 'An unexpected error occurred. Please try again.' });
+          setIsLoading(false);
+        }
+      } else {
+        // Step 2: Update with additional information
+        setIsLoading(true);
+
+        try {
+          if (!createdUser) {
+            setErrors({ general: 'User creation failed. Please start over.' });
+            setIsLoading(false);
+            return;
+          }
+
+          // Update user profile with step 2 data
+          const updateData = {
+            phone: formData.phone!,
+            countryCode: formData.countryCode!,
+            dateOfBirth: formatDateForStorage(formData.dateOfBirth!),
+            gender: formData.gender!,
+          };
+
+          const { user: updatedUser, error: updateError } = await updateUserProfile(
+            createdUser.id,
+            updateData,
+          );
+
+          if (updateError) {
+            setErrors({ general: updateError });
+            setIsLoading(false);
+            return;
+          }
+
+          if (updatedUser) {
+            const userData = {
+              id: updatedUser.id,
+              email: updatedUser.email,
+              firstName: updatedUser.firstName,
+              lastName: updatedUser.lastName,
+              phone: updatedUser.phone || '',
+              countryCode: updatedUser.countryCode || '',
+              dateOfBirth: updatedUser.dateOfBirth || '',
+              gender: updatedUser.gender || '',
+              emergencyContactName: updatedUser.emergencyContactName || '',
+              emergencyContactPhone: updatedUser.emergencyContactPhone || '',
+              emergencyContactCountryCode: updatedUser.emergencyContactCountryCode || '',
+              membershipType: updatedUser.membershipType,
+              joinDate: updatedUser.joinDate,
+              isAuthenticated: true,
+            };
+
+            setIsLoading(false);
+            onLogin(userData);
+          }
+        } catch (error) {
+          console.error('Profile update error:', error);
+          setErrors({ general: 'An unexpected error occurred. Please try again.' });
+          setIsLoading(false);
+        }
       }
     }
   };
@@ -149,38 +242,58 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
   const toggleMode = () => {
     setIsLogin(!isLogin);
     setCurrentStep(1);
-    setErrors({});
+    setCreatedUser(null); // Reset created user
     setFormData({
       email: '',
       password: '',
       firstName: '',
       lastName: '',
       phone: '',
+      countryCode: '+994',
       dateOfBirth: '',
       gender: '',
-      emergencyContactName: '',
-      emergencyContactPhone: '',
-      membershipType: 'Viking Warrior Basic',
     });
+    setErrors({});
+  };
+
+  const formatDateInput = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+
+    // Format as DD-MM-YYYY
+    if (digits.length >= 8) {
+      return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4, 8)}`;
+    } else if (digits.length >= 4) {
+      return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
+    } else if (digits.length >= 2) {
+      return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+    }
+    return digits;
   };
 
   const renderLoginForm = () => (
     <div className="auth-form-content">
+      <div className="auth-header">
+        <h2>Welcome Back, Viking!</h2>
+        <p>Ready to unleash your inner warrior?</p>
+      </div>
+
       <div className="form-group">
-        <label htmlFor="email">Email Address</label>
+        <label htmlFor="email">Email *</label>
         <input
           type="email"
           id="email"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your.email@example.com"
+          placeholder="your@email.com"
           className={errors.email ? 'error' : ''}
+          required
         />
         {errors.email && <span className="error-message">{errors.email}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">Password *</label>
         <input
           type="password"
           id="password"
@@ -188,23 +301,23 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           onChange={(e) => handleInputChange('password', e.target.value)}
           placeholder="Enter your password"
           className={errors.password ? 'error' : ''}
+          required
         />
         {errors.password && <span className="error-message">{errors.password}</span>}
       </div>
 
+      {errors.general && <div className="general-error">{errors.general}</div>}
+
       <button type="submit" className="submit-button" disabled={isLoading}>
-        {isLoading ? (
-          <span className="loading-spinner">⚡ Logging in...</span>
-        ) : (
-          '🔨 Login to Viking Hammer'
-        )}
+        {isLoading ? 'Signing In...' : 'Login →'}
       </button>
 
-      <div className="forgot-password">
-        <a href="#" onClick={(e) => e.preventDefault()}>
-          Forgot your password?
-        </a>
-      </div>
+      <p className="auth-switch">
+        New warrior?{' '}
+        <button type="button" onClick={toggleMode} className="link-button">
+          Join the Viking Army
+        </button>
+      </p>
     </div>
   );
 
@@ -212,14 +325,19 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
     <div className="auth-form-content">
       <div className="step-indicator">
         <div className="step-progress">
-          <div className="progress-bar" style={{ width: '33.33%' }}></div>
+          <div className="progress-bar" style={{ width: '50%' }}></div>
         </div>
-        <span className="step-text">Step 1 of 3: Account Details</span>
+        <span className="step-text">Step 1 of 2: Account Setup</span>
+      </div>
+
+      <div className="auth-header">
+        <h2>Join the Viking Army!</h2>
+        <p>Create your warrior profile</p>
       </div>
 
       <div className="form-row">
         <div className="form-group">
-          <label htmlFor="firstName">First Name</label>
+          <label htmlFor="firstName">First Name *</label>
           <input
             type="text"
             id="firstName"
@@ -227,39 +345,42 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
             onChange={(e) => handleInputChange('firstName', e.target.value)}
             placeholder="Erik"
             className={errors.firstName ? 'error' : ''}
+            required
           />
           {errors.firstName && <span className="error-message">{errors.firstName}</span>}
         </div>
 
         <div className="form-group">
-          <label htmlFor="lastName">Last Name</label>
+          <label htmlFor="lastName">Last Name *</label>
           <input
             type="text"
             id="lastName"
             value={formData.lastName}
             onChange={(e) => handleInputChange('lastName', e.target.value)}
-            placeholder="Andersson"
+            placeholder="Eriksson"
             className={errors.lastName ? 'error' : ''}
+            required
           />
           {errors.lastName && <span className="error-message">{errors.lastName}</span>}
         </div>
       </div>
 
       <div className="form-group">
-        <label htmlFor="email">Email Address</label>
+        <label htmlFor="email">Email *</label>
         <input
           type="email"
           id="email"
           value={formData.email}
           onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="erik.andersson@email.com"
+          placeholder="erik@example.com"
           className={errors.email ? 'error' : ''}
+          required
         />
         {errors.email && <span className="error-message">{errors.email}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">Password *</label>
         <input
           type="password"
           id="password"
@@ -267,13 +388,23 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           onChange={(e) => handleInputChange('password', e.target.value)}
           placeholder="Create a strong password"
           className={errors.password ? 'error' : ''}
+          required
         />
         {errors.password && <span className="error-message">{errors.password}</span>}
       </div>
 
+      {errors.general && <div className="general-error">{errors.general}</div>}
+
       <button type="submit" className="submit-button">
-        Continue to Personal Info →
+        Continue →
       </button>
+
+      <p className="auth-switch">
+        Already a Viking?{' '}
+        <button type="button" onClick={toggleMode} className="link-button">
+          Login here
+        </button>
+      </p>
     </div>
   );
 
@@ -281,183 +412,122 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
     <div className="auth-form-content">
       <div className="step-indicator">
         <div className="step-progress">
-          <div className="progress-bar" style={{ width: '66.66%' }}></div>
+          <div className="progress-bar" style={{ width: '100%' }}></div>
         </div>
-        <span className="step-text">Step 2 of 3: Personal Information</span>
+        <span className="step-text">Step 2 of 2: Personal Information</span>
       </div>
 
       <div className="form-group">
-        <label htmlFor="phone">Phone Number</label>
-        <input
-          type="tel"
-          id="phone"
-          value={formData.phone}
-          onChange={(e) => handleInputChange('phone', e.target.value)}
-          placeholder="+46 70 123 4567"
-          className={errors.phone ? 'error' : ''}
-        />
+        <label>Phone Number *</label>
+        <div className="phone-input-container">
+          <select
+            value={formData.countryCode}
+            onChange={(e) => handleInputChange('countryCode', e.target.value)}
+            className="country-code-select"
+            required
+          >
+            {countryCodes.map((country) => (
+              <option key={country.code} value={country.code}>
+                {country.flag} {country.code}
+              </option>
+            ))}
+          </select>
+          <input
+            type="tel"
+            value={formData.phone}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, ''); // Only digits
+              handleInputChange('phone', value);
+            }}
+            placeholder="509876543"
+            className={errors.phone ? 'error phone-number-input' : 'phone-number-input'}
+            required
+          />
+        </div>
         {errors.phone && <span className="error-message">{errors.phone}</span>}
       </div>
 
-      <div className="form-row">
-        <div className="form-group">
-          <label htmlFor="dateOfBirth">Date of Birth</label>
-          <input
-            type="date"
-            id="dateOfBirth"
-            value={formData.dateOfBirth}
-            onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-            className={errors.dateOfBirth ? 'error' : ''}
-          />
-          {errors.dateOfBirth && <span className="error-message">{errors.dateOfBirth}</span>}
-        </div>
-
-        <div className="form-group">
-          <label htmlFor="gender">Gender</label>
-          <select
-            id="gender"
-            value={formData.gender}
-            onChange={(e) => handleInputChange('gender', e.target.value)}
-            className={errors.gender ? 'error' : ''}
-          >
-            <option value="">Select Gender</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-            <option value="Prefer not to say">Prefer not to say</option>
-          </select>
-          {errors.gender && <span className="error-message">{errors.gender}</span>}
-        </div>
+      <div className="form-group">
+        <label htmlFor="dateOfBirth">Date of Birth *</label>
+        <input
+          type="text"
+          id="dateOfBirth"
+          value={formData.dateOfBirth}
+          onChange={(e) => {
+            const formatted = formatDateInput(e.target.value);
+            handleInputChange('dateOfBirth', formatted);
+          }}
+          placeholder="DD-MM-YYYY"
+          maxLength={10}
+          className={errors.dateOfBirth ? 'error' : ''}
+          required
+        />
+        {errors.dateOfBirth && <span className="error-message">{errors.dateOfBirth}</span>}
       </div>
 
-      <div className="form-actions">
-        <button type="button" className="back-button" onClick={handlePrevStep}>
-          ← Back
-        </button>
-        <button type="submit" className="submit-button">
-          Continue to Emergency Contact →
-        </button>
-      </div>
-    </div>
-  );
-
-  const renderSignupStep3 = () => (
-    <div className="auth-form-content">
-      <div className="step-indicator">
-        <div className="step-progress">
-          <div className="progress-bar" style={{ width: '100%' }}></div>
-        </div>
-        <span className="step-text">Step 3 of 3: Emergency Contact & Membership</span>
+      <div className="form-group">
+        <label htmlFor="gender">Gender *</label>
+        <select
+          id="gender"
+          value={formData.gender}
+          onChange={(e) => handleInputChange('gender', e.target.value)}
+          className={errors.gender ? 'error' : ''}
+          required
+        >
+          <option value="">Select Gender</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        {errors.gender && <span className="error-message">{errors.gender}</span>}
       </div>
 
-      <div className="form-section">
-        <h4>Emergency Contact</h4>
-        <div className="form-row">
-          <div className="form-group">
-            <label htmlFor="emergencyContactName">Contact Name</label>
-            <input
-              type="text"
-              id="emergencyContactName"
-              value={formData.emergencyContactName}
-              onChange={(e) => handleInputChange('emergencyContactName', e.target.value)}
-              placeholder="Anna Andersson"
-              className={errors.emergencyContactName ? 'error' : ''}
-            />
-            {errors.emergencyContactName && (
-              <span className="error-message">{errors.emergencyContactName}</span>
-            )}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="emergencyContactPhone">Contact Phone</label>
-            <input
-              type="tel"
-              id="emergencyContactPhone"
-              value={formData.emergencyContactPhone}
-              onChange={(e) => handleInputChange('emergencyContactPhone', e.target.value)}
-              placeholder="+46 70 987 6543"
-              className={errors.emergencyContactPhone ? 'error' : ''}
-            />
-            {errors.emergencyContactPhone && (
-              <span className="error-message">{errors.emergencyContactPhone}</span>
-            )}
-          </div>
-        </div>
-      </div>
-
-      <div className="form-section">
-        <h4>Membership Plan</h4>
-        <div className="membership-options">
-          {[
-            {
-              value: 'Viking Warrior Basic',
-              price: '299 SEK/month',
-              features: ['Gym Access', '2 Classes/week', 'Basic Equipment'],
-            },
-            {
-              value: 'Viking Warrior Standard',
-              price: '499 SEK/month',
-              features: ['Gym Access', '5 Classes/week', 'All Equipment', 'Nutrition Plan'],
-            },
-            {
-              value: 'Viking Warrior Premium',
-              price: '799 SEK/month',
-              features: [
-                'Unlimited Access',
-                'All Classes',
-                'Personal Training',
-                'Meal Plans',
-                'Recovery Services',
-              ],
-            },
-          ].map((plan) => (
-            <div
-              key={plan.value}
-              className={`membership-option ${
-                formData.membershipType === plan.value ? 'selected' : ''
-              }`}
-              onClick={() => handleInputChange('membershipType', plan.value)}
-            >
-              <div className="plan-header">
-                <h5>{plan.value}</h5>
-                <span className="plan-price">{plan.price}</span>
-              </div>
-              <ul className="plan-features">
-                {plan.features.map((feature, index) => (
-                  <li key={index}>✓ {feature}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        {errors.membershipType && <span className="error-message">{errors.membershipType}</span>}
-      </div>
+      {errors.general && <div className="general-error">{errors.general}</div>}
 
       <div className="form-actions">
         <button type="button" className="back-button" onClick={handlePrevStep}>
           ← Back
         </button>
         <button type="submit" className="submit-button" disabled={isLoading}>
-          {isLoading ? (
-            <span className="loading-spinner">⚡ Creating Account...</span>
-          ) : (
-            '🔨 Join Viking Hammer CrossFit'
-          )}
+          {isLoading ? 'Creating Account...' : 'Join Viking Hammer →'}
         </button>
       </div>
     </div>
   );
 
-  const renderStepContent = () => {
-    if (isLogin) return renderLoginForm();
+  const renderFormContent = () => {
+    // Check if we're in demo mode
+    const isDemoMode =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+    if (isLogin) {
+      return (
+        <>
+          {isDemoMode && (
+            <div className="demo-banner">
+              🚀 <strong>Demo Mode Active!</strong> Use any email/password to test login
+              functionality!
+            </div>
+          )}
+          {renderLoginForm()}
+        </>
+      );
+    }
 
     switch (currentStep) {
       case 1:
-        return renderSignupStep1();
+        return (
+          <>
+            {isDemoMode && (
+              <div className="demo-banner">
+                🚀 <strong>Demo Mode Active!</strong> You can use any email/password to test
+                signup/login. No real database connection required!
+              </div>
+            )}
+            {renderSignupStep1()}
+          </>
+        );
       case 2:
         return renderSignupStep2();
-      case 3:
-        return renderSignupStep3();
       default:
         return renderSignupStep1();
     }
@@ -470,37 +540,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
       </div>
 
       <div className="auth-form">
-        <div className="auth-header">
-          <div className="auth-logo">
-            <h1>🔨 Viking Hammer CrossFit</h1>
-          </div>
-          <div className="auth-title">
-            <h2>{isLogin ? 'Welcome Back, Warrior!' : 'Join the Viking Army!'}</h2>
-            <p>
-              {isLogin
-                ? 'Sign in to access your training dashboard and continue your fitness journey.'
-                : 'Start your transformation today and become the strongest version of yourself.'}
-            </p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="auth-form-container">
-          {renderStepContent()}
-        </form>
-
-        <div className="auth-footer">
-          <p>
-            {isLogin ? "Don't have an account? " : 'Already have an account? '}
-            <button
-              type="button"
-              className="toggle-button"
-              onClick={toggleMode}
-              disabled={isLoading}
-            >
-              {isLogin ? 'Sign up here' : 'Sign in here'}
-            </button>
-          </p>
-        </div>
+        <form onSubmit={handleSubmit}>{renderFormContent()}</form>
       </div>
     </div>
   );
