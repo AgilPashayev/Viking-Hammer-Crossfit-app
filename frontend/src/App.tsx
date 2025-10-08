@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import MemberDashboard from './components/MemberDashboard';
 import MyProfile from './components/MyProfile';
+import Reception from './components/Reception';
 import AuthForm from './components/AuthForm';
 import './styles.css';
 
@@ -22,7 +23,7 @@ interface UserData {
 }
 
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'dashboard' | 'profile' | 'auth'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'dashboard' | 'profile' | 'reception' | 'auth'>('home');
   const [user, setUser] = useState<UserData | null>(null);
 
   const handleLogin = (userData: UserData) => {
@@ -46,6 +47,8 @@ export default function App() {
       setCurrentPage('dashboard');
     } else if (page === 'profile') {
       setCurrentPage('profile');
+    } else if (page === 'reception') {
+      setCurrentPage('reception');
     } else if (page === 'logout') {
       handleLogout();
     }
@@ -107,12 +110,20 @@ export default function App() {
                     </button>
                   </>
                 ) : (
-                  <button
-                    className="cta-button primary"
-                    onClick={() => setCurrentPage('dashboard')}
-                  >
-                    🏋️ Go to Dashboard
-                  </button>
+                  <>
+                    <button
+                      className="cta-button primary"
+                      onClick={() => setCurrentPage('dashboard')}
+                    >
+                      🏋️ Go to Dashboard
+                    </button>
+                    <button
+                      className="cta-button secondary"
+                      onClick={() => setCurrentPage('reception')}
+                    >
+                      🏢 Reception Panel
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -128,11 +139,33 @@ export default function App() {
             <button className="nav-btn" onClick={() => handleNavigate('profile')}>
               👤 Profile
             </button>
+            <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+              🏢 Reception
+            </button>
             <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
               🚪 Logout
             </button>
           </div>
           <MemberDashboard onNavigate={handleNavigate} user={user} />
+        </div>
+      ) : currentPage === 'reception' ? (
+        <div>
+          <div className="navigation-bar">
+            <button className="nav-btn" onClick={() => handleNavigate('home')}>
+              🏠 Home
+            </button>
+            <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
+              📊 Dashboard
+            </button>
+            <button className="nav-btn" onClick={() => handleNavigate('profile')}>
+              👤 Profile
+            </button>
+            <button className="nav-btn active">🏢 Reception</button>
+            <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
+              � Logout
+            </button>
+          </div>
+          <Reception onNavigate={handleNavigate} />
         </div>
       ) : (
         <div>
@@ -143,7 +176,10 @@ export default function App() {
             <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
               📊 Dashboard
             </button>
-            <button className="nav-btn active">👤 Profile</button>
+            <button className="nav-btn active">�👤 Profile</button>
+            <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+              🏢 Reception
+            </button>
             <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
               🚪 Logout
             </button>

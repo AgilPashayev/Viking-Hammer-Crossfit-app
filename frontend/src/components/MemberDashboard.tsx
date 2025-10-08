@@ -129,6 +129,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const [qrCodeData, setQRCodeData] = useState<QRCodeData | null>(null);
   const [qrCodeImage, setQRCodeImage] = useState<string | null>(null);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
 
   const handleBookClass = () => {
     // Navigate to class booking page
@@ -219,6 +220,18 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   }, [user]);
 
   const handleGenerateQR = () => {
+    // Show QR modal and generate/load QR code
+    setShowQRModal(true);
+    if (!qrCodeData) {
+      loadOrGenerateQRCode();
+    }
+  };
+
+  const handleCloseQRModal = () => {
+    setShowQRModal(false);
+  };
+
+  const handleRegenerateQR = () => {
     // Generate new QR code for check-in
     generateNewQRCode();
   };
@@ -242,7 +255,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         <div className="quick-actions">
           <button className="btn btn-primary" onClick={handleGenerateQR}>
             <span className="icon">📱</span>
-            Check-In QR
+            Check-In QR Code
           </button>
           <button className="btn btn-secondary" onClick={handleBookClass}>
             <span className="icon">📅</span>
@@ -371,64 +384,63 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         </div>
       </div>
 
-      {/* QR Code Section */}
-      <div className="qr-section">
-        <div className="qr-card">
-          <h3>🎫 Your Check-In QR Code</h3>
-          <div className="qr-placeholder">
-            <div className="qr-code">
-              {qrCodeImage ? (
-                <img
-                  src={qrCodeImage}
-                  alt="Check-in QR Code"
-                  style={{
-                    width: '200px',
-                    height: '200px',
-                    border: '2px solid #0b5eff',
-                    borderRadius: '8px',
-                    background: 'white',
-                    padding: '8px',
-                  }}
-                />
-              ) : (
-                <div className="qr-loading">
-                  {isGeneratingQR ? (
-                    <div style={{ textAlign: 'center', color: '#0b5eff' }}>
-                      <div>🔄 Generating QR Code...</div>
-                    </div>
-                  ) : (
-                    <div className="qr-pattern"></div>
-                  )}
-                </div>
-              )}
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="qr-modal-overlay" onClick={handleCloseQRModal}>
+          <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="qr-modal-header">
+              <h3>🎫 Your Check-In QR Code</h3>
+              <button className="close-button" onClick={handleCloseQRModal}>
+                ✕
+              </button>
             </div>
-            <p>Scan at reception to check in</p>
-            <p className="qr-id">ID: {quickStats.qrCode}</p>
-            {qrCodeData && (
-              <div style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-                <p>Expires: {new Date(qrCodeData.expiresAt).toLocaleDateString()}</p>
-                <p>Generated: {new Date(qrCodeData.timestamp).toLocaleString()}</p>
+            <div className="qr-modal-content">
+              <div className="qr-display">
+                {qrCodeImage ? (
+                  <img
+                    src={qrCodeImage}
+                    alt="Check-in QR Code"
+                    className="qr-code-image"
+                  />
+                ) : (
+                  <div className="qr-loading">
+                    {isGeneratingQR ? (
+                      <div className="loading-content">
+                        <div className="spinner">🔄</div>
+                        <p>Generating QR Code...</p>
+                      </div>
+                    ) : (
+                      <div className="qr-pattern"></div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-            <button
-              onClick={handleGenerateQR}
-              disabled={isGeneratingQR}
-              style={{
-                marginTop: '15px',
-                padding: '8px 16px',
-                backgroundColor: '#0b5eff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                cursor: isGeneratingQR ? 'not-allowed' : 'pointer',
-                opacity: isGeneratingQR ? 0.6 : 1,
-              }}
-            >
-              {isGeneratingQR ? 'Generating...' : 'Generate New QR'}
-            </button>
+              <div className="qr-info">
+                <p className="qr-instruction">Present this QR code to the receptionist to check in</p>
+                <p className="qr-id">ID: {quickStats.qrCode}</p>
+                {qrCodeData && (
+                  <div className="qr-details">
+                    <p>Expires: {new Date(qrCodeData.expiresAt).toLocaleDateString()}</p>
+                    <p>Generated: {new Date(qrCodeData.timestamp).toLocaleString()}</p>
+                  </div>
+                )}
+              </div>
+              <div className="qr-actions">
+                <button
+                  onClick={handleRegenerateQR}
+                  disabled={isGeneratingQR}
+                  className="btn btn-secondary"
+                >
+                  {isGeneratingQR ? 'Generating...' : 'Generate New QR'}
+                </button>
+                <button onClick={handleCloseQRModal} className="btn btn-primary">
+                  Done
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
