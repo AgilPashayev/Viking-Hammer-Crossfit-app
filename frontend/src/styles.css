@@ -335,3 +335,120 @@ body {
     width: 250px;
   }
 }
+
+/* QR Scanner Modal Styles */
+.qr-scanner-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.qr-scanner-modal .modal-content {
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.qr-scanner-modal .modal-header {
+  padding: 20px;
+  background: var(--viking-primary);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.qr-scanner-modal .modal-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.qr-scanner-modal .btn-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-scanner-modal .btn-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.qr-scanner-modal .modal-body {
+  padding: 20px;
+  text-align: center;
+}
+
+.qr-scanner-modal .scanner-controls {
+  margin: 15px 0;
+}
+
+.qr-scanner-modal .scanner-controls p {
+  margin-bottom: 15px;
+  color: var(--viking-steel);
+}
+
+.qr-scanner-modal .camera-container {
+  margin: 20px 0;
+}
+
+.qr-scanner-modal .camera-container video {
+  border: 2px solid var(--viking-primary);
+  border-radius: 8px;
+  background: #000;
+}
+
+.qr-scanner-modal .scan-result {
+  margin: 20px 0;
+}
+
+.qr-scanner-modal .result-message {
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.qr-scanner-modal .result-message.success {
+  background: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}
+
+.qr-scanner-modal .result-message.error {
+  background: #f8d7da;
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+
+.qr-scanner-modal .member-info {
+  background: var(--viking-light);
+  padding: 10px;
+  border-radius: 6px;
+  margin-top: 10px;
+  text-align: left;
+}
+
+.qr-scanner-modal .member-info p {
+  margin: 5px 0;
+  font-size: 0.9rem;
+}
