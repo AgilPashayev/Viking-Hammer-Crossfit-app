@@ -1,8 +1,8 @@
-/* Reception Dashboard Styles */
+/* Reception Dashboard Styles - Improved UI/UX */
 .reception {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: white;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e3f2fd 50%, #bbdefb 100%);
+  color: #1a237e;
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -17,11 +17,12 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.9);
   padding: 25px;
   border-radius: 15px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.1);
 }
 
 .reception-welcome {
@@ -41,7 +42,8 @@
   font-size: 1.5rem;
   font-weight: 700;
   color: white;
-  border: 3px solid rgba(255, 255, 255, 0.2);
+  border: 3px solid rgba(11, 94, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(11, 94, 255, 0.2);
 }
 
 .welcome-text h1 {
@@ -71,20 +73,21 @@
 }
 
 .stat-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   padding: 25px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.2);
   display: flex;
   align-items: center;
   gap: 20px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.1);
 }
 
 .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.2);
 }
 
 .stat-card.clickable {
@@ -94,8 +97,8 @@
 
 .stat-card.clickable:hover {
   transform: translateY(-8px);
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
-  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 15px 40px rgba(25, 118, 210, 0.25);
+  background: rgba(255, 255, 255, 1);
 }
 
 .stat-card.clickable:active {

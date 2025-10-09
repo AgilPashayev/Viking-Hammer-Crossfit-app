@@ -1,8 +1,8 @@
 .announcement-manager {
   padding: 20px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #f0f4ff 0%, #e3f2fd 50%, #bbdefb 100%);
   min-height: 100vh;
-  color: white;
+  color: #1a237e;
 }
 
 .announcement-header {
@@ -402,15 +402,15 @@
 }
 
 .modal-content {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: rgba(255, 255, 255, 0.98);
   border-radius: 20px;
   padding: 0;
   max-width: 700px;
   width: 90%;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 2px solid #2196f3;
+  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.3);
 }
 
 .modal-header {
@@ -418,11 +418,11 @@
   justify-content: space-between;
   align-items: center;
   padding: 25px 30px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 2px solid #2196f3;
 }
 
 .modal-header h3 {
-  color: #0b5eff;
+  color: #1565c0;
   margin: 0;
   font-size: 1.5rem;
 }
@@ -430,7 +430,7 @@
 .close-btn {
   background: none;
   border: none;
-  color: #888;
+  color: #1a237e;
   font-size: 1.5rem;
   cursor: pointer;
   padding: 5px;

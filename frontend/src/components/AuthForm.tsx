@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useData } from '../contexts/DataContext';
 import './AuthForm.css';
 import {
   signUpUser,
@@ -26,6 +27,7 @@ interface FormData {
 }
 
 const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
+  const { addMember } = useData();
   const [isLogin, setIsLogin] = useState(true);
   const [currentStep, setCurrentStep] = useState(1);
   const [maxSteps] = useState(2); // Only 2 steps now
@@ -220,6 +222,21 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
               joinDate: updatedUser.joinDate,
               isAuthenticated: true,
             };
+
+            // Add the new user to the centralized member list
+            const memberData = {
+              firstName: updatedUser.firstName,
+              lastName: updatedUser.lastName,
+              email: updatedUser.email,
+              phone: updatedUser.phone || '',
+              membershipType: updatedUser.membershipType,
+              status: 'active' as 'active',
+              joinDate: updatedUser.joinDate,
+              role: 'member' as 'member',
+              dateOfBirth: updatedUser.dateOfBirth,
+              gender: updatedUser.gender,
+            };
+            addMember(memberData);
 
             setIsLoading(false);
             onLogin(userData);

@@ -1,8 +1,8 @@
 .check-in-history {
   padding: 20px;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #f0f4ff 0%, #e3f2fd 50%, #bbdefb 100%);
   min-height: 100vh;
-  color: white;
+  color: #1a237e;
 }
 
 .check-in-header {
@@ -16,8 +16,8 @@
 
 .check-in-title {
   font-size: 2.5rem;
-  color: #0b5eff;
-  text-shadow: 0 0 20px rgba(11, 94, 255, 0.3);
+  color: #1565c0;
+  text-shadow: 0 0 20px rgba(21, 101, 192, 0.3);
   margin: 0;
 }
 

@@ -6,6 +6,7 @@ import AnnouncementManager from './AnnouncementManager';
 import MembershipManager from './MembershipManager';
 import UpcomingBirthdays from './UpcomingBirthdays';
 import { validateQRCode } from '../services/qrCodeService';
+import { useData } from '../contexts/DataContext';
 import './Reception.css';
 
 interface ReceptionProps {
@@ -13,6 +14,7 @@ interface ReceptionProps {
 }
 
 const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
+  const { stats, members, checkInMember } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -22,16 +24,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Mock data for real numbers
-  const [realStats, setRealStats] = useState({
-    totalMembers: 0,
-    checkedInToday: 0,
-    instructors: 0,
-    activeClasses: 0,
-    expiringMemberships: 0,
-    upcomingBirthdays: 0,
-  });
-
+  // Mock data for recent activity
   const [recentActivity, setRecentActivity] = useState([
     { id: 1, type: 'checkin', user: 'John Viking', time: '2 minutes ago', icon: '✅' },
     { id: 2, type: 'signup', user: 'Sarah Connor', time: '15 minutes ago', icon: '👤' },
@@ -49,23 +42,10 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    loadRealStats();
     return () => {
       stopCamera();
     };
   }, []);
-
-  const loadRealStats = () => {
-    // Simulate loading real data
-    setRealStats({
-      totalMembers: 245,
-      checkedInToday: 48,
-      instructors: 12,
-      activeClasses: 8,
-      expiringMemberships: 7,
-      upcomingBirthdays: 3,
-    });
-  };
 
   // QR Scanner functions
   const startCamera = async () => {
@@ -153,11 +133,11 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
         };
         setRecentActivity((prev) => [newActivity, ...prev.slice(0, 9)]);
 
-        // Update checked in today count
-        setRealStats((prev) => ({
-          ...prev,
-          checkedInToday: prev.checkedInToday + 1,
-        }));
+        // Update member check-in (this would normally use the member ID from QR code)
+        // For demo purposes, we'll check in the first member
+        if (members.length > 0) {
+          checkInMember(members[0].id);
+        }
 
         setScanResult({
           success: true,
@@ -184,8 +164,13 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
   };
 
   const handleQRScanClick = () => {
-    setShowQRScanner(true);
-    startCamera();
+    // Direct camera access - no separate QR scanner page
+    if (cameraActive) {
+      stopCamera();
+    } else {
+      startCamera();
+      setShowQRScanner(true);
+    }
   };
 
   const renderActiveSection = () => {
@@ -233,42 +218,42 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
         <div className="stat-card primary clickable" onClick={() => setActiveSection('members')}>
           <div className="stat-icon">👥</div>
           <div className="stat-content">
-            <h3>{realStats.totalMembers}</h3>
+            <h3>{stats.totalMembers}</h3>
             <p>Total Members</p>
           </div>
         </div>
         <div className="stat-card success clickable" onClick={() => setActiveSection('checkins')}>
           <div className="stat-icon">✅</div>
           <div className="stat-content">
-            <h3>{realStats.checkedInToday}</h3>
+            <h3>{stats.checkedInToday}</h3>
             <p>Checked In Today</p>
           </div>
         </div>
         <div className="stat-card info clickable" onClick={() => setActiveSection('classes')}>
           <div className="stat-icon">🏋️</div>
           <div className="stat-content">
-            <h3>{realStats.instructors}</h3>
+            <h3>{stats.instructors}</h3>
             <p>Instructors</p>
           </div>
         </div>
         <div className="stat-card warning clickable" onClick={() => setActiveSection('classes')}>
           <div className="stat-icon">📋</div>
           <div className="stat-content">
-            <h3>{realStats.activeClasses}</h3>
+            <h3>{stats.activeClasses}</h3>
             <p>Active Classes</p>
           </div>
         </div>
         <div className="stat-card danger clickable" onClick={() => setActiveSection('memberships')}>
           <div className="stat-icon">⏰</div>
           <div className="stat-content">
-            <h3>{realStats.expiringMemberships}</h3>
+            <h3>{stats.expiringMemberships}</h3>
             <p>Expiring Soon (7 days)</p>
           </div>
         </div>
         <div className="stat-card birthday clickable" onClick={() => setActiveSection('birthdays')}>
           <div className="stat-icon">🎂</div>
           <div className="stat-content">
-            <h3>{realStats.upcomingBirthdays}</h3>
+            <h3>{stats.upcomingBirthdays}</h3>
             <p>Upcoming Birthdays</p>
           </div>
         </div>
@@ -315,7 +300,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
             <div className="card-icon">🎉</div>
             <h3>Upcoming Birthdays</h3>
             <p>Keep members happy with birthday wishes</p>
-            <div className="card-badge">{realStats.upcomingBirthdays} This Week</div>
+            <div className="card-badge">{stats.upcomingBirthdays} This Week</div>
           </div>
         </div>
       </div>

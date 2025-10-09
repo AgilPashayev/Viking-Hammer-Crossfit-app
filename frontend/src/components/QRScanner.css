@@ -1,8 +1,8 @@
 /* QR Scanner Styles */
 .qr-scanner {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: white;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e3f2fd 50%, #bbdefb 100%);
+  color: #1a237e;
   padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -20,11 +20,12 @@
 }
 
 .method-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.9);
   border-radius: 15px;
   padding: 30px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid #2196f3;
+  box-shadow: 0 4px 16px rgba(33, 150, 243, 0.1);
   text-align: center;
   transition: all 0.3s ease;
 }
@@ -84,22 +85,25 @@
 .manual-input {
   width: 100%;
   padding: 12px 15px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid #2196f3;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a237e;
   font-size: 1rem;
   margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.1);
+  transition: all 0.3s ease;
 }
 
 .manual-input:focus {
   outline: none;
-  border-color: #0b5eff;
-  background: rgba(255, 255, 255, 0.15);
+  border-color: #1976d2;
+  background: white;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
 }
 
 .manual-input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+  color: #757575;
 }
 
 /* Scanning Indicator */

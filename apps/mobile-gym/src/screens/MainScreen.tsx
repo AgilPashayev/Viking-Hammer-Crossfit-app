@@ -12,7 +12,7 @@ const mockedData = {
   notifications: 3,
 };
 
-export default function MainScreen({ onStart }: Props) {
+export default function MainScreen({ onStart, onOpenDashboard }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{mockedData.gymName}</Text>
