@@ -59,21 +59,26 @@
 }
 
 .btn {
-  padding: 12px 20px;
+  padding: 0 12px;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 6px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 4px;
   text-decoration: none;
+  font-size: 0.75rem;
+  height: 30px;
+  min-width: 65px;
+  line-height: 1;
 }
 
 .btn-primary {
   background: linear-gradient(45deg, #0b5eff, #4a90e2);
-  color: white;
+  color: var(--viking-light);
 }
 
 .btn-primary:hover {
@@ -83,7 +88,7 @@
 
 .btn-secondary {
   background: rgba(255, 255, 255, 0.1);
-  color: white;
+  color: var(--viking-text);
   border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -96,13 +101,13 @@
   background: transparent;
   color: #0b5eff;
   border: 2px solid #0b5eff;
-  padding: 8px 16px;
-  font-size: 0.9rem;
+  padding: 0 10px !important;
+  font-size: 0.75rem;
 }
 
 .btn-outline:hover {
   background: #0b5eff;
-  color: white;
+  color: var(--viking-light);
 }
 
 .btn-link {
@@ -206,7 +211,7 @@
 
 .class-info h4 {
   margin: 0 0 5px 0;
-  color: white;
+  color: var(--viking-text);
   font-size: 1.1rem;
 }
 
@@ -268,7 +273,7 @@
 
 .menu-content h4 {
   margin: 0 0 5px 0;
-  color: white;
+  color: var(--viking-text);
 }
 
 .menu-content p {
@@ -313,7 +318,7 @@
 
 .announcement-header h4 {
   margin: 0;
-  color: white;
+  color: var(--viking-text);
 }
 
 .announcement-date {
@@ -357,7 +362,7 @@
 .qr-code {
   width: 120px;
   height: 120px;
-  background: white;
+  background: var(--viking-light);
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -463,7 +468,7 @@
 .close-button {
   background: none;
   border: none;
-  color: #ffffff;
+  color: var(--viking-text);
   font-size: 1.5rem;
   cursor: pointer;
   padding: 5px 10px;
@@ -528,7 +533,7 @@
 .qr-instruction {
   font-size: 1.1rem;
   margin-bottom: 15px;
-  color: #ffffff;
+  color: var(--viking-text);
   font-weight: 500;
 }
 
@@ -561,8 +566,10 @@
 }
 
 .qr-actions .btn {
-  padding: 12px 25px;
-  font-size: 1rem;
+  padding: 0 16px;
+  font-size: 0.8rem;
+  height: 36px;
+  min-width: 80px;
   font-weight: 600;
   min-width: 120px;
 }

@@ -307,12 +307,17 @@
 .edit-btn,
 .publish-btn,
 .delete-btn {
-  padding: 8px 16px;
+  padding: 0 16px !important;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
   transition: all 0.3s ease;
   flex: 1;
   min-width: 100px;

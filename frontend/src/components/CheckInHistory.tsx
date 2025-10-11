@@ -22,28 +22,28 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     {
       id: '1',
       memberId: '1',
-      memberName: 'John Viking',
-      memberAvatar: 'JV',
+      memberName: 'Thor Hammer',
+      memberAvatar: 'TH',
       checkInTime: '2024-10-07T14:45:00',
       checkOutTime: '2024-10-07T16:30:00',
       duration: 105,
-      membershipType: 'Viking Warrior Pro',
+      membershipType: 'Monthly Unlimited',
       status: 'completed'
     },
     {
       id: '2',
       memberId: '2',
-      memberName: 'Sarah Connor',
-      memberAvatar: 'SC',
+      memberName: 'Freya Viking',
+      memberAvatar: 'FV',
       checkInTime: '2024-10-07T15:20:00',
-      membershipType: 'Single Entry',
+      membershipType: 'Single',
       status: 'active'
     },
     {
       id: '3',
       memberId: '3',
-      memberName: 'Mike Johnson',
-      memberAvatar: 'MJ',
+      memberName: 'Odin Hammer',
+      memberAvatar: 'OH',
       checkInTime: '2024-10-07T13:15:00',
       checkOutTime: '2024-10-07T14:45:00',
       duration: 90,
@@ -53,23 +53,23 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     {
       id: '4',
       memberId: '4',
-      memberName: 'Emma Wilson',
-      memberAvatar: 'EW',
+      memberName: 'Astrid Viking',
+      memberAvatar: 'AV',
       checkInTime: '2024-10-06T18:30:00',
       checkOutTime: '2024-10-06T20:00:00',
       duration: 90,
-      membershipType: 'Viking Warrior Basic',
+      membershipType: 'Company',
       status: 'completed'
     },
     {
       id: '5',
       memberId: '5',
-      memberName: 'Alex Rodriguez',
-      memberAvatar: 'AR',
+      memberName: 'Ragnar Hammer',
+      memberAvatar: 'RH',
       checkInTime: '2024-10-06T16:45:00',
       checkOutTime: '2024-10-06T18:15:00',
       duration: 90,
-      membershipType: 'Single Entry',
+      membershipType: 'Single',
       status: 'completed'
     }
   ]);
@@ -202,34 +202,34 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     <div className="checkin-history">
       <div className="page-header">
         <div className="page-title">
-          <h2>Check-In History</h2>
-          <p>Monitor member activity and gym usage patterns</p>
+          <h2>🛡️ Viking Army Check-In History</h2>
+          <p>Monitor Viking warriors' activity and battle hall usage patterns</p>
         </div>
         <button className="btn btn-secondary" onClick={onBack}>
-          ← Back to Dashboard
+          🏠 Back to Command Center
         </button>
       </div>
 
       <div className="stats-overview">
         <div className="stat-card primary">
-          <div className="stat-icon">📊</div>
+          <div className="stat-icon">⚔️</div>
           <div className="stat-content">
             <h3>{stats.total}</h3>
-            <p>Total Check-ins</p>
+            <p>Total Battles</p>
           </div>
         </div>
         <div className="stat-card success">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon">�️</div>
           <div className="stat-content">
             <h3>{stats.today}</h3>
-            <p>Today</p>
+            <p>Today's Warriors</p>
           </div>
         </div>
         <div className="stat-card warning">
-          <div className="stat-icon">🏃</div>
+          <div className="stat-icon">�️‍♂️</div>
           <div className="stat-content">
             <h3>{stats.active}</h3>
-            <p>Currently Active (90min)</p>
+            <p>Active Warriors</p>
             <small>{stats.currentClass}</small>
           </div>
         </div>
@@ -237,7 +237,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
           <div className="stat-icon">⏱️</div>
           <div className="stat-content">
             <h3>{stats.avgDuration}m</h3>
-            <p>Avg Duration</p>
+            <p>Avg Battle Time</p>
           </div>
         </div>
       </div>
@@ -248,13 +248,13 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
             className="btn btn-outline advanced-filter-btn"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           >
-            🔍 Advanced Filters
+            🔍 Advanced Battle Filters
           </button>
 
           <div className="search-section">
             <input
               type="text"
-              placeholder="Search by member name..."
+              placeholder="Search Viking warriors..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -298,10 +298,11 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
+                    className="filter-select"
                   >
                     <option value="all">All Status</option>
-                    <option value="active">Currently Active</option>
-                    <option value="completed">Completed</option>
+                    <option value="active">🏋️‍♂️ In Battle</option>
+                    <option value="completed">✅ Battle Complete</option>
                   </select>
                 </div>
                 
@@ -310,11 +311,13 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                   <select
                     value={membershipFilter}
                     onChange={(e) => setMembershipFilter(e.target.value)}
+                    className="filter-select"
                   >
                     <option value="all">All Types</option>
-                    <option value="Viking Warrior Pro">Viking Warrior Pro</option>
-                    <option value="Single Entry">Single Entry</option>
-                    <option value="Monthly">Monthly</option>
+                    <option value="Single">Single Battle</option>
+                    <option value="Monthly">Monthly Warrior</option>
+                    <option value="Monthly Unlimited">Unlimited Viking</option>
+                    <option value="Company">Company Army</option>
                   </select>
                 </div>
               </div>
@@ -326,6 +329,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     type="date"
                     value={customDateRange.startDate}
                     onChange={(e) => setCustomDateRange({...customDateRange, startDate: e.target.value})}
+                    className="filter-input"
                   />
                 </div>
                 
@@ -335,6 +339,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     type="date"
                     value={customDateRange.endDate}
                     onChange={(e) => setCustomDateRange({...customDateRange, endDate: e.target.value})}
+                    className="filter-input"
                   />
                 </div>
               </div>
@@ -347,7 +352,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     setShowAdvancedFilters(false);
                   }}
                 >
-                  Apply Filters
+                  ⚔️ Apply Battle Filters
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -358,7 +363,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     setShowAdvancedFilters(false);
                   }}
                 >
-                  Clear
+                  🗑️ Clear All
                 </button>
               </div>
             </div>
@@ -379,9 +384,9 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
       <div className="checkin-list">
         {filteredCheckIns.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📭</div>
-            <h3>No check-ins found</h3>
-            <p>Try adjusting your filters to see more results.</p>
+            <div className="empty-icon">�️</div>
+            <h3>No Viking battles found</h3>
+            <p>Try adjusting your battle filters to see more warrior activity.</p>
           </div>
         ) : (
           filteredCheckIns.map(record => (

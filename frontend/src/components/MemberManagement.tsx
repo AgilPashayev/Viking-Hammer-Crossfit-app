@@ -16,7 +16,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
-  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('list');
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string>('');
@@ -40,6 +40,21 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     'StartupHub',
     'CodeFactory',
   ];
+
+  const countries = [
+    { code: '+994', flag: '🇦🇿', name: 'Azerbaijan' },
+    { code: '+1', flag: '🇺🇸', name: 'United States' },
+    { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+    { code: '+49', flag: '🇩🇪', name: 'Germany' },
+    { code: '+33', flag: '🇫🇷', name: 'France' },
+    { code: '+90', flag: '🇹🇷', name: 'Turkey' },
+    { code: '+7', flag: '🇷🇺', name: 'Russia' },
+    { code: '+39', flag: '🇮🇹', name: 'Italy' },
+    { code: '+34', flag: '🇪🇸', name: 'Spain' },
+    { code: '+31', flag: '🇳🇱', name: 'Netherlands' },
+  ];
+
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
   React.useEffect(() => {
     let filtered = members;
@@ -84,9 +99,10 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         member.email.toLowerCase() === newMember.email.toLowerCase() &&
         (!isEditing || member.id !== selectedMember.id),
     );
+    const formattedPhoneForCheck = `${selectedCountry.flag} ${selectedCountry.code} ${newMember.phone}`;
     const isDuplicatePhone = members.some(
       (member) =>
-        member.phone === newMember.phone && (!isEditing || member.id !== selectedMember.id),
+        member.phone === formattedPhoneForCheck && (!isEditing || member.id !== selectedMember.id),
     );
     const isDuplicateName = members.some(
       (member) =>
@@ -116,14 +132,18 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       return;
     }
 
+    // Format phone number with flag and country code
+    const formattedPhone = `${selectedCountry.flag} ${selectedCountry.code} ${newMember.phone}`;
+    
     if (isEditing) {
       // Update existing member
-      updateMember(selectedMember.id, newMember);
+      updateMember(selectedMember.id, { ...newMember, phone: formattedPhone });
       setConfirmationMessage('✅ Member updated successfully!');
     } else {
       // Add new member
       const memberData = {
         ...newMember,
+        phone: formattedPhone,
         status: 'active' as 'active',
         joinDate: new Date().toISOString().split('T')[0],
       };
@@ -145,6 +165,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       role: 'member',
       company: '',
     });
+    setSelectedCountry(countries[0]);
     setSelectedMember(null);
     setShowAddForm(false);
   };
@@ -161,11 +182,19 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
 
   const handleEditMember = (member: Member) => {
     setSelectedMember(member);
+    
+    // Extract country code and phone number from formatted phone
+    const phoneMatch = member.phone.match(/(\+\d+)\s+(.+)/);
+    const countryCode = phoneMatch ? phoneMatch[1] : '+994';
+    const phoneNumber = phoneMatch ? phoneMatch[2] : '';
+    const country = countries.find(c => c.code === countryCode) || countries[0];
+    setSelectedCountry(country);
+    
     setNewMember({
       firstName: member.firstName,
       lastName: member.lastName,
       email: member.email,
-      phone: member.phone,
+      phone: phoneNumber, // Store only the number part for editing
       membershipType: member.membershipType,
       role: member.role,
       company: member.company || '',
@@ -226,92 +255,12 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       </div>
 
       <div className="management-controls">
-        <div className="controls-row">
-          <div className="search-section">
-            <div className="search-box">
-              <span className="search-icon">🔍</span>
-              <input
-                type="text"
-                placeholder="Search Vikings by name, email, phone, or company..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button
-                  className="clear-search"
-                  onClick={() => setSearchTerm('')}
-                  title="Clear search"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="filters-section">
-            <div className="filter-group">
-              <label>Role:</label>
-              <select
-                value={filterRole}
-                onChange={(e) => setFilterRole(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Roles</option>
-                <option value="member">Vikings</option>
-                <option value="instructor">Warriors</option>
-                <option value="admin">Commanders</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Membership:</label>
-              <select
-                value={filterMembershipType}
-                onChange={(e) => setFilterMembershipType(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Types</option>
-                <option value="Single">Single</option>
-                <option value="Monthly">Monthly</option>
-                <option value="Monthly Unlimited">Unlimited</option>
-                <option value="Company">Company</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label>Status:</label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="pending">Pending</option>
-              </select>
-            </div>
-
-            <button
-              className="btn btn-outline btn-xs clear-filters"
-              onClick={() => {
-                setFilterRole('all');
-                setFilterMembershipType('all');
-                setFilterStatus('all');
-                setSearchTerm('');
-              }}
-              title="Clear all filters"
-            >
-              🗑️ Clear
-            </button>
-          </div>
-        </div>
-
-        <div className="middle-controls">
-          <div className="stats-summary">
+        <div className="top-controls">
+          <div className="stats-summary stats-compact">
             <div className="stat-item">
-              <span className="stat-number">{filteredMembers.length}</span>
+              <div className="stat-box">
+                <span className="stat-number">{filteredMembers.length}</span>
+              </div>
               <span className="stat-label">
                 {searchTerm ||
                 filterRole !== 'all' ||
@@ -322,38 +271,130 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
               </span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">
-                {filteredMembers.filter((m) => m.status === 'active').length}
-              </span>
+              <div className="stat-box">
+                <span className="stat-number">
+                  {filteredMembers.filter((m) => m.status === 'active').length}
+                </span>
+              </div>
               <span className="stat-label">Active</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">
-                {filteredMembers.filter((m) => m.role === 'instructor').length}
-              </span>
+              <div className="stat-box">
+                <span className="stat-number">
+                  {filteredMembers.filter((m) => m.role === 'instructor').length}
+                </span>
+              </div>
               <span className="stat-label">Warriors</span>
             </div>
             <div className="stat-item">
-              <span className="stat-number">
-                {filteredMembers.filter((m) => m.role === 'member').length}
-              </span>
+              <div className="stat-box">
+                <span className="stat-number">
+                  {filteredMembers.filter((m) => m.role === 'member').length}
+                </span>
+              </div>
               <span className="stat-label">Vikings</span>
             </div>
           </div>
 
-          <div className="view-toggle">
-            <button
-              className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
-              onClick={() => setViewMode('card')}
-            >
-              📋 Cards
-            </button>
-            <button
-              className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-            >
-              📊 List
-            </button>
+          <div className="search-row">
+            <div className="search-section">
+              <div className="search-box">
+                <span className="search-icon">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Search Vikings by name, email, phone, or company..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+                {searchTerm && (
+                  <button
+                    className="clear-search"
+                    onClick={() => setSearchTerm('')}
+                    title="Clear search"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="filters-row">
+            <div className="filters-section">
+              <div className="filter-group">
+                <label>Role:</label>
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="member">Vikings</option>
+                  <option value="instructor">Warriors</option>
+                  <option value="admin">Commanders</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Membership:</label>
+                <select
+                  value={filterMembershipType}
+                  onChange={(e) => setFilterMembershipType(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Types</option>
+                  <option value="Single">Single</option>
+                  <option value="Monthly">Monthly</option>
+                  <option value="Monthly Unlimited">Unlimited</option>
+                  <option value="Company">Company</option>
+                </select>
+              </div>
+
+              <div className="filter-group">
+                <label>Status:</label>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="filter-select"
+                >
+                  <option value="all">All Status</option>
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+
+              <button
+                className="btn btn-outline btn-xs clear-filters"
+                onClick={() => {
+                  setFilterRole('all');
+                  setFilterMembershipType('all');
+                  setFilterStatus('all');
+                  setSearchTerm('');
+                }}
+                title="Clear all filters"
+              >
+                🗑️ Clear
+              </button>
+            </div>
+
+            <div className="view-toggle">
+              <button
+                className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
+                onClick={() => setViewMode('card')}
+              >
+                <span className="toggle-icon" aria-hidden="true">📋</span>
+                <span className="toggle-label">Cards</span>
+              </button>
+              <button
+                className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                <span className="toggle-icon" aria-hidden="true">📊</span>
+                <span className="toggle-label">List</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -434,14 +475,16 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                     onClick={() => handleEditMember(member)}
                     title="Edit Member"
                   >
-                    ✏️
+                    <span className="btn-icon" aria-hidden="true">✏️</span>
+                    <span className="btn-label">Edit</span>
                   </button>
                   <button
                     className="btn btn-danger btn-xs"
                     onClick={() => handleDeleteMember(member)}
                     title="Delete Member"
                   >
-                    🗑️
+                    <span className="btn-icon" aria-hidden="true">🗑️</span>
+                    <span className="btn-label">Delete</span>
                   </button>
                   <button className="btn btn-secondary btn-xs" title="View Profile">
                     👁️
@@ -490,14 +533,16 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                       onClick={() => handleEditMember(member)}
                       title="Edit Member"
                     >
-                      ✏️
+                      <span className="btn-icon" aria-hidden="true">✏️</span>
+                      <span className="btn-label">Edit</span>
                     </button>
                     <button
                       className="btn btn-danger btn-xs"
                       onClick={() => handleDeleteMember(member)}
                       title="Delete Member"
                     >
-                      🗑️
+                      <span className="btn-icon" aria-hidden="true">🗑️</span>
+                      <span className="btn-label">Delete</span>
                     </button>
                     <button
                       className="expand-btn"
@@ -531,6 +576,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   type="text"
                   value={newMember.firstName}
                   onChange={(e) => setNewMember({ ...newMember, firstName: e.target.value })}
+                  placeholder="Thor"
                   className="form-input"
                 />
               </div>
@@ -540,6 +586,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   type="text"
                   value={newMember.lastName}
                   onChange={(e) => setNewMember({ ...newMember, lastName: e.target.value })}
+                  placeholder="Hammer"
                   className="form-input"
                 />
               </div>
@@ -555,13 +602,32 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
               </div>
               <div className="form-group">
                 <label>Phone</label>
-                <input
-                  type="text"
-                  value={newMember.phone}
-                  onChange={(e) => setNewMember({ ...newMember, phone: e.target.value })}
-                  placeholder="🇦🇿 +994 50 333 33 33"
-                  className="form-input"
-                />
+                <div className="phone-input-group">
+                  <select
+                    value={selectedCountry.code}
+                    onChange={(e) => {
+                      const country = countries.find(c => c.code === e.target.value) || countries[0];
+                      setSelectedCountry(country);
+                    }}
+                    className="country-code-select"
+                  >
+                    {countries.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.flag} {country.code}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="text"
+                    value={newMember.phone}
+                    onChange={(e) => setNewMember({ 
+                      ...newMember, 
+                      phone: e.target.value
+                    })}
+                    placeholder="50 333 33 33"
+                    className="form-input phone-number-input"
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Membership Type</label>
@@ -614,6 +680,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 onClick={() => {
                   setShowAddForm(false);
                   setSelectedMember(null);
+                  setSelectedCountry(countries[0]);
                   setNewMember({
                     firstName: '',
                     lastName: '',
