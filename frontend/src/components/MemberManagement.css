@@ -32,9 +32,10 @@
 
 .page-title p {
   margin: 2px 0 0 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #e3f2fd;
   font-size: 0.8rem;
   line-height: 1.3;
+  font-weight: 500;
 }
 
 .header-actions {
