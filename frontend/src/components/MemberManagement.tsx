@@ -248,9 +248,6 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
             ⚔️ Add Viking
           </button>
-          <button className="btn btn-secondary" onClick={onBack}>
-            🏠 Dashboard
-          </button>
         </div>
       </div>
 
@@ -504,56 +501,89 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
               <div className="col">Actions</div>
             </div>
             {filteredMembers.map((member) => (
-              <div key={member.id} className="list-row">
-                <div className="col">
-                  <div className="member-name">
-                    <span className="avatar-sm">
-                      {member.firstName.charAt(0)}
-                      {member.lastName.charAt(0)}
+              <React.Fragment key={member.id}>
+                <div className="list-row">
+                  <div className="col">
+                    <div className="member-name">
+                      <span className="avatar-sm">
+                        {member.firstName.charAt(0)}
+                        {member.lastName.charAt(0)}
+                      </span>
+                      {member.firstName} {member.lastName}
+                    </div>
+                  </div>
+                  <div className="col">{member.membershipType}</div>
+                  <div className="col">{member.phone}</div>
+                  <div className="col">
+                    <span className="role-indicator">
+                      {getRoleIcon(member.role)} {member.role}
                     </span>
-                    {member.firstName} {member.lastName}
+                  </div>
+                  <div className="col">
+                    <div className={`status-badge ${getStatusColor(member.status)}`}>
+                      {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+                    </div>
+                  </div>
+                  <div className="col">
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      <button
+                        className="btn btn-outline btn-xs"
+                        onClick={() => handleEditMember(member)}
+                        title="Edit Member"
+                      >
+                        <span className="btn-icon" aria-hidden="true">✏️</span>
+                        <span className="btn-label">Edit</span>
+                      </button>
+                      <button
+                        className="btn btn-danger btn-xs"
+                        onClick={() => handleDeleteMember(member)}
+                        title="Delete Member"
+                      >
+                        <span className="btn-icon" aria-hidden="true">🗑️</span>
+                        <span className="btn-label">Delete</span>
+                      </button>
+                      <button
+                        className="expand-btn"
+                        onClick={() => toggleMemberExpansion(member.id)}
+                        title={expandedMembers.has(member.id) ? 'Collapse' : 'Expand'}
+                      >
+                        {expandedMembers.has(member.id) ? '−' : '+'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="col">{member.membershipType}</div>
-                <div className="col">{member.phone}</div>
-                <div className="col">
-                  <span className="role-indicator">
-                    {getRoleIcon(member.role)} {member.role}
-                  </span>
-                </div>
-                <div className="col">
-                  <div className={`status-badge ${getStatusColor(member.status)}`}>
-                    {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+                
+                {expandedMembers.has(member.id) && (
+                  <div className="list-row-expanded">
+                    <div className="expanded-details">
+                      <div className="detail-group">
+                        <span className="detail-label">📧 Email:</span>
+                        <span className="detail-value">{member.email}</span>
+                      </div>
+                      <div className="detail-group">
+                        <span className="detail-label">📅 Join Date:</span>
+                        <span className="detail-value">
+                          {new Date(member.joinDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {member.lastCheckIn && (
+                        <div className="detail-group">
+                          <span className="detail-label">✅ Last Check-in:</span>
+                          <span className="detail-value">
+                            {new Date(member.lastCheckIn).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      {member.company && (
+                        <div className="detail-group">
+                          <span className="detail-label">🏢 Company:</span>
+                          <span className="detail-value">{member.company}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className="col">
-                  <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                    <button
-                      className="btn btn-outline btn-xs"
-                      onClick={() => handleEditMember(member)}
-                      title="Edit Member"
-                    >
-                      <span className="btn-icon" aria-hidden="true">✏️</span>
-                      <span className="btn-label">Edit</span>
-                    </button>
-                    <button
-                      className="btn btn-danger btn-xs"
-                      onClick={() => handleDeleteMember(member)}
-                      title="Delete Member"
-                    >
-                      <span className="btn-icon" aria-hidden="true">🗑️</span>
-                      <span className="btn-label">Delete</span>
-                    </button>
-                    <button
-                      className="expand-btn"
-                      onClick={() => toggleMemberExpansion(member.id)}
-                      title={expandedMembers.has(member.id) ? 'Collapse' : 'Expand'}
-                    >
-                      {expandedMembers.has(member.id) ? '−' : '+'}
-                    </button>
-                  </div>
-                </div>
-              </div>
+                )}
+              </React.Fragment>
             ))}
           </div>
         )}

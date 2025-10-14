@@ -232,15 +232,20 @@ body {
 }
 
 .btn {
-  padding: 15px 30px;
+  padding: 12px 24px;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   cursor: pointer;
   transition: all 0.3s ease;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  line-height: 1;
+  min-height: 40px;
 }
 
 .btn-primary {
@@ -249,8 +254,8 @@ body {
 }
 
 .btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(33, 150, 243, 0.4);
 }
 
 .btn-secondary {
@@ -262,7 +267,7 @@ body {
 .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.5);
-  transform: translateY(-3px);
+  transform: translateY(-2px);
 }
 
 .btn-outline {
