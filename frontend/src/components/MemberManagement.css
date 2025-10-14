@@ -700,9 +700,13 @@
 }
 
 .detail-value {
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: #1565c0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1a237e;
+  background: rgba(33, 150, 243, 0.08);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(33, 150, 243, 0.2);
 }
 
 .role-indicator {
