@@ -18,6 +18,18 @@ export interface Member {
   address?: string;
 }
 
+export interface CheckIn {
+  id: string;
+  memberId: string;
+  memberName: string;
+  membershipType: string;
+  phone: string;
+  status: 'active' | 'inactive' | 'pending';
+  checkInTime: string;
+  checkOutTime?: string;
+  duration?: number;
+}
+
 export interface Stats {
   totalMembers: number;
   checkedInToday: number;
@@ -28,16 +40,20 @@ export interface Stats {
   activeMembers: number;
   pendingMembers: number;
   inactiveMembers: number;
+  weeklyCheckIns: number;
 }
 
 interface DataContextType {
   members: Member[];
   stats: Stats;
+  checkIns: CheckIn[];
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
   deleteMember: (id: string) => void;
   checkInMember: (id: string) => void;
   refreshStats: () => void;
+  getWeeklyCheckIns: () => number;
+  getTodayCheckIns: () => CheckIn[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -144,6 +160,27 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     },
   ]);
 
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([
+    {
+      id: 'checkin1',
+      memberId: '1',
+      memberName: 'Thor Hammer',
+      membershipType: 'Monthly Unlimited',
+      phone: '🇦🇿 +994 50 333 33 33',
+      status: 'active',
+      checkInTime: new Date().toISOString(),
+    },
+    {
+      id: 'checkin2',
+      memberId: '2',
+      memberName: 'Freya Viking',
+      membershipType: 'Single',
+      phone: '🇺🇸 +1 555 333 3333',
+      status: 'active',
+      checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    },
+  ]);
+
   const [stats, setStats] = useState<Stats>({
     totalMembers: 247,
     checkedInToday: 48,
@@ -154,21 +191,23 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     activeMembers: 231,
     pendingMembers: 16,
     inactiveMembers: 0,
+    weeklyCheckIns: 0,
   });
 
-  // Calculate real-time stats whenever members change
+  // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
     refreshStats();
-  }, [members]);
+  }, [members, checkIns]);
 
   const refreshStats = () => {
     const today = new Date().toISOString().split('T')[0];
     const totalMembers = members.length;
-    const checkedInToday = members.filter((m) => m.lastCheckIn === today).length;
+    const checkedInToday = getTodayCheckIns().length;
     const instructors = members.filter((m) => m.role === 'instructor').length;
     const activeMembers = members.filter((m) => m.status === 'active').length;
     const pendingMembers = members.filter((m) => m.status === 'pending').length;
     const inactiveMembers = members.filter((m) => m.status === 'inactive').length;
+    const weeklyCheckIns = getWeeklyCheckIns();
 
     // Calculate upcoming birthdays (next 7 days)
     const nextWeek = new Date();
@@ -195,6 +234,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       activeMembers,
       pendingMembers,
       inactiveMembers,
+      weeklyCheckIns,
     });
   };
 
@@ -220,17 +260,72 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const checkInMember = (id: string) => {
     const today = new Date().toISOString().split('T')[0];
-    updateMember(id, { lastCheckIn: today });
+    const member = members.find(m => m.id === id);
+    if (member) {
+      // Update member's last check-in
+      updateMember(id, { lastCheckIn: today });
+      
+      // Add new check-in record
+      const newCheckIn: CheckIn = {
+        id: `checkin_${Date.now()}`,
+        memberId: member.id,
+        memberName: `${member.firstName} ${member.lastName}`,
+        membershipType: member.membershipType,
+        phone: member.phone,
+        status: member.status,
+        checkInTime: new Date().toISOString(),
+      };
+      setCheckIns(prev => [newCheckIn, ...prev]);
+    }
+  };
+
+  // Get weekly check-ins (Monday 2am to Sunday 11:59pm)
+  const getWeeklyCheckIns = (): number => {
+    const now = new Date();
+    
+    // Calculate Monday 2am of current week
+    const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
+    const monday = new Date(now);
+    monday.setDate(now.getDate() + daysToMonday);
+    monday.setHours(2, 0, 0, 0);
+    
+    // If it's Monday before 2am, go back to previous Monday
+    if (currentDay === 1 && now.getHours() < 2) {
+      monday.setDate(monday.getDate() - 7);
+    }
+    
+    // Count check-ins since Monday 2am
+    return checkIns.filter(checkIn => {
+      const checkInDate = new Date(checkIn.checkInTime);
+      return checkInDate >= monday;
+    }).length;
+  };
+
+  // Get today's check-ins
+  const getTodayCheckIns = (): CheckIn[] => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    return checkIns.filter(checkIn => {
+      const checkInDate = new Date(checkIn.checkInTime);
+      return checkInDate >= today && checkInDate < tomorrow;
+    });
   };
 
   const value: DataContextType = {
     members,
     stats,
+    checkIns,
     addMember,
     updateMember,
     deleteMember,
     checkInMember,
     refreshStats,
+    getWeeklyCheckIns,
+    getTodayCheckIns,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

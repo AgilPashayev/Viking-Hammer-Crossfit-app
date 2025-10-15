@@ -1,80 +1,15 @@
 import React, { useState } from 'react';
+import { useData, CheckIn } from '../contexts/DataContext';
 import './CheckInHistory.css';
-
-interface CheckInRecord {
-  id: string;
-  memberId: string;
-  memberName: string;
-  memberAvatar: string;
-  checkInTime: string;
-  checkOutTime?: string;
-  duration?: number;
-  membershipType: string;
-  status: 'active' | 'completed';
-}
 
 interface CheckInHistoryProps {
   onBack: () => void;
 }
 
 const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
-  const [checkIns] = useState<CheckInRecord[]>([
-    {
-      id: '1',
-      memberId: '1',
-      memberName: 'Thor Hammer',
-      memberAvatar: 'TH',
-      checkInTime: '2024-10-07T14:45:00',
-      checkOutTime: '2024-10-07T16:30:00',
-      duration: 105,
-      membershipType: 'Monthly Unlimited',
-      status: 'completed'
-    },
-    {
-      id: '2',
-      memberId: '2',
-      memberName: 'Freya Viking',
-      memberAvatar: 'FV',
-      checkInTime: '2024-10-07T15:20:00',
-      membershipType: 'Single',
-      status: 'active'
-    },
-    {
-      id: '3',
-      memberId: '3',
-      memberName: 'Odin Hammer',
-      memberAvatar: 'OH',
-      checkInTime: '2024-10-07T13:15:00',
-      checkOutTime: '2024-10-07T14:45:00',
-      duration: 90,
-      membershipType: 'Monthly',
-      status: 'completed'
-    },
-    {
-      id: '4',
-      memberId: '4',
-      memberName: 'Astrid Viking',
-      memberAvatar: 'AV',
-      checkInTime: '2024-10-06T18:30:00',
-      checkOutTime: '2024-10-06T20:00:00',
-      duration: 90,
-      membershipType: 'Company',
-      status: 'completed'
-    },
-    {
-      id: '5',
-      memberId: '5',
-      memberName: 'Ragnar Hammer',
-      memberAvatar: 'RH',
-      checkInTime: '2024-10-06T16:45:00',
-      checkOutTime: '2024-10-06T18:15:00',
-      duration: 90,
-      membershipType: 'Single',
-      status: 'completed'
-    }
-  ]);
-
-  const [filteredCheckIns, setFilteredCheckIns] = useState<CheckInRecord[]>(checkIns);
+  const { checkIns, getTodayCheckIns, getWeeklyCheckIns, stats } = useData();
+  
+  const [filteredCheckIns, setFilteredCheckIns] = useState<CheckIn[]>(checkIns);
   const [timeFilter, setTimeFilter] = useState<string>('today');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState<boolean>(false);
@@ -167,36 +102,26 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
   };
 
-  const getStats = () => {
-    const today = filteredCheckIns.filter(record => {
-      const checkInDate = new Date(record.checkInTime);
-      const today = new Date();
-      return checkInDate.toDateString() === today.toDateString();
+  const getLocalStats = () => {
+    const todayCheckIns = getTodayCheckIns();
+    const weeklyCheckIns = getWeeklyCheckIns();
+    const activeNow = todayCheckIns.filter(checkIn => {
+      const checkInTime = new Date(checkIn.checkInTime);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - checkInTime.getTime()) / (1000 * 60);
+      return diffMinutes <= 90 && !checkIn.checkOutTime; // Active if checked in within 90 mins and not checked out
     });
-
-    // Calculate currently active members (checked in within last 90 minutes)
-    const now = new Date();
-    const ninetyMinsAgo = new Date(now.getTime() - 90 * 60 * 1000);
-    const currentlyActive = filteredCheckIns.filter(record => {
-      const checkInTime = new Date(record.checkInTime);
-      return record.status === 'active' && checkInTime >= ninetyMinsAgo;
-    });
-
-    const avgDuration = filteredCheckIns
-      .filter(record => record.duration)
-      .reduce((sum, record) => sum + (record.duration || 0), 0) / 
-      filteredCheckIns.filter(record => record.duration).length || 0;
 
     return {
-      total: filteredCheckIns.length,
-      today: today.length,
-      active: currentlyActive.length,
-      avgDuration: Math.round(avgDuration),
-      currentClass: currentlyActive.length > 0 ? 'Active Class in Session' : 'No Active Classes'
+      total: weeklyCheckIns,
+      today: todayCheckIns.length,
+      active: activeNow.length,
+      avgDuration: 75, // Default average
+      currentClass: activeNow.length > 0 ? 'Active Class in Session' : 'No Active Classes'
     };
   };
 
-  const stats = getStats();
+  const localStats = getLocalStats();
 
   return (
     <div className="checkin-history">
@@ -205,7 +130,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
           <h2>🛡️ Viking Army Check-In History</h2>
           <p>Monitor Viking warriors' activity and battle hall usage patterns</p>
         </div>
-        <button className="btn btn-secondary" onClick={onBack}>
+        <button className="btn btn-secondary btn-back" onClick={onBack}>
           🏠 Back to Command Center
         </button>
       </div>
@@ -214,29 +139,30 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
         <div className="stat-card primary">
           <div className="stat-icon">⚔️</div>
           <div className="stat-content">
-            <h3>{stats.total}</h3>
-            <p>Total Battles</p>
+            <h3>{localStats.total}</h3>
+            <p>Weekly Check-In</p>
+            <small>Resets Monday 2am</small>
           </div>
         </div>
         <div className="stat-card success">
-          <div className="stat-icon">�️</div>
+          <div className="stat-icon">✅</div>
           <div className="stat-content">
-            <h3>{stats.today}</h3>
-            <p>Today's Warriors</p>
+            <h3>{localStats.today}</h3>
+            <p>Today's Check-In</p>
           </div>
         </div>
         <div className="stat-card warning">
-          <div className="stat-icon">�️‍♂️</div>
+          <div className="stat-icon">🏋️‍♂️</div>
           <div className="stat-content">
-            <h3>{stats.active}</h3>
+            <h3>{localStats.active}</h3>
             <p>Active Warriors</p>
-            <small>{stats.currentClass}</small>
+            <small>{localStats.currentClass}</small>
           </div>
         </div>
         <div className="stat-card info">
           <div className="stat-icon">⏱️</div>
           <div className="stat-content">
-            <h3>{stats.avgDuration}m</h3>
+            <h3>{localStats.avgDuration}m</h3>
             <p>Avg Battle Time</p>
           </div>
         </div>
@@ -384,72 +310,69 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
       <div className="checkin-list">
         {filteredCheckIns.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">�️</div>
-            <h3>No Viking battles found</h3>
-            <p>Try adjusting your battle filters to see more warrior activity.</p>
+            <div className="empty-icon">⚔️</div>
+            <h3>No Check-Ins Found</h3>
+            <p>Try adjusting your filters to see more warrior activity.</p>
           </div>
         ) : (
-          filteredCheckIns.map(record => (
-            <div key={record.id} className={`checkin-item ${record.status}`}>
-              <div className="member-info">
-                <div className="member-avatar">
-                  {record.memberAvatar}
-                </div>
-                <div className="member-details">
-                  <h4 
-                    className="member-name clickable"
-                    onClick={() => console.log('View member details:', record.memberName)}
-                  >
-                    {record.memberName}
-                  </h4>
-                  <p>{record.membershipType}</p>
-                </div>
-              </div>
-
-              <div className="timing-info">
-                <div className="time-details">
-                  <div className="check-in">
-                    <span className="label">Check-in:</span>
-                    <span className="time">{formatTime(record.checkInTime)}</span>
-                    <span className="date">{formatDate(record.checkInTime)}</span>
-                  </div>
-                  {record.checkOutTime && (
-                    <div className="check-out">
-                      <span className="label">Check-out:</span>
-                      <span className="time">{formatTime(record.checkOutTime)}</span>
-                    </div>
-                  )}
-                </div>
-                {record.duration && (
-                  <div className="duration">
-                    <span className="duration-badge">
-                      {formatDuration(record.duration)}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="status-section">
-                <div className={`status-indicator ${record.status}`}>
-                  {record.status === 'active' ? '🟢' : '✅'}
-                </div>
-                <span className="status-text">
-                  {record.status === 'active' ? 'Active' : 'Completed'}
-                </span>
-              </div>
-
-              <div className="actions">
-                <button className="btn btn-outline btn-sm">
-                  View Details
-                </button>
-                {record.status === 'active' && (
-                  <button className="btn btn-secondary btn-sm">
-                    Check Out
-                  </button>
-                )}
-              </div>
-            </div>
-          ))
+          <div className="checkin-table-container">
+            <table className="checkin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Membership Type</th>
+                  <th>Status</th>
+                  <th>Phone Number</th>
+                  <th>Check-In Time</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCheckIns.map(record => {
+                  const initials = record.memberName.split(' ').map(n => n.charAt(0)).join('');
+                  const checkInDate = new Date(record.checkInTime);
+                  const now = new Date();
+                  const diffMinutes = Math.floor((now.getTime() - checkInDate.getTime()) / (1000 * 60));
+                  const isActive = diffMinutes <= 90 && !record.checkOutTime;
+                  
+                  return (
+                    <tr key={record.id} className={`checkin-row ${isActive ? 'active' : 'completed'}`}>
+                      <td>
+                        <div className="member-info-cell">
+                          <div className="member-avatar-sm">
+                            {initials}
+                          </div>
+                          <span className="member-name-text">{record.memberName}</span>
+                        </div>
+                      </td>
+                      <td>{record.membershipType}</td>
+                      <td>
+                        <span className={`status-badge status-${record.status}`}>
+                          {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                        </span>
+                      </td>
+                      <td>{record.phone}</td>
+                      <td>
+                        <div className="time-cell">
+                          <span className="time">{formatTime(record.checkInTime)}</span>
+                          <span className="date">{formatDate(record.checkInTime)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        {record.duration ? (
+                          <span className="duration-badge">{formatDuration(record.duration)}</span>
+                        ) : (
+                          <span className="duration-active">
+                            {diffMinutes < 60 ? `${diffMinutes}m` : `${Math.floor(diffMinutes / 60)}h ${diffMinutes % 60}m`}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
