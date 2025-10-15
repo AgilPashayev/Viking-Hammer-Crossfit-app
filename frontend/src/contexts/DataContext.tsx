@@ -242,7 +242,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       return initial;
     });
     // run only once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const refreshStats = () => {
