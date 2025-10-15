@@ -6,7 +6,7 @@ import AnnouncementManager from './AnnouncementManager';
 import MembershipManager from './MembershipManager';
 import UpcomingBirthdays from './UpcomingBirthdays';
 import { validateQRCode } from '../services/qrCodeService';
-import { useData } from '../contexts/DataContext';
+import { useData, Activity } from '../contexts/DataContext';
 import './Reception.css';
 
 interface ReceptionProps {
@@ -14,7 +14,7 @@ interface ReceptionProps {
 }
 
 const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
-  const { stats, members, checkInMember } = useData();
+  const { stats, members, checkInMember, activities, getUpcomingBirthdays } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
@@ -24,19 +24,59 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Mock data for recent activity
-  const [recentActivity, setRecentActivity] = useState([
-    { id: 1, type: 'checkin', user: 'John Viking', time: '2 minutes ago', icon: '✅' },
-    { id: 2, type: 'signup', user: 'Sarah Connor', time: '15 minutes ago', icon: '👤' },
-    { id: 3, type: 'payment', user: 'Mike Johnson', time: '1 hour ago', icon: '💳' },
-    { id: 4, type: 'birthday', user: 'Emma Wilson', time: '2 hours ago', icon: '🎂' },
-    { id: 5, type: 'checkin', user: 'David Kim', time: '3 hours ago', icon: '✅' },
-    { id: 6, type: 'class', user: 'Lisa Chen', time: '4 hours ago', icon: '🏋️' },
-    { id: 7, type: 'signup', user: 'Alex Mueller', time: '5 hours ago', icon: '👤' },
-    { id: 8, type: 'payment', user: 'Anna Petrov', time: '6 hours ago', icon: '💳' },
-    { id: 9, type: 'checkin', user: 'James Wilson', time: '7 hours ago', icon: '✅' },
-    { id: 10, type: 'class', user: 'Elena Rodriguez', time: '8 hours ago', icon: '🏋️' },
-  ]);
+  // activity rendering utils
+  const timeAgo = (ts: string) => {
+    const now = new Date().getTime();
+    const then = new Date(ts).getTime();
+    const diff = Math.max(0, now - then);
+    const sec = Math.floor(diff / 1000);
+    if (sec < 60) return `${sec}s ago`;
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min} minute${min === 1 ? '' : 's'} ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr} hour${hr === 1 ? '' : 's'} ago`;
+    const day = Math.floor(hr / 24);
+    return `${day} day${day === 1 ? '' : 's'} ago`;
+  };
+
+  const iconFor = (type: Activity['type']) => {
+    switch (type) {
+      case 'checkin': return { icon: '✅', cls: 'success' };
+      case 'member_added': return { icon: '👤', cls: 'info' };
+      case 'member_updated': return { icon: '🛠️', cls: 'info' };
+      case 'membership_changed': return { icon: '💳', cls: 'warning' };
+      case 'announcement_created': return { icon: '�', cls: 'info' };
+      case 'announcement_published': return { icon: '📢', cls: 'success' };
+      case 'announcement_deleted': return { icon: '🗑️', cls: 'warning' };
+      case 'birthday_upcoming': return { icon: '🎂', cls: 'birthday' };
+      default: return { icon: 'ℹ️', cls: 'info' };
+    }
+  };
+
+  const buildActivityFeed = (): Array<{ id: string; type: Activity['type']; message: string; timestamp: string }> => {
+    const base: Array<{ id: string; type: Activity['type']; message: string; timestamp: string; memberId?: string }>
+      = activities.map(a => ({ id: a.id, type: a.type, message: a.message, timestamp: a.timestamp, memberId: a.memberId }));
+    // Synthesize upcoming birthday activities (next 7 days)
+    const bdays = getUpcomingBirthdays();
+    const bdayActs = bdays.map(m => {
+      const msg = `${m.firstName} ${m.lastName} birthday upcoming`;
+      const today = new Date();
+      const dob = new Date(m.dateOfBirth as string);
+      const thisYear = today.getFullYear();
+      const occurrence = new Date(thisYear, dob.getMonth(), dob.getDate());
+      return {
+        id: `bday_${m.id}_${occurrence.toISOString().split('T')[0]}`,
+        type: 'birthday_upcoming' as const,
+        message: msg,
+        timestamp: occurrence.toISOString(),
+        memberId: m.id,
+      };
+    });
+
+    const merged = [...base, ...bdayActs];
+    merged.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return merged.slice(0, 20);
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -123,16 +163,6 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
       setScanResult(result);
 
       if (result.isValid) {
-        // Add to recent activity
-        const newActivity = {
-          id: Date.now(),
-          type: 'checkin',
-          user: 'Member',
-          time: 'Just now',
-          icon: '✅',
-        };
-        setRecentActivity((prev) => [newActivity, ...prev.slice(0, 9)]);
-
         // Update member check-in (this would normally use the member ID from QR code)
         // For demo purposes, we'll check in the first member
         if (members.length > 0) {
@@ -308,42 +338,27 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
       <div className="recent-activity">
         <h3>Recent Activity</h3>
         <div className="activity-list">
-          <div className="activity-item">
-            <div className="activity-icon success">✅</div>
-            <div className="activity-content">
-              <p>
-                <strong>John Viking</strong> checked in
-              </p>
-              <span>2 minutes ago</span>
+          {buildActivityFeed().map((item) => {
+            const m = iconFor(item.type);
+            return (
+              <div key={item.id} className="activity-item">
+                <div className={`activity-icon ${m.cls}`}>{m.icon}</div>
+                <div className="activity-content">
+                  <p>{item.message}</p>
+                  <span>{timeAgo(item.timestamp)}</span>
+                </div>
+              </div>
+            );
+          })}
+          {buildActivityFeed().length === 0 && (
+            <div className="activity-item">
+              <div className="activity-icon info">ℹ️</div>
+              <div className="activity-content">
+                <p>No recent activity yet</p>
+                <span>—</span>
+              </div>
             </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon info">👤</div>
-            <div className="activity-content">
-              <p>
-                New member <strong>Sarah Connor</strong> registered
-              </p>
-              <span>15 minutes ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon warning">💳</div>
-            <div className="activity-content">
-              <p>
-                <strong>Mike Johnson</strong> payment due tomorrow
-              </p>
-              <span>1 hour ago</span>
-            </div>
-          </div>
-          <div className="activity-item">
-            <div className="activity-icon birthday">🎂</div>
-            <div className="activity-content">
-              <p>
-                <strong>Emma Wilson</strong> birthday tomorrow
-              </p>
-              <span>2 hours ago</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

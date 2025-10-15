@@ -28,6 +28,7 @@ export interface CheckIn {
   checkInTime: string;
   checkOutTime?: string;
   duration?: number;
+  role?: 'member' | 'instructor' | 'admin';
 }
 
 export interface Stats {
@@ -43,10 +44,31 @@ export interface Stats {
   weeklyCheckIns: number;
 }
 
+// Activity feed types
+export type ActivityType =
+  | 'checkin'
+  | 'member_added'
+  | 'member_updated'
+  | 'membership_changed'
+  | 'announcement_created'
+  | 'announcement_published'
+  | 'announcement_deleted'
+  | 'birthday_upcoming';
+
+export interface Activity {
+  id: string;
+  type: ActivityType;
+  message: string;
+  timestamp: string; // ISO string
+  memberId?: string;
+  metadata?: Record<string, any>;
+}
+
 interface DataContextType {
   members: Member[];
   stats: Stats;
   checkIns: CheckIn[];
+  activities: Activity[];
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
   deleteMember: (id: string) => void;
@@ -54,6 +76,8 @@ interface DataContextType {
   refreshStats: () => void;
   getWeeklyCheckIns: () => number;
   getTodayCheckIns: () => CheckIn[];
+  logActivity: (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => void;
+  getUpcomingBirthdays: () => Member[];
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -169,6 +193,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       phone: '🇦🇿 +994 50 333 33 33',
       status: 'active',
       checkInTime: new Date().toISOString(),
+      role: 'member',
     },
     {
       id: 'checkin2',
@@ -178,6 +203,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       phone: '🇺🇸 +1 555 333 3333',
       status: 'active',
       checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      role: 'member',
     },
   ]);
 
@@ -194,10 +220,30 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     weeklyCheckIns: 0,
   });
 
+  const [activities, setActivities] = useState<Activity[]>([]);
+
   // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
     refreshStats();
   }, [members, checkIns]);
+
+  // Initialize activity feed once from existing check-ins on first mount
+  useEffect(() => {
+    setActivities((prev) => {
+      if (prev.length > 0) return prev;
+      const initial: Activity[] = checkIns.map((c) => ({
+        id: `act_${c.id}`,
+        type: 'checkin',
+        message: `${c.memberName} checked in`,
+        timestamp: c.checkInTime,
+        memberId: c.memberId,
+        metadata: { checkInId: c.id },
+      }));
+      return initial;
+    });
+    // run only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refreshStats = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -246,12 +292,32 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       status: 'active',
     };
     setMembers((prev) => [...prev, newMember]);
+
+    // Log activity
+    logActivity({
+      type: 'member_added',
+      message: `New member ${newMember.firstName} ${newMember.lastName} registered`,
+      memberId: newMember.id,
+    });
   };
 
   const updateMember = (id: string, updates: Partial<Member>) => {
-    setMembers((prev) =>
-      prev.map((member) => (member.id === id ? { ...member, ...updates } : member)),
-    );
+    const before = members.find((m) => m.id === id);
+    setMembers((prev) => prev.map((member) => (member.id === id ? { ...member, ...updates } : member)));
+
+    // Log generic update
+    const memberName = before ? `${before.firstName} ${before.lastName}` : `Member ${id}`;
+    logActivity({ type: 'member_updated', message: `${memberName} profile updated`, memberId: id });
+
+    // Special case: membership type changed
+    if (before && updates.membershipType && updates.membershipType !== before.membershipType) {
+      logActivity({
+        type: 'membership_changed',
+        message: `${memberName} membership changed to ${updates.membershipType}`,
+        memberId: id,
+        metadata: { from: before.membershipType, to: updates.membershipType },
+      });
+    }
   };
 
   const deleteMember = (id: string) => {
@@ -274,8 +340,17 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         phone: member.phone,
         status: member.status,
         checkInTime: new Date().toISOString(),
+        role: member.role,
       };
       setCheckIns(prev => [newCheckIn, ...prev]);
+
+      // Log activity
+      logActivity({
+        type: 'checkin',
+        message: `${newCheckIn.memberName} checked in`,
+        memberId: member.id,
+        metadata: { checkInId: newCheckIn.id },
+      });
     }
   };
 
@@ -315,10 +390,37 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     });
   };
 
+  // Activity helpers
+  const logActivity = (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => {
+    const activity: Activity = {
+      id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      timestamp: entry.timestamp || new Date().toISOString(),
+      type: entry.type,
+      message: entry.message,
+      memberId: entry.memberId,
+      metadata: entry.metadata,
+    };
+    setActivities((prev) => [activity, ...prev].slice(0, 200)); // keep last 200
+  };
+
+  const getUpcomingBirthdays = (): Member[] => {
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    return members.filter((m) => {
+      if (!m.dateOfBirth) return false;
+      const dob = new Date(m.dateOfBirth);
+      const thisYear = today.getFullYear();
+      const birthdayThisYear = new Date(thisYear, dob.getMonth(), dob.getDate());
+      return birthdayThisYear >= today && birthdayThisYear <= nextWeek;
+    });
+  };
+
   const value: DataContextType = {
     members,
     stats,
     checkIns,
+    activities,
     addMember,
     updateMember,
     deleteMember,
@@ -326,6 +428,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     refreshStats,
     getWeeklyCheckIns,
     getTodayCheckIns,
+    logActivity,
+    getUpcomingBirthdays,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

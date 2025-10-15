@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../contexts/DataContext';
 import './AnnouncementManager.css';
 
 interface Announcement {
@@ -26,6 +27,7 @@ interface AnnouncementManagerProps {
 }
 
 const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => {
+  const { logActivity } = useData();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
@@ -190,6 +192,10 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
         setAnnouncements(announcements.map(ann => 
           ann.id === editingAnnouncement.id ? updatedAnnouncement : ann
         ));
+        logActivity({
+          type: 'announcement_created',
+          message: `Announcement updated: ${updatedAnnouncement.title}`,
+        });
         setEditingAnnouncement(null);
       } else {
         // Create new announcement
@@ -204,6 +210,10 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
         } as Announcement;
         
         setAnnouncements([announcementToAdd, ...announcements]);
+        logActivity({
+          type: 'announcement_created',
+          message: `Announcement created: ${announcementToAdd.title}`,
+        });
       }
       
       setNewAnnouncement({
@@ -231,10 +241,18 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
           }
         : ann
     ));
+    const pub = announcements.find(a => a.id === id);
+    if (pub) {
+      logActivity({ type: 'announcement_published', message: `Announcement published: ${pub.title}` });
+    }
   };
 
   const handleDeleteAnnouncement = (id: string) => {
+    const del = announcements.find(a => a.id === id);
     setAnnouncements(announcements.filter(ann => ann.id !== id));
+    if (del) {
+      logActivity({ type: 'announcement_deleted', message: `Announcement deleted: ${del.title}` });
+    }
   };
 
   const handleEditAnnouncement = (announcement: Announcement) => {
