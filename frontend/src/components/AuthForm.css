@@ -1,13 +1,7 @@
 /* AuthForm.css - Authentication Form Styling with Viking Hammer Light Blue Theme */
 
 :root {
-  /* Viking Hammer Brand Colors - Light Blue & Professional Theme */
-  --viking-primary: #1565c0;        /* Professional blue */
-  --viking-secondary: #1a237e;      /* Deep blue for text */
-  --viking-accent: #2196f3;         /* Medium blue - accent */
-  --viking-light: #f0f4ff;          /* Very light blue background */
-  --viking-medium: #e3f2fd;         /* Light blue backgrounds */
-  --viking-subtle: #bbdefb;         /* Subtle blue tints */
+  /* Defer to global theme variables from styles.css; only non-blue tokens remain local */
   --viking-success: #4caf50;        /* Success green */
   --viking-error: #f44336;          /* Error red */
   --viking-warning: #ff9800;        /* Warning orange */
@@ -117,6 +111,29 @@
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+/* Remember Me */
+.remember-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -8px;
+}
+
+.remember-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--viking-secondary);
+  user-select: none;
+}
+
+.remember-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--viking-primary);
 }
 
 /* General Error Display */

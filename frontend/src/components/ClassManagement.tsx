@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../contexts/DataContext';
 import './ClassManagement.css';
 
 interface Instructor {
@@ -38,6 +39,7 @@ interface ClassManagementProps {
 }
 
 const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
+  const { setActiveClassesCount } = useData();
   const [activeTab, setActiveTab] = useState<'classes' | 'instructors' | 'schedule'>('classes');
   const [classes, setClasses] = useState<GymClass[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
@@ -79,6 +81,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     // Load mock data
     loadMockData();
   }, []);
+
+  // keep global active classes count in sync
+  useEffect(() => {
+    const active = classes.filter(c => c.status === 'active').length;
+    setActiveClassesCount(active);
+  }, [classes, setActiveClassesCount]);
 
   const loadMockData = () => {
     // Mock instructors data

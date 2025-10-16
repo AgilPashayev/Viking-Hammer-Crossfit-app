@@ -29,6 +29,22 @@ export default function App() {
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
 
+  // Load remembered session, if any
+  React.useEffect(() => {
+    try {
+      const stored = localStorage.getItem('viking_remembered_user');
+      if (stored) {
+        const parsed: UserData = JSON.parse(stored);
+        if (parsed?.isAuthenticated) {
+          setUser(parsed);
+          setCurrentPage('dashboard');
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleLogin = (userData: UserData) => {
     setUser(userData);
     setCurrentPage('dashboard');
@@ -36,6 +52,7 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null);
+    try { localStorage.removeItem('viking_remembered_user'); } catch {}
     setCurrentPage('home');
   };
 

@@ -50,7 +50,7 @@
 
 ### **Signup Testing (Demo Mode):**
 
-1. Open http://localhost:5174/
+1. Open http://localhost:5173/
 2. See green "Demo Mode Active!" banner
 3. Fill out ANY information (e.g., test@email.com, password123)
 4. Complete both steps with ANY data

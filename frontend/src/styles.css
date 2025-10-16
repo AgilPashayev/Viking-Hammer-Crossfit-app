@@ -1,15 +1,20 @@
 /* Global Styles - Viking Hammer CrossFit with Brand Colors */
 
 :root {
-  /* Viking Hammer Brand Colors - Light Blue & Professional Theme */
-  --viking-primary: #1565c0;        /* Professional blue */
-  --viking-secondary: #1a237e;      /* Deep blue for text */
-  --viking-accent: #2196f3;         /* Medium blue - accent */
-  --viking-light: #f0f4ff;          /* Very light blue background */
-  --viking-medium: #e3f2fd;         /* Light blue backgrounds */
-  --viking-subtle: #bbdefb;         /* Subtle blue tints */
-  --viking-text: #1a237e;           /* Main text color */
+  /* Viking Hammer Brand Colors - Lighter Blue Gradient Theme */
+  --viking-primary: #3da5ff;        /* Lighter primary blue */
+  --viking-secondary: #4565d6;      /* Lightened deep blue for text/UI accents */
+  --viking-accent: #6ec1ff;         /* Soft accent blue */
+  --viking-light: #f6faff;          /* Very light blue background */
+  --viking-medium: #eef6ff;         /* Light blue backgrounds */
+  --viking-subtle: #dbeeff;         /* Subtle blue tints */
+  --viking-text: #243b6b;           /* Readable deep blue-gray text */
   --viking-gray: #757575;           /* Secondary text/placeholders */
+
+  /* Reusable gradient tokens */
+  --viking-grad-primary: linear-gradient(45deg, var(--viking-primary), var(--viking-accent));
+  --viking-grad-deep: linear-gradient(45deg, var(--viking-secondary), var(--viking-primary));
+  --viking-grad-hero: linear-gradient(135deg, var(--viking-primary), var(--viking-accent));
 }
 
 * {
@@ -32,7 +37,7 @@ body {
 /* Landing Page Styles */
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--viking-primary) 0%, var(--viking-secondary) 30%, var(--viking-accent) 70%, var(--viking-primary) 100%);
+  background: var(--viking-grad-hero);
   background-size: 400% 400%;
   animation: gradientWave 8s ease-in-out infinite;
   color: var(--viking-light);

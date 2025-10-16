@@ -295,21 +295,21 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
             <div className="card-icon">👥</div>
             <h3>Member Management</h3>
             <p>Add, update, and manage member profiles</p>
-            <div className="card-badge">245 Members</div>
+            <div className="card-badge">{stats.totalMembers} Members</div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('checkins')}>
             <div className="card-icon">📊</div>
             <h3>Check-In History</h3>
             <p>View and analyze member check-in data</p>
-            <div className="card-badge">48 Today</div>
+            <div className="card-badge">{stats.checkedInToday} Today</div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('classes')}>
             <div className="card-icon">🏋️‍♂️</div>
             <h3>Class Management</h3>
             <p>Assign instructors and manage class schedules</p>
-            <div className="card-badge">8 Active</div>
+            <div className="card-badge">{stats.activeClasses} Active</div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('announcements')}>
@@ -323,7 +323,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
             <div className="card-icon">💎</div>
             <h3>Membership Plans</h3>
             <p>Manage subscription plans and pricing</p>
-            <div className="card-badge">3 Plans</div>
+            <div className="card-badge">{stats.plansCount} Plans</div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('birthdays')}>

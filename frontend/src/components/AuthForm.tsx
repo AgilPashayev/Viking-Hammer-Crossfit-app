@@ -45,6 +45,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
   });
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [rememberMe, setRememberMe] = useState<boolean>(false);
 
   const validateStep = (step: number): boolean => {
     const newErrors: { [key: string]: string } = {};
@@ -124,6 +125,16 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           };
 
           setIsLoading(false);
+          // Persist session if Remember Me is checked
+          try {
+            if (rememberMe) {
+              localStorage.setItem('viking_remembered_user', JSON.stringify(userData));
+            } else {
+              localStorage.removeItem('viking_remembered_user');
+            }
+          } catch {
+            // ignore storage errors
+          }
           onLogin(userData);
         }
       } catch (error) {
@@ -321,6 +332,17 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           required
         />
         {errors.password && <span className="error-message">{errors.password}</span>}
+      </div>
+
+      <div className="remember-row">
+        <label className="remember-checkbox">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(e) => setRememberMe(e.target.checked)}
+          />
+          <span>Remember me</span>
+        </label>
       </div>
 
       {errors.general && <div className="general-error">{errors.general}</div>}

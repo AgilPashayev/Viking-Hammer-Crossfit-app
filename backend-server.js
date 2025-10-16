@@ -158,7 +158,7 @@ app.get('/api/placeholder/:width/:height', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Viking Hammer Backend API running on http://localhost:${PORT}`);
-  console.log(`📱 Frontend running on http://localhost:5173`);
+  console.log(`📱 Frontend (Vite) default: http://localhost:5173`);
   console.log(`🔍 API Health Check: http://localhost:${PORT}/api/health`);
   console.log('');
   console.log('Available API Endpoints:');

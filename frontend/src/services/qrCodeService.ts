@@ -49,7 +49,7 @@ export const generateQRCodeImage = async (qrData: QRCodeData): Promise<string> =
       width: 256,
       margin: 2,
       color: {
-        dark: '#0b5eff', // Blue QR code
+        dark: '#3da5ff', // Lighter blue to match theme
         light: '#ffffff', // White background
       },
       errorCorrectionLevel: 'M',

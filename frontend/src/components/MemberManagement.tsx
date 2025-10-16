@@ -242,11 +242,22 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       <div className="page-header">
         <div className="page-title">
           <h2>🛡️ Viking Hammer Member Management</h2>
-          <p>Manage Viking Army members, instructors, and administrators</p>
+         
         </div>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
-            ⚔️ Add Viking
+          <button
+            className="btn btn-secondary"
+            onClick={onBack}
+            title="Return to Reception Dashboard"
+          >
+            🏠 Return to Dashboard
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => setShowAddForm(true)}
+            title="Add a new member"
+          >
+            ➕ Add Member
           </button>
         </div>
       </div>
@@ -281,7 +292,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   {filteredMembers.filter((m) => m.role === 'instructor').length}
                 </span>
               </div>
-              <span className="stat-label">Warriors</span>
+              <span className="stat-label">Instructors</span>
             </div>
             <div className="stat-item">
               <div className="stat-box">
@@ -289,7 +300,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   {filteredMembers.filter((m) => m.role === 'member').length}
                 </span>
               </div>
-              <span className="stat-label">Vikings</span>
+              <span className="stat-label">Members</span>
             </div>
           </div>
 
@@ -299,7 +310,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Search Vikings by name, email, phone, or company..."
+                  placeholder="Search Members by name, email, phone, or company..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"

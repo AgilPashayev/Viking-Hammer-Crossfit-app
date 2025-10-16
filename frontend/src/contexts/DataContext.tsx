@@ -42,6 +42,7 @@ export interface Stats {
   pendingMembers: number;
   inactiveMembers: number;
   weeklyCheckIns: number;
+  plansCount: number;
 }
 
 // Activity feed types
@@ -78,6 +79,8 @@ interface DataContextType {
   getTodayCheckIns: () => CheckIn[];
   logActivity: (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => void;
   getUpcomingBirthdays: () => Member[];
+  setActiveClassesCount: (count: number) => void;
+  setPlansCount: (count: number) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -218,6 +221,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     pendingMembers: 16,
     inactiveMembers: 0,
     weeklyCheckIns: 0,
+    plansCount: 4,
   });
 
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -265,8 +269,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       return birthdayThisYear >= new Date() && birthdayThisYear <= nextWeek;
     }).length;
 
-    // Mock data for other stats that would come from other systems
-    const activeClasses = 12; // This would come from class management system
+  // Values from other modules (kept from current stats, updated by their modules)
+  const activeClasses = stats.activeClasses;
+  const plansCount = stats.plansCount;
     const expiringMemberships = Math.floor(totalMembers * 0.1); // 10% of members with expiring memberships
 
     setStats({
@@ -274,6 +279,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       checkedInToday,
       instructors,
       activeClasses,
+      plansCount,
       expiringMemberships,
       upcomingBirthdays,
       activeMembers,
@@ -281,6 +287,14 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       inactiveMembers,
       weeklyCheckIns,
     });
+  };
+
+  const setActiveClassesCount = (count: number) => {
+    setStats((prev) => ({ ...prev, activeClasses: count }));
+  };
+
+  const setPlansCount = (count: number) => {
+    setStats((prev) => ({ ...prev, plansCount: count }));
   };
 
   const addMember = (memberData: Omit<Member, 'id'>) => {
@@ -429,6 +443,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     getTodayCheckIns,
     logActivity,
     getUpcomingBirthdays,
+    setActiveClassesCount,
+    setPlansCount,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

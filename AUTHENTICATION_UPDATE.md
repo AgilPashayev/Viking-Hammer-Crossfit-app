@@ -37,7 +37,7 @@
 
 ### For Development:
 
-1. **Start the app**: `npm run dev` (runs on http://localhost:5174/)
+1. **Start the app**: `npm run dev` (runs on http://localhost:5173/)
 2. **Test signup**: Use the 2-step signup form to create test accounts
 3. **Test login**: Use created credentials to test login functionality
 

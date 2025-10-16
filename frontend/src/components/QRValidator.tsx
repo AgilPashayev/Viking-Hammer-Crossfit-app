@@ -65,7 +65,7 @@ const QRValidator: React.FC<QRValidatorProps> = ({ onValidation }) => {
   const buttonStyle = {
     width: '100%',
     padding: '12px',
-    backgroundColor: '#0b5eff',
+    backgroundColor: 'var(--viking-primary)',
     color: 'white',
     border: 'none',
     borderRadius: '5px',
@@ -85,7 +85,7 @@ const QRValidator: React.FC<QRValidatorProps> = ({ onValidation }) => {
 
   return (
     <div style={containerStyle}>
-      <h2 style={{ textAlign: 'center', color: '#0b5eff', marginBottom: '20px' }}>
+      <h2 style={{ textAlign: 'center', color: 'var(--viking-primary)', marginBottom: '20px' }}>
         🎫 QR Code Validator
       </h2>
 

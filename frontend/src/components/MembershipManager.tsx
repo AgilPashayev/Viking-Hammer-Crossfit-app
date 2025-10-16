@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useData } from '../contexts/DataContext';
 import './MembershipManager.css';
 
 interface MembershipPlan {
@@ -57,6 +58,7 @@ interface MembershipManagerProps {
 }
 
 const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
+  const { setPlansCount } = useData();
   const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions' | 'companies'>('plans');
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -100,6 +102,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   useEffect(() => {
     loadMockData();
   }, []);
+
+  // keep global plans count in sync
+  useEffect(() => {
+    setPlansCount(membershipPlans.length);
+  }, [membershipPlans, setPlansCount]);
 
   const loadMockData = () => {
     // Mock membership plans
@@ -381,6 +388,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         } as MembershipPlan;
         setMembershipPlans([...membershipPlans, planToAdd]);
       }
+      // plans count will sync via effect
       
       setNewPlan({
         name: '',

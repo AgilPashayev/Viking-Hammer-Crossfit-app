@@ -17,8 +17,8 @@ echo Viking Hammer CrossFit App Started
 echo ===================================
 echo.
 echo Frontend: http://localhost:5173
-echo Backend API: http://localhost:3001
-echo API Health: http://localhost:3001/api/health
+echo Backend API: http://localhost:4001
+echo API Health: http://localhost:4001/api/health
 echo.
 echo Press any key to open the application in browser...
 pause >nul
