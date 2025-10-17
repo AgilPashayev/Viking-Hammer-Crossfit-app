@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
+import { 
+  fetchMembershipPlans, 
+  createMembershipPlan, 
+  updateMembershipPlan, 
+  deleteMembershipPlan,
+  MembershipPlanDB,
+  MembershipPlanInput 
+} from '../services/supabaseService';
 import './MembershipManager.css';
+import './MembershipManager-additions.css';
 
 interface MembershipPlan {
   id: string;
@@ -58,7 +67,7 @@ interface MembershipManagerProps {
 }
 
 const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
-  const { setPlansCount } = useData();
+  const { setPlansCount, updateMembershipTypes } = useData();
   const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions' | 'companies'>('plans');
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -100,13 +109,58 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   });
 
   useEffect(() => {
-    loadMockData();
+    loadPlansFromDatabase();
+    loadMockData(); // Load mock subscriptions and companies
   }, []);
+
+  // Load plans from Supabase database
+  const loadPlansFromDatabase = async () => {
+    const { plans, error } = await fetchMembershipPlans();
+    
+    if (error) {
+      console.error('Failed to load plans from database:', error);
+      // Fallback to localStorage
+      const savedPlans = localStorage.getItem('viking-membership-plans');
+      if (savedPlans) {
+        try {
+          const parsed = JSON.parse(savedPlans);
+          setMembershipPlans(parsed);
+        } catch (e) {
+          console.error('Failed to parse saved plans:', e);
+        }
+      }
+      return;
+    }
+
+    // Convert database plans to component format
+    const convertedPlans: MembershipPlan[] = plans.map(dbPlan => ({
+      id: dbPlan.id.toString(),
+      name: dbPlan.name,
+      type: (dbPlan.metadata?.type as any) || 'single',
+      price: dbPlan.price_cents / 100,
+      currency: dbPlan.metadata?.currency || 'AZN',
+      description: dbPlan.metadata?.description || '',
+      features: dbPlan.metadata?.features || [],
+      limitations: dbPlan.metadata?.limitations || [],
+      duration: `${dbPlan.duration_days} days`,
+      entryLimit: dbPlan.visit_quota || undefined,
+      isActive: dbPlan.metadata?.isActive ?? true,
+      isPopular: dbPlan.metadata?.isPopular || false,
+      discountPercentage: dbPlan.metadata?.discountPercentage || 0,
+      createdAt: dbPlan.created_at,
+      updatedAt: dbPlan.created_at,
+    }));
+
+    setMembershipPlans(convertedPlans);
+  };
 
   // keep global plans count in sync
   useEffect(() => {
     setPlansCount(membershipPlans.length);
-  }, [membershipPlans, setPlansCount]);
+    // Extract unique plan names and sync with DataContext
+    const planNames = Array.from(new Set(membershipPlans.map(plan => plan.name)));
+    updateMembershipTypes(planNames.length > 0 ? planNames : ['Single', 'Monthly', 'Monthly Unlimited', 'Company']);
+  }, [membershipPlans, setPlansCount, updateMembershipTypes]);
 
   const loadMockData = () => {
     // Mock membership plans
@@ -367,45 +421,99 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     });
   };
 
-  const handleCreatePlan = () => {
-    if (newPlan.name && newPlan.price !== undefined) {
+  const handleCreatePlan = async () => {
+    // Validation
+    if (!newPlan.name || !newPlan.name.trim()) {
+      alert('❌ Please enter a plan name');
+      return;
+    }
+    
+    if (!newPlan.price || newPlan.price <= 0) {
+      alert('❌ Please enter a valid price (greater than 0)');
+      return;
+    }
+    
+    // Check for duplicate plan names (excluding current plan if editing)
+    const isDuplicate = membershipPlans.some(plan => 
+      plan.name.toLowerCase() === (newPlan.name?.trim().toLowerCase() || '') && 
+      plan.id !== editingPlanId
+    );
+    
+    if (isDuplicate) {
+      alert(`❌ A plan with the name "${newPlan.name}" already exists. Please choose a different name.`);
+      return;
+    }
+    
+    // Filter out empty features and limitations
+    const cleanedFeatures = (newPlan.features || []).filter(f => f && f.trim());
+    const cleanedLimitations = (newPlan.limitations || []).filter(l => l && l.trim());
+    
+    // Prepare plan data for Supabase
+    const planInput: MembershipPlanInput = {
+      name: newPlan.name.trim(),
+      type: newPlan.type || 'single',
+      price: newPlan.price,
+      currency: newPlan.currency || 'AZN',
+      description: newPlan.description || '',
+      features: cleanedFeatures,
+      limitations: cleanedLimitations,
+      duration: newPlan.duration || '30 days',
+      entryLimit: newPlan.entryLimit,
+      isActive: newPlan.isActive ?? true,
+      isPopular: newPlan.isPopular || false,
+      discountPercentage: newPlan.discountPercentage || 0,
+    };
+    
+    try {
       if (editingPlanId) {
-        // Update existing plan
-        const updatedPlans = membershipPlans.map(plan => 
-          plan.id === editingPlanId 
-            ? { ...plan, ...newPlan, updatedAt: new Date().toISOString() } as MembershipPlan
-            : plan
-        );
-        setMembershipPlans(updatedPlans);
+        // Update existing plan in database
+        const planId = parseInt(editingPlanId);
+        const { plan, error } = await updateMembershipPlan(planId, planInput);
+        
+        if (error) {
+          alert(`❌ Failed to update plan: ${error}`);
+          return;
+        }
+        
+        alert('✅ Plan updated successfully in database!');
         setEditingPlanId(null);
       } else {
-        // Create new plan
-        const planToAdd: MembershipPlan = {
-          ...newPlan,
-          id: `plan${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        } as MembershipPlan;
-        setMembershipPlans([...membershipPlans, planToAdd]);
+        // Create new plan in database
+        const { plan, error } = await createMembershipPlan(planInput);
+        
+        if (error) {
+          alert(`❌ Failed to create plan: ${error}`);
+          return;
+        }
+        
+        alert('✅ Plan created successfully in database!');
       }
-      // plans count will sync via effect
       
-      setNewPlan({
-        name: '',
-        type: 'single',
-        price: 0,
-        currency: 'AZN',
-        description: '',
-        features: [],
-        limitations: [],
-        duration: '',
-        entryLimit: undefined,
-        isActive: true,
-        isPopular: false,
-        discountPercentage: 0
-      });
-      setShowCreatePlanModal(false);
+      // Reload plans from database
+      await loadPlansFromDatabase();
+      
+    } catch (error) {
+      console.error('Unexpected error saving plan:', error);
+      alert('❌ An unexpected error occurred. Please try again.');
+      return;
     }
+    
+    // Reset form
+    setNewPlan({
+      name: '',
+      type: 'single',
+      price: 0,
+      currency: 'AZN',
+      description: '',
+      features: [],
+      limitations: [],
+      duration: '',
+      entryLimit: undefined,
+      isActive: true,
+      isPopular: false,
+      discountPercentage: 0
+    });
+    setShowCreatePlanModal(false);
   };
 
   const handleCreateCompany = () => {
@@ -467,9 +575,28 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     }
   };
 
-  const handleDeletePlan = (planId: string) => {
-    if (confirm('Are you sure you want to delete this plan?')) {
-      setMembershipPlans(membershipPlans.filter(p => p.id !== planId));
+  const handleDeletePlan = async (planId: string) => {
+    if (!confirm('⚠️ Are you sure you want to delete this plan? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const planIdNum = parseInt(planId);
+      const { success, error } = await deleteMembershipPlan(planIdNum);
+      
+      if (error) {
+        alert(`❌ Failed to delete plan: ${error}`);
+        return;
+      }
+      
+      alert('✅ Plan deleted successfully from database!');
+      
+      // Reload plans from database
+      await loadPlansFromDatabase();
+      
+    } catch (error) {
+      console.error('Unexpected error deleting plan:', error);
+      alert('❌ An unexpected error occurred. Please try again.');
     }
   };
 
@@ -928,34 +1055,53 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       {activeTab === 'subscriptions' && renderSubscriptionsTab()}
       {activeTab === 'companies' && renderCompaniesTab()}
 
-      {/* Create Plan Modal */}
+      {/* Create/Edit Plan Modal */}
       {showCreatePlanModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content large-modal">
             <div className="modal-header">
-              <h3>Create New Membership Plan</h3>
-              <button className="close-btn" onClick={() => setShowCreatePlanModal(false)}>
+              <h3>{editingPlanId ? '✏️ Edit Membership Plan' : '➕ Create New Membership Plan'}</h3>
+              <button className="close-btn" onClick={() => {
+                setShowCreatePlanModal(false);
+                setEditingPlanId(null);
+                setNewPlan({
+                  name: '',
+                  type: 'single',
+                  price: 0,
+                  currency: 'AZN',
+                  description: '',
+                  features: [],
+                  limitations: [],
+                  duration: '',
+                  entryLimit: undefined,
+                  isActive: true,
+                  isPopular: false,
+                  discountPercentage: 0
+                });
+              }}>
                 ✕
               </button>
             </div>
             
             <div className="modal-body">
               <div className="form-group">
-                <label>Plan Name:</label>
+                <label>Plan Name: <span className="required">*</span></label>
                 <input
                   type="text"
                   value={newPlan.name || ''}
                   onChange={(e) => setNewPlan({...newPlan, name: e.target.value})}
-                  placeholder="Enter plan name"
+                  placeholder="e.g., Premium Monthly, Single Entry"
+                  className="form-input-large"
                 />
               </div>
               
               <div className="form-row">
                 <div className="form-group">
-                  <label>Plan Type:</label>
+                  <label>Plan Type: <span className="required">*</span></label>
                   <select
                     value={newPlan.type || 'single'}
                     onChange={(e) => setNewPlan({...newPlan, type: e.target.value as any})}
+                    className="form-select-large"
                   >
                     <option value="single">Single Entry</option>
                     <option value="monthly-limited">Monthly Limited</option>
@@ -965,11 +1111,14 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 </div>
                 
                 <div className="form-group">
-                  <label>Price (AZN):</label>
+                  <label>Price (AZN): <span className="required">*</span></label>
                   <input
                     type="number"
                     value={newPlan.price || 0}
                     onChange={(e) => setNewPlan({...newPlan, price: parseFloat(e.target.value)})}
+                    min="0"
+                    step="0.01"
+                    className="form-input-large"
                   />
                 </div>
               </div>
@@ -979,8 +1128,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 <textarea
                   value={newPlan.description || ''}
                   onChange={(e) => setNewPlan({...newPlan, description: e.target.value})}
-                  placeholder="Enter plan description"
+                  placeholder="Brief description of this plan"
                   rows={3}
+                  className="form-textarea-large"
                 />
               </div>
               
@@ -991,6 +1141,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     type="number"
                     value={newPlan.entryLimit || 0}
                     onChange={(e) => setNewPlan({...newPlan, entryLimit: parseInt(e.target.value)})}
+                    min="1"
+                    className="form-input-large"
+                    placeholder="Number of gym visits allowed"
                   />
                 </div>
               )}
@@ -1002,33 +1155,84 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     type="text"
                     value={newPlan.duration || ''}
                     onChange={(e) => setNewPlan({...newPlan, duration: e.target.value})}
-                    placeholder="e.g., 30 days, 1 month"
+                    placeholder="e.g., 30 days, 1 month, 1 year"
+                    className="form-input-large"
                   />
                 </div>
               )}
               
               <div className="form-group">
-                <label>Features (comma-separated):</label>
-                <textarea
-                  placeholder="e.g., All gym equipment, Group classes, Pool access"
-                  onChange={(e) => setNewPlan({
-                    ...newPlan, 
-                    features: e.target.value.split(',').map(f => f.trim()).filter(f => f)
-                  })}
-                  rows={3}
-                />
+                <label>✅ Features:</label>
+                <div className="dynamic-list">
+                  {(newPlan.features || []).map((feature, index) => (
+                    <div key={index} className="list-item">
+                      <input
+                        type="text"
+                        value={feature}
+                        onChange={(e) => {
+                          const updated = [...(newPlan.features || [])];
+                          updated[index] = e.target.value;
+                          setNewPlan({...newPlan, features: updated});
+                        }}
+                        className="list-input"
+                      />
+                      <button
+                        type="button"
+                        className="remove-btn"
+                        onClick={() => {
+                          const updated = (newPlan.features || []).filter((_, i) => i !== index);
+                          setNewPlan({...newPlan, features: updated});
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="add-item-btn"
+                    onClick={() => setNewPlan({...newPlan, features: [...(newPlan.features || []), '']})}
+                  >
+                    + Add Feature
+                  </button>
+                </div>
               </div>
               
               <div className="form-group">
-                <label>Limitations (comma-separated, optional):</label>
-                <textarea
-                  placeholder="e.g., No personal training, Limited guest passes"
-                  onChange={(e) => setNewPlan({
-                    ...newPlan, 
-                    limitations: e.target.value.split(',').map(l => l.trim()).filter(l => l)
-                  })}
-                  rows={2}
-                />
+                <label>⚠️ Limitations (Optional):</label>
+                <div className="dynamic-list">
+                  {(newPlan.limitations || []).map((limitation, index) => (
+                    <div key={index} className="list-item">
+                      <input
+                        type="text"
+                        value={limitation}
+                        onChange={(e) => {
+                          const updated = [...(newPlan.limitations || [])];
+                          updated[index] = e.target.value;
+                          setNewPlan({...newPlan, limitations: updated});
+                        }}
+                        className="list-input"
+                      />
+                      <button
+                        type="button"
+                        className="remove-btn"
+                        onClick={() => {
+                          const updated = (newPlan.limitations || []).filter((_, i) => i !== index);
+                          setNewPlan({...newPlan, limitations: updated});
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    className="add-item-btn"
+                    onClick={() => setNewPlan({...newPlan, limitations: [...(newPlan.limitations || []), '']})}
+                  >
+                    + Add Limitation
+                  </button>
+                </div>
               </div>
               
               <div className="form-row">
@@ -1039,7 +1243,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       checked={newPlan.isPopular || false}
                       onChange={(e) => setNewPlan({...newPlan, isPopular: e.target.checked})}
                     />
-                    Mark as Popular
+                    <span>⭐ Mark as Popular</span>
                   </label>
                 </div>
                 
@@ -1050,18 +1254,35 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       checked={newPlan.isActive !== false}
                       onChange={(e) => setNewPlan({...newPlan, isActive: e.target.checked})}
                     />
-                    Active Plan
+                    <span>✅ Active Plan</span>
                   </label>
                 </div>
               </div>
             </div>
             
             <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => setShowCreatePlanModal(false)}>
-                Cancel
+              <button className="cancel-btn" onClick={() => {
+                setShowCreatePlanModal(false);
+                setEditingPlanId(null);
+                setNewPlan({
+                  name: '',
+                  type: 'single',
+                  price: 0,
+                  currency: 'AZN',
+                  description: '',
+                  features: [],
+                  limitations: [],
+                  duration: '',
+                  entryLimit: undefined,
+                  isActive: true,
+                  isPopular: false,
+                  discountPercentage: 0
+                });
+              }}>
+                ❌ Cancel
               </button>
               <button className="confirm-btn" onClick={handleCreatePlan}>
-                Create Plan
+                {editingPlanId ? '💾 Update Plan' : '➕ Create Plan'}
               </button>
             </div>
           </div>

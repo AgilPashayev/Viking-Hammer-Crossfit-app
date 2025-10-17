@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './MemberDashboard.css';
+import { useData } from '../contexts/DataContext';
 import {
   generateQRCodeData,
   generateQRCodeImage,
@@ -55,15 +56,22 @@ interface MemberDashboardProps {
 }
 
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
+  const { getMemberVisitsThisMonth, getMemberTotalVisits } = useData();
+  
+  // Calculate real-time visit statistics
+  const visitsThisMonth = user?.id ? getMemberVisitsThisMonth(user.id) : 0;
+  const totalVisits = user?.id ? getMemberTotalVisits(user.id) : 0;
+  
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: user ? `${user.firstName} ${user.lastName}` : 'Viking Warrior',
     membershipType: user?.membershipType || 'Viking Warrior Basic',
     joinDate: user?.joinDate || new Date().toISOString(),
-    visitsThisMonth: 12,
-    totalVisits: 158,
+    visitsThisMonth: visitsThisMonth,
+    totalVisits: totalVisits,
+    avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || undefined,
   });
 
-  // Update user profile when user data changes
+  // Update user profile when user data changes OR when visits change
   useEffect(() => {
     if (user) {
       setUserProfile((prev) => ({
@@ -71,9 +79,12 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         name: `${user.firstName} ${user.lastName}`,
         membershipType: user.membershipType,
         joinDate: user.joinDate,
+        visitsThisMonth: getMemberVisitsThisMonth(user.id),
+        totalVisits: getMemberTotalVisits(user.id),
+        avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || prev.avatar,
       }));
     }
-  }, [user]);
+  }, [user, getMemberVisitsThisMonth, getMemberTotalVisits]);
 
   const [upcomingClasses, setUpcomingClasses] = useState<ClassBooking[]>([
     {
@@ -242,7 +253,11 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       <div className="dashboard-header">
         <div className="user-welcome">
           <div className="user-avatar">
-            <img src="/api/placeholder/60/60" alt="User Avatar" />
+            <img 
+              src={userProfile.avatar || "/api/placeholder/60/60"} 
+              alt="User Avatar" 
+              style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+            />
           </div>
           <div className="welcome-text">
             <h1>Welcome back, {userProfile.name}!</h1>

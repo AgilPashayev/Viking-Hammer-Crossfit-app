@@ -70,6 +70,8 @@ interface DataContextType {
   stats: Stats;
   checkIns: CheckIn[];
   activities: Activity[];
+  membershipTypes: string[];
+  roles: Array<{ value: 'member' | 'instructor' | 'admin'; label: string }>;
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
   deleteMember: (id: string) => void;
@@ -77,10 +79,13 @@ interface DataContextType {
   refreshStats: () => void;
   getWeeklyCheckIns: () => number;
   getTodayCheckIns: () => CheckIn[];
+  getMemberVisitsThisMonth: (memberId: string) => number;
+  getMemberTotalVisits: (memberId: string) => number;
   logActivity: (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => void;
   getUpcomingBirthdays: () => Member[];
   setActiveClassesCount: (count: number) => void;
   setPlansCount: (count: number) => void;
+  updateMembershipTypes: (types: string[]) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -226,6 +231,20 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const [activities, setActivities] = useState<Activity[]>([]);
 
+  // Centralized membership types and roles
+  const [membershipTypes, setMembershipTypes] = useState<string[]>([
+    'Single',
+    'Monthly',
+    'Monthly Unlimited',
+    'Company',
+  ]);
+
+  const roles: Array<{ value: 'member' | 'instructor' | 'admin'; label: string }> = [
+    { value: 'member', label: '🛡️ Viking (Member)' },
+    { value: 'instructor', label: '⚔️ Warrior (Instructor)' },
+    { value: 'admin', label: '👑 Commander (Admin)' },
+  ];
+
   // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
     refreshStats();
@@ -295,6 +314,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const setPlansCount = (count: number) => {
     setStats((prev) => ({ ...prev, plansCount: count }));
+  };
+
+  const updateMembershipTypes = (types: string[]) => {
+    // Update membership types when plans are created/updated in MembershipManager
+    setMembershipTypes(types);
   };
 
   const addMember = (memberData: Omit<Member, 'id'>) => {
@@ -403,6 +427,23 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     });
   };
 
+  // Get member visits this month
+  const getMemberVisitsThisMonth = (memberId: string): number => {
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    
+    return checkIns.filter(checkIn => {
+      const checkInDate = new Date(checkIn.checkInTime);
+      return checkIn.memberId === memberId && checkInDate >= firstDayOfMonth;
+    }).length;
+  };
+
+  // Get member total visits
+  const getMemberTotalVisits = (memberId: string): number => {
+    return checkIns.filter(checkIn => checkIn.memberId === memberId).length;
+  };
+
   // Activity helpers
   const logActivity = (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => {
     const activity: Activity = {
@@ -434,6 +475,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     stats,
     checkIns,
     activities,
+    membershipTypes,
+    roles,
     addMember,
     updateMember,
     deleteMember,
@@ -441,10 +484,13 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     refreshStats,
     getWeeklyCheckIns,
     getTodayCheckIns,
+    getMemberVisitsThisMonth,
+    getMemberTotalVisits,
     logActivity,
     getUpcomingBirthdays,
     setActiveClassesCount,
     setPlansCount,
+    updateMembershipTypes,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

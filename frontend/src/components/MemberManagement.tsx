@@ -7,7 +7,7 @@ interface MemberManagementProps {
 }
 
 const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
-  const { members, addMember, updateMember, deleteMember } = useData();
+  const { members, addMember, updateMember, deleteMember, membershipTypes, roles } = useData();
 
   const [filteredMembers, setFilteredMembers] = useState<Member[]>(members);
   const [filterRole, setFilterRole] = useState<string>('all');
@@ -26,12 +26,10 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     lastName: '',
     email: '',
     phone: '',
-    membershipType: 'Single',
+    membershipType: membershipTypes[0] || 'Single',
     role: 'member' as 'member' | 'instructor' | 'admin',
     company: '',
   });
-
-  const membershipTypes = ['Single', 'Monthly', 'Monthly Unlimited', 'Company'];
 
   const companies = [
     'TechCorp',
@@ -161,7 +159,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       lastName: '',
       email: '',
       phone: '',
-      membershipType: 'Single',
+      membershipType: membershipTypes[0] || 'Single',
       role: 'member',
       company: '',
     });
@@ -691,9 +689,11 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   onChange={(e) => setNewMember({ ...newMember, role: e.target.value as any })}
                   className="form-select"
                 >
-                  <option value="member">🛡️ Viking (Member)</option>
-                  <option value="instructor">⚔️ Warrior (Instructor)</option>
-                  <option value="admin">👑 Commander (Admin)</option>
+                  {roles.map((role) => (
+                    <option key={role.value} value={role.value}>
+                      {role.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               {newMember.role === 'member' && (
@@ -727,7 +727,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                     lastName: '',
                     email: '',
                     phone: '',
-                    membershipType: 'Single',
+                    membershipType: membershipTypes[0] || 'Single',
                     role: 'member',
                     company: '',
                   });

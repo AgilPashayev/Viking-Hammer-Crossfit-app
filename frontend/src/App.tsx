@@ -3,8 +3,11 @@ import MemberDashboard from './components/MemberDashboard';
 import MyProfile from './components/MyProfile';
 import Reception from './components/Reception';
 import AuthForm from './components/AuthForm';
+import EmailVerification from './components/EmailVerification';
 import { DataProvider } from './contexts/DataContext';
 import './styles.css';
+// Import debug utilities for development
+import './debug-utils';
 
 interface UserData {
   id: string;
@@ -21,17 +24,26 @@ interface UserData {
   membershipType: string;
   joinDate: string;
   isAuthenticated: boolean;
+  avatar_url?: string;
+  profilePhoto?: string;
+  role?: 'member' | 'admin' | 'reception' | 'instructor';
 }
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'dashboard' | 'profile' | 'reception' | 'auth'
+    'home' | 'dashboard' | 'profile' | 'reception' | 'auth' | 'verify-email'
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
 
   // Load remembered session, if any
   React.useEffect(() => {
     try {
+      // Check if user is on email verification page
+      if (window.location.pathname === '/verify-email' || window.location.search.includes('token=')) {
+        setCurrentPage('verify-email');
+        return;
+      }
+      
       const stored = localStorage.getItem('viking_remembered_user');
       if (stored) {
         const parsed: UserData = JSON.parse(stored);
@@ -55,6 +67,23 @@ export default function App() {
     try { localStorage.removeItem('viking_remembered_user'); } catch {}
     setCurrentPage('home');
   };
+  
+  const handleUserUpdate = (updatedUser: any) => {
+    // Update user state with new data (e.g., profile photo)
+    setUser(prev => prev ? { ...prev, ...updatedUser } : null);
+    
+    // Also update localStorage if user was remembered
+    try {
+      const stored = localStorage.getItem('viking_remembered_user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const updated = { ...parsed, ...updatedUser };
+        localStorage.setItem('viking_remembered_user', JSON.stringify(updated));
+      }
+    } catch (error) {
+      console.error('Failed to update stored user data:', error);
+    }
+  };
 
   const handleGetStarted = () => {
     setCurrentPage('auth');
@@ -73,6 +102,15 @@ export default function App() {
       handleLogout();
     }
   };
+
+  // Show email verification page
+  if (currentPage === 'verify-email') {
+    return (
+      <DataProvider>
+        <EmailVerification onNavigate={handleNavigate} />
+      </DataProvider>
+    );
+  }
 
   // Show authentication form if not authenticated
   if (currentPage === 'auth' || (!user && currentPage !== 'home')) {
@@ -212,7 +250,12 @@ export default function App() {
                 🚪 Logout
               </button>
             </div>
-            <MyProfile onNavigate={handleNavigate} user={user} />
+            <MyProfile 
+              onNavigate={handleNavigate} 
+              user={user} 
+              currentUserRole={user?.role as any}
+              onUserUpdate={handleUserUpdate}
+            />
           </div>
         )}
       </div>

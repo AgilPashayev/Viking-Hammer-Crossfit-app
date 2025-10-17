@@ -27,6 +27,8 @@ export interface UserProfile {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  avatar_url?: string;
+  profilePhoto?: string;
 }
 
 export interface SignupData {
@@ -381,6 +383,7 @@ export const updateUserProfile = async (
       const updatedProfile = {
         ...currentProfile,
         ...updateData,
+        avatar_url: updateData.profilePhoto || updateData.avatar_url || currentProfile.avatar_url,
         updatedAt: new Date().toISOString(),
       };
 
@@ -398,6 +401,7 @@ export const updateUserProfile = async (
       .from('user_profiles')
       .update({
         ...updateData,
+        avatar_url: updateData.profilePhoto || updateData.avatar_url,
         updatedAt: new Date().toISOString(),
       })
       .eq('id', userId)
@@ -446,3 +450,308 @@ export const validateDateFormat = (dateString: string): boolean => {
     date.getFullYear() === parseInt(year)
   );
 };
+
+// ==================== MEMBERSHIP PLANS API ====================
+
+export interface MembershipPlanDB {
+  id: number;
+  sku: string;
+  name: string;
+  price_cents: number;
+  duration_days: number;
+  visit_quota?: number;
+  created_at: string;
+  // Extended fields (stored as JSON or additional columns if schema is extended)
+  metadata?: {
+    type?: string;
+    currency?: string;
+    description?: string;
+    features?: string[];
+    limitations?: string[];
+    isActive?: boolean;
+    isPopular?: boolean;
+    discountPercentage?: number;
+  };
+}
+
+export interface MembershipPlanInput {
+  name: string;
+  type: string;
+  price: number;
+  currency: string;
+  description: string;
+  features: string[];
+  limitations: string[];
+  duration: string;
+  entryLimit?: number;
+  isActive: boolean;
+  isPopular: boolean;
+  discountPercentage: number;
+}
+
+// Fetch all membership plans from Supabase
+export const fetchMembershipPlans = async (): Promise<{ plans: MembershipPlanDB[]; error: string | null }> => {
+  try {
+    const { data, error } = await supabase
+      .from('plans')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch membership plans:', error);
+      return { plans: [], error: error.message };
+    }
+
+    return { plans: data || [], error: null };
+  } catch (error) {
+    console.error('Unexpected error fetching plans:', error);
+    return { plans: [], error: 'An unexpected error occurred' };
+  }
+};
+
+// Create a new membership plan
+export const createMembershipPlan = async (planData: MembershipPlanInput): Promise<{ plan: MembershipPlanDB | null; error: string | null }> => {
+  try {
+    // Generate SKU from plan name
+    const sku = `plan_${planData.name.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+    
+    // Convert price to cents
+    const priceCents = Math.round(planData.price * 100);
+    
+    // Parse duration (e.g., "30 days" -> 30)
+    const durationDays = parseInt(planData.duration.split(' ')[0]) || 30;
+
+    const dbPlan = {
+      sku,
+      name: planData.name,
+      price_cents: priceCents,
+      duration_days: durationDays,
+      visit_quota: planData.entryLimit || null,
+      metadata: {
+        type: planData.type,
+        currency: planData.currency,
+        description: planData.description,
+        features: planData.features,
+        limitations: planData.limitations,
+        isActive: planData.isActive,
+        isPopular: planData.isPopular,
+        discountPercentage: planData.discountPercentage,
+      },
+    };
+
+    const { data, error } = await supabase
+      .from('plans')
+      .insert([dbPlan])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to create membership plan:', error);
+      return { plan: null, error: error.message };
+    }
+
+    return { plan: data, error: null };
+  } catch (error) {
+    console.error('Unexpected error creating plan:', error);
+    return { plan: null, error: 'An unexpected error occurred' };
+  }
+};
+
+// Update an existing membership plan
+export const updateMembershipPlan = async (planId: number, planData: Partial<MembershipPlanInput>): Promise<{ plan: MembershipPlanDB | null; error: string | null }> => {
+  try {
+    const updates: any = {};
+
+    if (planData.name) updates.name = planData.name;
+    if (planData.price !== undefined) updates.price_cents = Math.round(planData.price * 100);
+    if (planData.duration) updates.duration_days = parseInt(planData.duration.split(' ')[0]) || 30;
+    if (planData.entryLimit !== undefined) updates.visit_quota = planData.entryLimit || null;
+
+    // Update metadata
+    const metadata: any = {};
+    if (planData.type) metadata.type = planData.type;
+    if (planData.currency) metadata.currency = planData.currency;
+    if (planData.description !== undefined) metadata.description = planData.description;
+    if (planData.features) metadata.features = planData.features;
+    if (planData.limitations) metadata.limitations = planData.limitations;
+    if (planData.isActive !== undefined) metadata.isActive = planData.isActive;
+    if (planData.isPopular !== undefined) metadata.isPopular = planData.isPopular;
+    if (planData.discountPercentage !== undefined) metadata.discountPercentage = planData.discountPercentage;
+
+    if (Object.keys(metadata).length > 0) {
+      // Fetch current metadata and merge
+      const { data: currentPlan } = await supabase
+        .from('plans')
+        .select('metadata')
+        .eq('id', planId)
+        .single();
+
+      updates.metadata = {
+        ...(currentPlan?.metadata || {}),
+        ...metadata,
+      };
+    }
+
+    const { data, error } = await supabase
+      .from('plans')
+      .update(updates)
+      .eq('id', planId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Failed to update membership plan:', error);
+      return { plan: null, error: error.message };
+    }
+
+    return { plan: data, error: null };
+  } catch (error) {
+    console.error('Unexpected error updating plan:', error);
+    return { plan: null, error: 'An unexpected error occurred' };
+  }
+};
+
+// Delete a membership plan
+export const deleteMembershipPlan = async (planId: number): Promise<{ success: boolean; error: string | null }> => {
+  try {
+    const { error } = await supabase
+      .from('plans')
+      .delete()
+      .eq('id', planId);
+
+    if (error) {
+      console.error('Failed to delete membership plan:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Unexpected error deleting plan:', error);
+    return { success: false, error: 'An unexpected error occurred' };
+  }
+};
+
+// Upload profile photo to Supabase Storage
+export const uploadProfilePhoto = async (
+  userId: string,
+  file: File
+): Promise<{ url: string | null; error: string | null }> => {
+  try {
+    console.log('📸 Uploading profile photo for user:', userId);
+
+    // Check if we're in demo mode
+    if (isInDemoMode()) {
+      console.log('Demo mode: Simulating photo upload...');
+      
+      // Convert file to base64 for demo mode
+      const reader = new FileReader();
+      return new Promise((resolve) => {
+        reader.onload = (e) => {
+          const base64 = e.target?.result as string;
+          
+          // Store in localStorage with user data
+          const demoUsers = getDemoUsers();
+          const userEmail = Object.keys(demoUsers).find(
+            email => demoUsers[email].profile.id === userId
+          );
+          
+          if (userEmail && demoUsers[userEmail]) {
+            demoUsers[userEmail].profile = {
+              ...demoUsers[userEmail].profile,
+              avatar_url: base64
+            };
+            saveDemoUsers(demoUsers);
+            console.log('✅ Demo mode: Photo saved to localStorage');
+          }
+          
+          resolve({ url: base64, error: null });
+        };
+        reader.onerror = () => {
+          resolve({ url: null, error: 'Failed to read file' });
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Create unique filename
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `avatars/${fileName}`;
+
+    // Upload to Supabase Storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('user-avatars')
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return { url: null, error: uploadError.message };
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('user-avatars')
+      .getPublicUrl(filePath);
+
+    // Update user profile with avatar URL
+    const { error: updateError } = await supabase
+      .from('users_profile')
+      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', userId);
+
+    if (updateError) {
+      console.error('Profile update error:', updateError);
+      return { url: null, error: updateError.message };
+    }
+
+    console.log('✅ Profile photo uploaded successfully:', publicUrl);
+    return { url: publicUrl, error: null };
+  } catch (error: any) {
+    console.error('Unexpected error uploading photo:', error);
+    return { url: null, error: error.message || 'Failed to upload photo' };
+  }
+};
+
+// Get user profile by ID
+export const getUserProfile = async (
+  userId: string
+): Promise<{ user: UserProfile | null; error: string | null }> => {
+  try {
+    console.log('👤 Fetching user profile:', userId);
+
+    // Check if we're in demo mode
+    if (isInDemoMode()) {
+      const demoUsers = getDemoUsers();
+      const userEmail = Object.keys(demoUsers).find(
+        email => demoUsers[email].profile.id === userId
+      );
+      
+      if (userEmail && demoUsers[userEmail]) {
+        return { user: demoUsers[userEmail].profile, error: null };
+      }
+      
+      return { user: null, error: 'User not found' };
+    }
+
+    const { data, error } = await supabase
+      .from('users_profile')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error('Fetch profile error:', error);
+      return { user: null, error: error.message };
+    }
+
+    return { user: data as UserProfile, error: null };
+  } catch (error: any) {
+    console.error('Unexpected error fetching profile:', error);
+    return { user: null, error: error.message || 'Failed to fetch profile' };
+  }
+};
+
+

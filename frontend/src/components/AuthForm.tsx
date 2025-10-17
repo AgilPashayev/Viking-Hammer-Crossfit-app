@@ -9,6 +9,10 @@ import {
   formatDateForStorage,
   updateUserProfile,
 } from '../services/supabaseService';
+import { 
+  createVerificationToken, 
+  sendVerificationEmail 
+} from '../services/emailVerificationService';
 
 interface AuthFormProps {
   onLogin: (userData: any) => void;
@@ -248,6 +252,39 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
               gender: updatedUser.gender,
             };
             addMember(memberData);
+
+            // Send verification email
+            console.log('📧 Sending verification email...');
+            try {
+              const { token, expiresAt, error: tokenError } = await createVerificationToken(
+                updatedUser.id,
+                updatedUser.email
+              );
+
+              if (tokenError || !token) {
+                console.error('Failed to create verification token:', tokenError);
+                // Continue with signup even if email verification fails
+                alert('✅ Account created successfully!\n\n⚠️ Note: Email verification is not available in demo mode, but you can login now with your email and password.');
+              } else {
+                const emailResult = await sendVerificationEmail({
+                  email: updatedUser.email,
+                  firstName: updatedUser.firstName,
+                  token: token,
+                  expiresAt: expiresAt || ''
+                });
+
+                if (emailResult.success) {
+                  alert('✅ ' + emailResult.message + '\n\nYou can login now with your email and password.');
+                } else {
+                  console.error('Failed to send verification email:', emailResult.error);
+                  alert('✅ Account created successfully!\n\n⚠️ Note: Verification email could not be sent in demo mode, but you can login now with your email and password.');
+                }
+              }
+            } catch (emailError) {
+              console.error('Email verification error:', emailError);
+              // Continue with signup
+              alert('✅ Account created successfully! You can login now with your email and password.');
+            }
 
             setIsLoading(false);
             onLogin(userData);
