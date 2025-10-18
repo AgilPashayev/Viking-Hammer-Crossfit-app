@@ -969,20 +969,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       {/* Stats Overview */}
       <div className="stats-overview">
         <div className="stat-card">
-          <div className="stat-number">{stats.totalPlans}</div>
-          <div className="stat-label">Total Plans</div>
+          <div className="stat-icon">📋</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.totalPlans}</h3>
+            <p className="stat-label">Total Plans</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.activeSubscriptions}</div>
-          <div className="stat-label">Active Subscriptions</div>
+          <div className="stat-icon">✅</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.activeSubscriptions}</h3>
+            <p className="stat-label">Active Subscriptions</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.activeCompanies}</div>
-          <div className="stat-label">Company Partners</div>
+          <div className="stat-icon">🏢</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.activeCompanies}</h3>
+            <p className="stat-label">Company Partners</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.monthlyRevenue} AZN</div>
-          <div className="stat-label">Monthly Revenue</div>
+          <div className="stat-icon">💰</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.monthlyRevenue} AZN</h3>
+            <p className="stat-label">Monthly Revenue</p>
+          </div>
         </div>
       </div>
 

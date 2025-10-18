@@ -83,13 +83,78 @@ export const testLogin = async (email: string, password: string) => {
   return true;
 };
 
+// Restore a specific user account
+export const restoreUser = (email: string, password: string, userData?: any) => {
+  const stored = localStorage.getItem('viking_demo_users');
+  const users = stored ? JSON.parse(stored) : {};
+  
+  // Use September 15, 2025 as default registration date
+  const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+  
+  const defaultUserData = {
+    id: 'demo-' + Date.now(),
+    email: email,
+    firstName: 'User',
+    lastName: 'Account',
+    phone: '0501234567',
+    countryCode: '+994',
+    dateOfBirth: '01-01-1990',
+    gender: 'male',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactCountryCode: '+994',
+    membershipType: 'Viking Warrior Pro',
+    joinDate: registrationDate,
+    isActive: true,
+    createdAt: registrationDate,
+    updatedAt: new Date().toISOString(),
+  };
+  
+  users[email] = {
+    password: password,
+    profile: userData || { ...defaultUserData, email }
+  };
+  
+  localStorage.setItem('viking_demo_users', JSON.stringify(users));
+  console.log(`✅ User restored: ${email}`);
+  console.log('📋 User data:', users[email]);
+  return users[email];
+};
+
+// Quick restore for agil83p@yahoo.com
+export const restoreAgilAccount = (password: string = 'password123') => {
+  console.log('🔧 Restoring agil83p@yahoo.com account...');
+  const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+  
+  return restoreUser('agil83p@yahoo.com', password, {
+    id: 'demo-agil-001',
+    email: 'agil83p@yahoo.com',
+    firstName: 'Agil',
+    lastName: 'Pashayev',
+    phone: '0501234567',
+    countryCode: '+994',
+    dateOfBirth: '01-01-1990',
+    gender: 'male',
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactCountryCode: '+994',
+    membershipType: 'Viking Warrior Pro',
+    joinDate: registrationDate,
+    isActive: true,
+    createdAt: registrationDate,
+    updatedAt: new Date().toISOString(),
+  });
+};
+
 // Export for window access
 if (typeof window !== 'undefined') {
   (window as any).debugAuth = {
     checkDemoUsers,
     checkUser,
     clearDemoUsers,
-    testLogin
+    testLogin,
+    restoreUser,
+    restoreAgilAccount
   };
   
   console.log('🛠️ Debug utilities loaded!');
@@ -97,5 +162,7 @@ if (typeof window !== 'undefined') {
   console.log('  - debugAuth.checkDemoUsers()');
   console.log('  - debugAuth.checkUser("email@example.com")');
   console.log('  - debugAuth.testLogin("email@example.com", "password")');
+  console.log('  - debugAuth.restoreUser("email", "password")');
+  console.log('  - debugAuth.restoreAgilAccount("your_password")');
   console.log('  - debugAuth.clearDemoUsers()');
 }

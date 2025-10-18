@@ -39,6 +39,7 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
   const [membershipHistory, setMembershipHistory] = useState<MembershipRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [showPhotoSuccessModal, setShowPhotoSuccessModal] = useState(false);
   const [emergencyContact, setEmergencyContact] = useState({
     name: user?.emergencyContactName || '',
     phone: user?.emergencyContactPhone || '',
@@ -154,7 +155,8 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
           }
           
           console.log('✅ Profile photo updated successfully!');
-          alert('✅ Your profile photo has been updated!\n\nYour new photo is now visible to all members.');
+          // Show user-friendly success modal
+          setShowPhotoSuccessModal(true);
         }
       } catch (error) {
         console.error('Photo upload error:', error);
@@ -727,6 +729,36 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowHistoryModal(false)}>
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Upload Success Modal */}
+      {showPhotoSuccessModal && (
+        <div className="modal-overlay success-modal-overlay" onClick={() => setShowPhotoSuccessModal(false)}>
+          <div className="modal-content success-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="success-icon-wrapper">
+              <div className="success-checkmark">
+                <svg className="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+                  <circle className="checkmark-circle" cx="26" cy="26" r="25" fill="none"/>
+                  <path className="checkmark-check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                </svg>
+              </div>
+            </div>
+            <div className="success-content">
+              <h3 className="success-title">Profile Photo Updated!</h3>
+              <p className="success-message">
+                Your new photo is now visible to all members
+              </p>
+            </div>
+            <div className="success-actions">
+              <button 
+                className="btn btn-primary success-btn" 
+                onClick={() => setShowPhotoSuccessModal(false)}
+              >
+                Great!
               </button>
             </div>
           </div>

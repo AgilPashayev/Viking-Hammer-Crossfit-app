@@ -40,50 +40,74 @@
   background: var(--viking-grad-deep);
 }
 
-.stats-overview {
+.upcoming-birthdays .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
-.stat-card {
-  background: rgba(255, 255, 255, 0.1);
+.upcoming-birthdays .stats-overview .stat-card {
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   padding: 25px;
-  text-align: center;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-left-width: 4px !important;
+  border-left-style: solid !important;
+  display: flex;
+  align-items: center;
+  gap: 20px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.1);
 }
 
-.stat-card:hover {
+.upcoming-birthdays .stats-overview .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(11, 94, 255, 0.2);
-  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.2);
 }
 
-.total-stat {
-  border-left: 4px solid var(--viking-primary);
+.upcoming-birthdays .stats-overview .stat-card.today-stat {
+  border-left-color: #e91e63 !important;
 }
-.total-stat .stat-number {
+
+.upcoming-birthdays .stats-overview .stat-card.week-stat {
+  border-left-color: #4ecdc4 !important;
+}
+
+.upcoming-birthdays .stats-overview .stat-card.month-stat {
+  border-left-color: #f39c12 !important;
+}
+
+.upcoming-birthdays .stats-overview .stat-card.total-stat {
+  border-left-color: #3da5ff !important;
+}
+
+.upcoming-birthdays .stats-overview .stat-icon {
+  font-size: 2.5rem;
+  opacity: 0.8;
+  min-width: 50px;
+  text-align: center;
+}
+
+.upcoming-birthdays .stats-overview .stat-content {
+  flex: 1;
+}
+
+.upcoming-birthdays .stats-overview .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
   color: var(--viking-primary);
+  margin: 0 0 5px 0;
+  line-height: 1;
 }
 
-.week-stat {
-  border-left: 4px solid #4ecdc4;
-}
-
-.week-stat .stat-number {
-  color: #4ecdc4;
-}
-
-.month-stat {
-  border-left: 4px solid #ffe66d;
-}
-
-.month-stat .stat-number {
-  color: #ffe66d;
+.upcoming-birthdays .stats-overview .stat-label {
+  font-size: 0.9rem;
+  color: #1e3a5f;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .birthday-card::before {
@@ -95,20 +119,6 @@
   height: 4px;
   background: linear-gradient(90deg, var(--viking-primary), var(--viking-accent));
   transition: all 0.3s ease;
-}
-
-.stat-number {
-  font-size: 2.5rem;
-  font-weight: bold;
-  margin-bottom: 8px;
-  text-shadow: 0 0 10px rgba(11, 94, 255, 0.5);
-}
-
-.stat-label {
-  font-size: 1rem;
-  color: #b0b0b0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
 .controls-section {
@@ -185,14 +195,35 @@
 }
 
 .birthday-card {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
-  padding: 25px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
   backdrop-filter: blur(10px);
   position: relative;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.birthday-card.collapsed {
+  padding: 15px 20px;
+}
+
+.birthday-card.expanded {
+  padding: 25px;
+}
+
+.birthday-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.birthday-card-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  user-select: none;
 }
 
 .member-avatar {
@@ -226,20 +257,13 @@
 }
 
 .birthday-card.this-month::before {
-  background: linear-gradient(90deg, #a8edea, #fed6e3);
-}
-
-.birthday-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 30px rgba(11, 94, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(90deg, #3da5ff, #6ec1ff);
 }
 
 .birthday-card-header {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-bottom: 20px;
 }
 
 .member-name {
@@ -257,6 +281,43 @@
 
 .member-info {
   flex: 1;
+}
+
+.member-details-compact {
+  color: var(--viking-text);
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.expand-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--viking-grad-primary);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  line-height: 1;
+  padding: 0;
+  box-shadow: 0 2px 8px rgba(61, 165, 255, 0.3);
+}
+
+.expand-toggle:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(61, 165, 255, 0.5);
+}
+
+.expand-toggle:active {
+  transform: scale(0.95);
 }
 
 
@@ -292,44 +353,69 @@
 }
 
 .status-badge.today {
-  background: rgba(255, 107, 107, 0.2);
-  color: #ff6b6b;
-  border: 2px solid #ff6b6b;
+  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  color: white;
+  border: none;
+  font-weight: 700;
   animation: pulse 2s infinite;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
 }
 
 .status-badge.tomorrow {
-  background: rgba(78, 205, 196, 0.2);
-  color: #4ecdc4;
-  border: 2px solid #4ecdc4;
+  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4);
 }
 
 .status-badge.this-week {
-  background: rgba(255, 230, 109, 0.2);
-  color: #ffe66d;
-  border: 2px solid #ffe66d;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(243, 156, 18, 0.4);
 }
 
 .status-badge.this-month {
-  background: rgba(168, 237, 234, 0.2);
-  color: #a8edea;
-  border: 2px solid #a8edea;
+  background: linear-gradient(135deg, #3da5ff, #6ec1ff);
+  color: white;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(61, 165, 255, 0.4);
 }
 
 .status-badge.later {
-  background: rgba(176, 176, 176, 0.2);
-  color: #b0b0b0;
-  border: 2px solid #b0b0b0;
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+  border: none;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(149, 165, 166, 0.4);
 }
 
 .birthday-details {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 15px;
-  margin-bottom: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
+  margin: 20px 0;
+  padding: 20px;
+  background: rgba(61, 165, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(61, 165, 255, 0.1);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 500px;
+  }
 }
 
 .detail-row {
@@ -360,6 +446,10 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 15px;
+  animation: slideDown 0.3s ease-out;
+  animation-delay: 0.1s;
+  animation-fill-mode: both;
 }
 
 .wish-btn,

@@ -37,6 +37,8 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [editingAnnouncement, setEditingAnnouncement] = useState<Announcement | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [announcementToDelete, setAnnouncementToDelete] = useState<Announcement | null>(null);
 
   // New announcement form state
   const [newAnnouncement, setNewAnnouncement] = useState<Partial<Announcement>>({
@@ -247,12 +249,26 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
     }
   };
 
-  const handleDeleteAnnouncement = (id: string) => {
-    const del = announcements.find(a => a.id === id);
-    setAnnouncements(announcements.filter(ann => ann.id !== id));
-    if (del) {
-      logActivity({ type: 'announcement_deleted', message: `Announcement deleted: ${del.title}` });
+  const handleDeleteClick = (announcement: Announcement) => {
+    setAnnouncementToDelete(announcement);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (announcementToDelete) {
+      setAnnouncements(announcements.filter(ann => ann.id !== announcementToDelete.id));
+      logActivity({ 
+        type: 'announcement_deleted', 
+        message: `Announcement deleted: ${announcementToDelete.title}` 
+      });
+      setShowDeleteConfirm(false);
+      setAnnouncementToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setAnnouncementToDelete(null);
   };
 
   const handleEditAnnouncement = (announcement: Announcement) => {
@@ -274,13 +290,13 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = {
       year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+      month: 'long',
+      day: '2-digit'
+    };
+    return date.toLocaleDateString('en-US', options);
   };
 
   const getTypeIcon = (type: string) => {
@@ -340,28 +356,46 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
       {/* Stats Overview */}
       <div className="stats-overview">
         <div className="stat-card">
-          <div className="stat-number">{stats.total}</div>
-          <div className="stat-label">Total Announcements</div>
+          <div className="stat-icon">📢</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.total}</h3>
+            <p className="stat-label">Total Announcements</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.published}</div>
-          <div className="stat-label">Published</div>
+          <div className="stat-icon">✅</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.published}</h3>
+            <p className="stat-label">Published</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.draft}</div>
-          <div className="stat-label">Drafts</div>
+          <div className="stat-icon">📝</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.draft}</h3>
+            <p className="stat-label">Drafts</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.scheduled}</div>
-          <div className="stat-label">Scheduled</div>
+          <div className="stat-icon">📅</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.scheduled}</h3>
+            <p className="stat-label">Scheduled</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.totalViews}</div>
-          <div className="stat-label">Total Views</div>
+          <div className="stat-icon">👁️</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.totalViews}</h3>
+            <p className="stat-label">Total Views</p>
+          </div>
         </div>
         <div className="stat-card">
-          <div className="stat-number">{stats.engagementRate}%</div>
-          <div className="stat-label">Read Rate</div>
+          <div className="stat-icon">📊</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.engagementRate}%</h3>
+            <p className="stat-label">Read Rate</p>
+          </div>
         </div>
       </div>
 
@@ -524,7 +558,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
                 )}
                 <button 
                   className="delete-btn"
-                  onClick={() => handleDeleteAnnouncement(announcement.id)}
+                  onClick={() => handleDeleteClick(announcement)}
                 >
                   🗑️ Delete
                 </button>
@@ -639,12 +673,18 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
               
               {newAnnouncement.status === 'scheduled' && (
                 <div className="form-group">
-                  <label>Scheduled Date & Time:</label>
+                  <label>Scheduled Date:</label>
                   <input
-                    type="datetime-local"
+                    type="date"
                     value={newAnnouncement.scheduledDate || ''}
                     onChange={(e) => setNewAnnouncement({...newAnnouncement, scheduledDate: e.target.value})}
+                    placeholder="Select scheduled date"
                   />
+                  {newAnnouncement.scheduledDate && (
+                    <div className="date-preview">
+                      Preview: {formatDate(newAnnouncement.scheduledDate)}
+                    </div>
+                  )}
                 </div>
               )}
               
@@ -652,6 +692,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
                 <label>Tags (comma-separated):</label>
                 <input
                   type="text"
+                  value={newAnnouncement.tags?.join(', ') || ''}
                   placeholder="e.g., classes, promotion, maintenance"
                   onChange={(e) => setNewAnnouncement({
                     ...newAnnouncement, 
@@ -663,10 +704,16 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
               <div className="form-group">
                 <label>Expiry Date (optional):</label>
                 <input
-                  type="datetime-local"
+                  type="date"
                   value={newAnnouncement.expiryDate || ''}
                   onChange={(e) => setNewAnnouncement({...newAnnouncement, expiryDate: e.target.value})}
+                  placeholder="Select expiry date"
                 />
+                {newAnnouncement.expiryDate && (
+                  <div className="date-preview">
+                    Preview: {formatDate(newAnnouncement.expiryDate)}
+                  </div>
+                )}
               </div>
             </div>
             
@@ -740,6 +787,48 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
             <div className="modal-footer">
               <button className="confirm-btn" onClick={() => setShowPreviewModal(false)}>
                 Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && announcementToDelete && (
+        <div className="modal-overlay" onClick={handleCancelDelete}>
+          <div className="modal-content delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>⚠️ Confirm Delete</h2>
+              <button className="close-modal" onClick={handleCancelDelete}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="delete-confirm-content">
+                <div className="warning-icon">🗑️</div>
+                <h3>Are you sure you want to delete this announcement?</h3>
+                <div className="announcement-info">
+                  <p className="announcement-title-preview">
+                    <strong>Title:</strong> {announcementToDelete.title}
+                  </p>
+                  <p className="announcement-type-preview">
+                    <strong>Type:</strong> {getTypeIcon(announcementToDelete.type)} {announcementToDelete.type}
+                  </p>
+                  <p className="announcement-status-preview">
+                    <strong>Status:</strong> {announcementToDelete.status}
+                  </p>
+                </div>
+                <p className="warning-text">
+                  This action cannot be undone. The announcement will be permanently deleted.
+                </p>
+              </div>
+            </div>
+            
+            <div className="modal-footer delete-confirm-footer">
+              <button className="cancel-btn" onClick={handleCancelDelete}>
+                ❌ Cancel
+              </button>
+              <button className="confirm-delete-btn" onClick={handleConfirmDelete}>
+                🗑️ Yes, Delete
               </button>
             </div>
           </div>

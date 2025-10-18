@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deep Login Test - Real-Time</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+        }
+        .test-box {
+            background: #000;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .error { color: #ff0000; }
+        .success { color: #00ff00; }
+        .warning { color: #ffaa00; }
+        .info { color: #00aaff; }
+        button {
+            background: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #00cc00;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 10px;
+            overflow-x: auto;
+            border-left: 3px solid #00ff00;
+        }
+        input {
+            background: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 8px;
+            width: 300px;
+            margin: 5px;
+        }
+        .live-log {
+            background: #0a0a0a;
+            border: 1px solid #00ff00;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 DEEP LOGIN TEST - REAL-TIME DEBUGGING</h1>
+        
+        <div class="test-box">
+            <h2>📊 Current State</h2>
+            <button onclick="checkState()">🔍 Check Current State</button>
+            <button onclick="watchConsole()">👁️ Watch Console Logs</button>
+            <pre id="state"></pre>
+        </div>
+
+        <div class="test-box">
+            <h2>🧪 Test Login Function Directly</h2>
+            <p>This bypasses the UI and calls signInUser directly</p>
+            <input type="email" id="directEmail" placeholder="Email" value="agil83p@yahoo.com">
+            <input type="text" id="directPassword" placeholder="Password" value="password123">
+            <br>
+            <button onclick="testDirectLogin()">🔬 Test Direct Login</button>
+            <pre id="directResult"></pre>
+        </div>
+
+        <div class="test-box">
+            <h2>📋 Live Console Log Monitor</h2>
+            <button onclick="clearLiveLog()">🧹 Clear Log</button>
+            <div id="liveLog" class="live-log">Monitoring console.log, console.error, console.warn...<br></div>
+        </div>
+
+        <div class="test-box">
+            <h2>🔧 Manual Fix Tools</h2>
+            <button onclick="recreateUser()">🔄 Recreate User</button>
+            <button onclick="inspectStorage()">🔍 Inspect Storage</button>
+            <button onclick="clearAndRecreate()">⚠️ Clear & Recreate</button>
+        </div>
+    </div>
+
+    <script>
+        // Intercept console methods
+        const liveLog = document.getElementById('liveLog');
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToLiveLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                log: '#00ff00',
+                error: '#ff0000',
+                warn: '#ffaa00',
+                info: '#00aaff'
+            };
+            liveLog.innerHTML += `<div style="color: ${colors[type]}">[${timestamp}] ${message}</div>`;
+            liveLog.scrollTop = liveLog.scrollHeight;
+        }
+
+        function watchConsole() {
+            console.log = function(...args) {
+                addToLiveLog(args.join(' '), 'log');
+                originalLog.apply(console, args);
+            };
+
+            console.error = function(...args) {
+                addToLiveLog('ERROR: ' + args.join(' '), 'error');
+                originalError.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+                addToLiveLog('WARN: ' + args.join(' '), 'warn');
+                originalWarn.apply(console, args);
+            };
+
+            addToLiveLog('✅ Console monitoring active', 'info');
+        }
+
+        function clearLiveLog() {
+            liveLog.innerHTML = 'Log cleared. Monitoring active...<br>';
+        }
+
+        function checkState() {
+            const state = document.getElementById('state');
+            let output = '';
+
+            // Check hostname
+            output += `Hostname: ${window.location.hostname}\n`;
+            output += `Demo Mode: ${window.location.hostname === 'localhost' ? 'YES' : 'NO'}\n\n`;
+
+            // Check localStorage
+            const stored = localStorage.getItem('viking_demo_users');
+            output += `localStorage Key: viking_demo_users\n`;
+            output += `Status: ${stored ? 'EXISTS' : 'EMPTY'}\n`;
+            
+            if (stored) {
+                try {
+                    const users = JSON.parse(stored);
+                    output += `Users Count: ${Object.keys(users).length}\n\n`;
+                    
+                    Object.keys(users).forEach(email => {
+                        const user = users[email];
+                        output += `Email: ${email}\n`;
+                        output += `  Password: "${user.password}"\n`;
+                        output += `  Password Length: ${user.password.length}\n`;
+                        output += `  Password Type: ${typeof user.password}\n`;
+                        output += `  Profile Exists: ${user.profile ? 'YES' : 'NO'}\n`;
+                        if (user.profile) {
+                            output += `  Profile ID: ${user.profile.id}\n`;
+                            output += `  Profile Email: ${user.profile.email}\n`;
+                            output += `  Profile Name: ${user.profile.firstName} ${user.profile.lastName}\n`;
+                        }
+                        output += '\n';
+                    });
+                } catch (e) {
+                    output += `ERROR parsing: ${e.message}\n`;
+                }
+            }
+
+            state.textContent = output;
+        }
+
+        async function testDirectLogin() {
+            const email = document.getElementById('directEmail').value;
+            const password = document.getElementById('directPassword').value;
+            const result = document.getElementById('directResult');
+
+            result.textContent = 'Testing...\n\n';
+            
+            try {
+                // Import the signInUser function from the app
+                // We'll test this by calling it through the window object if available
+                
+                result.textContent += '📝 Test Parameters:\n';
+                result.textContent += `  Email: "${email}"\n`;
+                result.textContent += `  Password: "${password}"\n`;
+                result.textContent += `  Password Length: ${password.length}\n`;
+                result.textContent += `  Password Type: ${typeof password}\n\n`;
+
+                // Check localStorage directly
+                result.textContent += '📦 Checking localStorage:\n';
+                const stored = localStorage.getItem('viking_demo_users');
+                if (!stored) {
+                    result.textContent += '  ❌ No users in localStorage\n';
+                    return;
+                }
+
+                const users = JSON.parse(stored);
+                const user = users[email];
+                
+                if (!user) {
+                    result.textContent += `  ❌ User ${email} not found\n`;
+                    result.textContent += `  Available: ${Object.keys(users).join(', ')}\n`;
+                    return;
+                }
+
+                result.textContent += '  ✅ User found\n';
+                result.textContent += `  Stored Password: "${user.password}"\n`;
+                result.textContent += `  Stored Password Length: ${user.password.length}\n`;
+                result.textContent += `  Stored Password Type: ${typeof user.password}\n\n`;
+
+                // Compare passwords
+                result.textContent += '🔐 Password Comparison:\n';
+                result.textContent += `  Strict Equal (===): ${user.password === password}\n`;
+                result.textContent += `  Loose Equal (==): ${user.password == password}\n`;
+                result.textContent += `  Length Match: ${user.password.length === password.length}\n`;
+                
+                // Character by character comparison
+                if (user.password.length === password.length) {
+                    let mismatchIndex = -1;
+                    for (let i = 0; i < user.password.length; i++) {
+                        if (user.password[i] !== password[i]) {
+                            mismatchIndex = i;
+                            break;
+                        }
+                    }
+                    
+                    if (mismatchIndex === -1) {
+                        result.textContent += '  ✅ All characters match\n';
+                    } else {
+                        result.textContent += `  ❌ Mismatch at position ${mismatchIndex}\n`;
+                        result.textContent += `     Stored: "${user.password[mismatchIndex]}" (code: ${user.password.charCodeAt(mismatchIndex)})\n`;
+                        result.textContent += `     Provided: "${password[mismatchIndex]}" (code: ${password.charCodeAt(mismatchIndex)})\n`;
+                    }
+                }
+
+                if (user.password === password) {
+                    result.textContent += '\n✅ LOGIN SHOULD SUCCEED!\n';
+                    result.textContent += '\n🎉 Profile Data:\n';
+                    result.textContent += JSON.stringify(user.profile, null, 2);
+                } else {
+                    result.textContent += '\n❌ LOGIN WILL FAIL - Password mismatch\n';
+                }
+
+            } catch (error) {
+                result.textContent += `\n❌ ERROR: ${error.message}\n`;
+                result.textContent += error.stack;
+            }
+        }
+
+        function recreateUser() {
+            const email = 'agil83p@yahoo.com';
+            const password = 'password123';
+            
+            const stored = localStorage.getItem('viking_demo_users');
+            const users = stored ? JSON.parse(stored) : {};
+            
+            const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+            
+            users[email] = {
+                password: password,
+                profile: {
+                    id: 'demo-' + Date.now(),
+                    email: email,
+                    firstName: 'Agil',
+                    lastName: 'Pashayev',
+                    phone: '0501234567',
+                    countryCode: '+994',
+                    dateOfBirth: '01-01-1990',
+                    gender: 'male',
+                    emergencyContactName: '',
+                    emergencyContactPhone: '',
+                    emergencyContactCountryCode: '+994',
+                    membershipType: 'Viking Warrior Pro',
+                    joinDate: registrationDate,
+                    isActive: true,
+                    createdAt: registrationDate,
+                    updatedAt: registrationDate
+                }
+            };
+            
+            localStorage.setItem('viking_demo_users', JSON.stringify(users));
+            alert(`✅ User recreated!\nEmail: ${email}\nPassword: ${password}`);
+            checkState();
+        }
+
+        function inspectStorage() {
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                alert('❌ No data in localStorage');
+                return;
+            }
+
+            const popup = window.open('', 'Storage Inspector', 'width=800,height=600');
+            popup.document.write('<pre style="font-family: monospace; padding: 20px;">');
+            popup.document.write('Raw localStorage value:\n\n');
+            popup.document.write(stored);
+            popup.document.write('\n\n\nParsed JSON:\n\n');
+            popup.document.write(JSON.stringify(JSON.parse(stored), null, 2));
+            popup.document.write('</pre>');
+        }
+
+        function clearAndRecreate() {
+            if (!confirm('This will clear all users and create a fresh test account. Continue?')) {
+                return;
+            }
+            
+            localStorage.removeItem('viking_demo_users');
+            recreateUser();
+        }
+
+        // Initialize
+        window.addEventListener('load', () => {
+            watchConsole();
+            checkState();
+        });
+    </script>
+</body>
+</html>

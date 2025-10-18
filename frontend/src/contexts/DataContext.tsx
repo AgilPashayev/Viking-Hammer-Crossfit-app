@@ -45,6 +45,27 @@ export interface Stats {
   plansCount: number;
 }
 
+// Class types
+export interface GymClass {
+  id: string;
+  name: string;
+  description: string;
+  duration: number; // in minutes
+  maxCapacity: number;
+  currentEnrollment: number;
+  instructors: string[]; // instructor IDs or names
+  schedule: {
+    dayOfWeek: number; // 0-6 (Sunday-Saturday)
+    startTime: string;
+    endTime: string;
+  }[];
+  equipment: string[];
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  category: 'Cardio' | 'Strength' | 'Flexibility' | 'Mixed' | 'Specialized';
+  price: number;
+  status: 'active' | 'inactive' | 'full';
+}
+
 // Activity feed types
 export type ActivityType =
   | 'checkin'
@@ -54,7 +75,16 @@ export type ActivityType =
   | 'announcement_created'
   | 'announcement_published'
   | 'announcement_deleted'
-  | 'birthday_upcoming';
+  | 'birthday_upcoming'
+  | 'class_created'
+  | 'class_updated'
+  | 'class_deleted'
+  | 'instructor_created'
+  | 'instructor_updated'
+  | 'instructor_deleted'
+  | 'schedule_created'
+  | 'schedule_updated'
+  | 'schedule_deleted';
 
 export interface Activity {
   id: string;
@@ -72,6 +102,7 @@ interface DataContextType {
   activities: Activity[];
   membershipTypes: string[];
   roles: Array<{ value: 'member' | 'instructor' | 'admin'; label: string }>;
+  classes: GymClass[];
   addMember: (member: Omit<Member, 'id'>) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
   deleteMember: (id: string) => void;
@@ -86,6 +117,11 @@ interface DataContextType {
   setActiveClassesCount: (count: number) => void;
   setPlansCount: (count: number) => void;
   updateMembershipTypes: (types: string[]) => void;
+  getClasses: () => GymClass[];
+  getUpcomingClasses: () => GymClass[];
+  addClass: (classData: Omit<GymClass, 'id'>) => void;
+  updateClass: (id: string, updates: Partial<GymClass>) => void;
+  deleteClass: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -215,6 +251,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     },
   ]);
 
+  // Classes state
+  const [classes, setClasses] = useState<GymClass[]>([]);
+
   const [stats, setStats] = useState<Stats>({
     totalMembers: 247,
     checkedInToday: 48,
@@ -320,6 +359,169 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     // Update membership types when plans are created/updated in MembershipManager
     setMembershipTypes(types);
   };
+
+  // Classes Management Functions
+  const getClasses = (): GymClass[] => {
+    return classes;
+  };
+
+  const getUpcomingClasses = (): GymClass[] => {
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
+
+    // Filter active classes that are upcoming
+    return classes.filter(cls => {
+      if (cls.status !== 'active') return false;
+      
+      // Check if class has upcoming schedule
+      return cls.schedule.some(sch => {
+        // If class is today and hasn't started yet, or it's on a future day this week
+        if (sch.dayOfWeek === currentDay) {
+          return sch.startTime > currentTime;
+        }
+        // Future days this week
+        return sch.dayOfWeek > currentDay;
+      });
+    }).slice(0, 5); // Return max 5 upcoming classes
+  };
+
+  const addClass = (classData: Omit<GymClass, 'id'>) => {
+    const newClass: GymClass = {
+      ...classData,
+      id: `class_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    };
+    setClasses(prev => [...prev, newClass]);
+    
+    // Update active classes count
+    if (newClass.status === 'active') {
+      setActiveClassesCount(classes.filter(c => c.status === 'active').length + 1);
+    }
+    
+    // Log activity
+    logActivity({
+      type: 'member_added', // Using existing type as proxy
+      message: `New class added: ${newClass.name}`,
+      metadata: { classId: newClass.id, className: newClass.name }
+    });
+  };
+
+  const updateClass = (id: string, updates: Partial<GymClass>) => {
+    setClasses(prev => {
+      const updated = prev.map(cls => 
+        cls.id === id ? { ...cls, ...updates } : cls
+      );
+      
+      // Update active classes count if status changed
+      const activeCount = updated.filter(c => c.status === 'active').length;
+      setActiveClassesCount(activeCount);
+      
+      return updated;
+    });
+    
+    // Log activity
+    const updatedClass = classes.find(c => c.id === id);
+    if (updatedClass) {
+      logActivity({
+        type: 'member_updated', // Using existing type as proxy
+        message: `Class updated: ${updatedClass.name}`,
+        metadata: { classId: id, updates }
+      });
+    }
+  };
+
+  const deleteClass = (id: string) => {
+    const classToDelete = classes.find(c => c.id === id);
+    setClasses(prev => {
+      const filtered = prev.filter(cls => cls.id !== id);
+      
+      // Update active classes count
+      const activeCount = filtered.filter(c => c.status === 'active').length;
+      setActiveClassesCount(activeCount);
+      
+      return filtered;
+    });
+    
+    // Log activity
+    if (classToDelete) {
+      logActivity({
+        type: 'announcement_deleted', // Using existing type as proxy
+        message: `Class deleted: ${classToDelete.name}`,
+        metadata: { classId: id, className: classToDelete.name }
+      });
+    }
+  };
+
+  // Update stats when classes change
+  useEffect(() => {
+    const activeCount = classes.filter(c => c.status === 'active').length;
+    setStats(prev => ({ ...prev, activeClasses: activeCount }));
+  }, [classes]);
+
+  // Initial load: populate with some mock data
+  useEffect(() => {
+    if (classes.length === 0) {
+      // Add initial mock classes
+      setClasses([
+        {
+          id: 'class1',
+          name: 'Morning CrossFit WOD',
+          description: 'High-intensity CrossFit workout to start your day',
+          duration: 60,
+          maxCapacity: 20,
+          currentEnrollment: 15,
+          instructors: ['Thor Hansen'],
+          schedule: [
+            { dayOfWeek: 1, startTime: '06:00', endTime: '07:00' }, // Monday
+            { dayOfWeek: 3, startTime: '06:00', endTime: '07:00' }, // Wednesday
+            { dayOfWeek: 5, startTime: '06:00', endTime: '07:00' }, // Friday
+          ],
+          equipment: ['Barbell', 'Pull-up Bar', 'Kettlebell'],
+          difficulty: 'Intermediate',
+          category: 'Mixed',
+          price: 25,
+          status: 'active'
+        },
+        {
+          id: 'class2',
+          name: 'Strength Training',
+          description: 'Build muscle and increase strength with guided weightlifting',
+          duration: 75,
+          maxCapacity: 15,
+          currentEnrollment: 12,
+          instructors: ['Freya Nielsen'],
+          schedule: [
+            { dayOfWeek: 2, startTime: '18:00', endTime: '19:15' }, // Tuesday
+            { dayOfWeek: 4, startTime: '18:00', endTime: '19:15' }, // Thursday
+          ],
+          equipment: ['Barbell', 'Dumbbells', 'Bench'],
+          difficulty: 'Intermediate',
+          category: 'Strength',
+          price: 30,
+          status: 'active'
+        },
+        {
+          id: 'class3',
+          name: 'HIIT Cardio',
+          description: 'High-Intensity Interval Training for maximum calorie burn',
+          duration: 45,
+          maxCapacity: 25,
+          currentEnrollment: 20,
+          instructors: ['Erik Larsen'],
+          schedule: [
+            { dayOfWeek: 1, startTime: '07:00', endTime: '07:45' }, // Monday
+            { dayOfWeek: 3, startTime: '07:00', endTime: '07:45' }, // Wednesday
+            { dayOfWeek: 5, startTime: '07:00', endTime: '07:45' }, // Friday
+          ],
+          equipment: ['Jump Rope', 'Medicine Ball'],
+          difficulty: 'Beginner',
+          category: 'Cardio',
+          price: 20,
+          status: 'active'
+        },
+      ]);
+    }
+  }, []);
 
   const addMember = (memberData: Omit<Member, 'id'>) => {
     const newMember: Member = {
@@ -477,6 +679,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     activities,
     membershipTypes,
     roles,
+    classes,
     addMember,
     updateMember,
     deleteMember,
@@ -491,6 +694,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setActiveClassesCount,
     setPlansCount,
     updateMembershipTypes,
+    getClasses,
+    getUpcomingClasses,
+    addClass,
+    updateClass,
+    deleteClass,
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

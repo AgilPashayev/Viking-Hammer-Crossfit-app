@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #4ec9b0;
+            border-bottom: 2px solid #4ec9b0;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #569cd6;
+            margin-top: 30px;
+        }
+        .test-section {
+            background: #252526;
+            border-left: 4px solid #569cd6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success { border-left-color: #4ec9b0; }
+        .error { border-left-color: #f48771; }
+        .warning { border-left-color: #ce9178; }
+        button {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+            border-radius: 3px;
+            font-family: inherit;
+        }
+        button:hover {
+            background: #1177bb;
+        }
+        .code {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+        }
+        .status-good { color: #4ec9b0; }
+        .status-bad { color: #f48771; }
+        .status-warning { color: #ce9178; }
+        input {
+            background: #3c3c3c;
+            border: 1px solid #555;
+            color: #d4d4d4;
+            padding: 8px;
+            width: 300px;
+            margin: 5px;
+            border-radius: 3px;
+        }
+        #output {
+            white-space: pre-wrap;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Viking Hammer - Login Diagnostic Tool</h1>
+        
+        <div class="test-section">
+            <h2>📊 System Status</h2>
+            <button onclick="runFullDiagnostic()">🔬 Run Full Diagnostic</button>
+            <button onclick="clearOutput()">🧹 Clear Output</button>
+            <div id="status" class="code">
+                <div>Hostname: <span id="hostname"></span></div>
+                <div>Demo Mode: <span id="demoMode"></span></div>
+                <div>Users in Storage: <span id="userCount"></span></div>
+                <div>Debug Tools: <span id="debugTools"></span></div>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>👤 Create Test User</h2>
+            <input type="email" id="newEmail" placeholder="email@example.com" value="agil83p@yahoo.com">
+            <input type="password" id="newPassword" placeholder="password" value="password123">
+            <button onclick="createTestUser()">➕ Create User</button>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 Test Login</h2>
+            <input type="email" id="testEmail" placeholder="email@example.com" value="agil83p@yahoo.com">
+            <input type="password" id="testPassword" placeholder="password" value="password123">
+            <button onclick="testLogin()">🧪 Test Login</button>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Output Log</h2>
+            <div id="output" class="code"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const output = document.getElementById('output');
+            const colors = {
+                success: '#4ec9b0',
+                error: '#f48771',
+                warning: '#ce9178',
+                info: '#d4d4d4'
+            };
+            const timestamp = new Date().toLocaleTimeString();
+            output.innerHTML += `<div style="color: ${colors[type]}">[${timestamp}] ${message}</div>`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        function updateStatus() {
+            document.getElementById('hostname').textContent = window.location.hostname;
+            
+            const isDemoMode = window.location.hostname === 'localhost' || 
+                              window.location.hostname === '127.0.0.1';
+            document.getElementById('demoMode').innerHTML = isDemoMode ? 
+                '<span class="status-good">✅ Active</span>' : 
+                '<span class="status-bad">❌ Disabled</span>';
+            
+            const users = localStorage.getItem('viking_demo_users');
+            const count = users ? Object.keys(JSON.parse(users)).length : 0;
+            document.getElementById('userCount').innerHTML = count > 0 ?
+                `<span class="status-good">✅ ${count} user(s)</span>` :
+                '<span class="status-bad">❌ No users</span>';
+            
+            const hasDebug = typeof window.debugAuth !== 'undefined';
+            document.getElementById('debugTools').innerHTML = hasDebug ?
+                '<span class="status-good">✅ Loaded</span>' :
+                '<span class="status-warning">⚠️ Not loaded</span>';
+        }
+
+        function runFullDiagnostic() {
+            clearOutput();
+            log('🔍 Starting Full Diagnostic...', 'info');
+            log('━'.repeat(80), 'info');
+            
+            // Test 1: Environment
+            log('\n📍 TEST 1: Environment Check', 'info');
+            const hostname = window.location.hostname;
+            const isDemoMode = hostname === 'localhost' || hostname === '127.0.0.1';
+            log(`Hostname: ${hostname}`, 'info');
+            log(`Demo Mode: ${isDemoMode ? '✅ ACTIVE' : '❌ INACTIVE'}`, isDemoMode ? 'success' : 'error');
+            
+            // Test 2: LocalStorage
+            log('\n📍 TEST 2: LocalStorage Check', 'info');
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                log('❌ CRITICAL: No demo users in localStorage!', 'error');
+                log('This is why login fails - no users exist!', 'error');
+            } else {
+                try {
+                    const users = JSON.parse(stored);
+                    const emails = Object.keys(users);
+                    log(`✅ Found ${emails.length} user(s)`, 'success');
+                    emails.forEach(email => {
+                        const user = users[email];
+                        log(`\n  📧 ${email}`, 'info');
+                        log(`     Name: ${user.profile.firstName} ${user.profile.lastName}`, 'info');
+                        log(`     Password: ${'*'.repeat(user.password.length)} (${user.password.length} chars)`, 'info');
+                        log(`     ID: ${user.profile.id}`, 'info');
+                        log(`     Membership: ${user.profile.membershipType}`, 'info');
+                    });
+                } catch (e) {
+                    log(`❌ ERROR: Failed to parse users: ${e.message}`, 'error');
+                }
+            }
+            
+            // Test 3: Debug Tools
+            log('\n📍 TEST 3: Debug Tools Check', 'info');
+            if (typeof window.debugAuth !== 'undefined') {
+                log('✅ Debug tools available', 'success');
+                log('Available functions:', 'info');
+                Object.keys(window.debugAuth).forEach(key => {
+                    log(`   - debugAuth.${key}()`, 'info');
+                });
+            } else {
+                log('⚠️  Debug tools not loaded (refresh page)', 'warning');
+            }
+            
+            // Test 4: React App
+            log('\n📍 TEST 4: React App Check', 'info');
+            const root = document.getElementById('root');
+            if (root && root.innerHTML) {
+                log('✅ React app is mounted', 'success');
+            } else {
+                log('❌ React app not found', 'error');
+            }
+            
+            log('\n━'.repeat(80), 'info');
+            log('✅ Diagnostic Complete', 'success');
+            
+            updateStatus();
+        }
+
+        function createTestUser() {
+            const email = document.getElementById('newEmail').value;
+            const password = document.getElementById('newPassword').value;
+            
+            if (!email || !password) {
+                log('❌ Please enter both email and password', 'error');
+                return;
+            }
+            
+            log(`\n🔧 Creating user: ${email}`, 'info');
+            
+            const stored = localStorage.getItem('viking_demo_users');
+            const users = stored ? JSON.parse(stored) : {};
+            
+            const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+            
+            users[email] = {
+                password: password,
+                profile: {
+                    id: 'demo-' + Date.now(),
+                    email: email,
+                    firstName: email.split('@')[0],
+                    lastName: 'User',
+                    phone: '0501234567',
+                    countryCode: '+994',
+                    dateOfBirth: '01-01-1990',
+                    gender: 'male',
+                    emergencyContactName: '',
+                    emergencyContactPhone: '',
+                    emergencyContactCountryCode: '+994',
+                    membershipType: 'Viking Warrior Pro',
+                    joinDate: registrationDate,
+                    isActive: true,
+                    createdAt: registrationDate,
+                    updatedAt: registrationDate
+                }
+            };
+            
+            localStorage.setItem('viking_demo_users', JSON.stringify(users));
+            log(`✅ User created successfully!`, 'success');
+            log(`📧 Email: ${email}`, 'info');
+            log(`🔑 Password: ${password}`, 'info');
+            log('\nYou can now login with these credentials in the main app.', 'success');
+            
+            updateStatus();
+        }
+
+        function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+            
+            if (!email || !password) {
+                log('❌ Please enter both email and password', 'error');
+                return;
+            }
+            
+            log(`\n🧪 Testing login: ${email}`, 'info');
+            log('━'.repeat(80), 'info');
+            
+            // Step 1: Check localStorage
+            log('Step 1: Checking localStorage...', 'info');
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                log('❌ FAIL: No users in localStorage', 'error');
+                log('💡 Solution: Create a user first using the form above', 'warning');
+                return;
+            }
+            
+            const users = JSON.parse(stored);
+            const user = users[email];
+            
+            if (!user) {
+                log(`❌ FAIL: User ${email} not found`, 'error');
+                log('Available users:', 'info');
+                Object.keys(users).forEach(e => log(`   - ${e}`, 'info'));
+                return;
+            }
+            log('✅ User exists in localStorage', 'success');
+            
+            // Step 2: Check password
+            log('\nStep 2: Verifying password...', 'info');
+            if (user.password !== password) {
+                log('❌ FAIL: Password mismatch', 'error');
+                log(`   Stored password: "${user.password}"`, 'warning');
+                log(`   Entered password: "${password}"`, 'warning');
+                return;
+            }
+            log('✅ Password matches', 'success');
+            
+            // Step 3: Check profile
+            log('\nStep 3: Checking profile data...', 'info');
+            if (!user.profile) {
+                log('❌ FAIL: No profile data', 'error');
+                return;
+            }
+            log('✅ Profile data complete', 'success');
+            log(`   ID: ${user.profile.id}`, 'info');
+            log(`   Name: ${user.profile.firstName} ${user.profile.lastName}`, 'info');
+            log(`   Email: ${user.profile.email}`, 'info');
+            log(`   Membership: ${user.profile.membershipType}`, 'info');
+            
+            log('\n━'.repeat(80), 'info');
+            log('🎉 LOGIN TEST PASSED!', 'success');
+            log('This account should work in the main application.', 'success');
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            updateStatus();
+            log('✅ Diagnostic tool loaded', 'success');
+            log('Click "Run Full Diagnostic" to check your system', 'info');
+        });
+    </script>
+</body>
+</html>

@@ -98,10 +98,3 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
   target jsonb,
   ts timestamptz DEFAULT now()
 );
-
--- views (example)
-CREATE VIEW IF NOT EXISTS public.daily_checkins_v AS
-SELECT date_trunc('day', ts) AS day, count(*) AS checkins
-FROM public.checkins
-GROUP BY 1
-ORDER BY 1 DESC;

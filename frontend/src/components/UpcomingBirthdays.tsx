@@ -30,11 +30,24 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
   const [selectedMember, setSelectedMember] = useState<BirthdayMember | null>(null);
   const [celebrationMessage, setCelebrationMessage] = useState('');
   const [celebrationTemplate, setCelebrationTemplate] = useState('default');
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     // Load mock birthday data
     loadMockBirthdayData();
   }, []);
+
+  const toggleCard = (memberId: string) => {
+    setExpandedCards(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(memberId)) {
+        newSet.delete(memberId);
+      } else {
+        newSet.add(memberId);
+      }
+      return newSet;
+    });
+  };
 
   const loadMockBirthdayData = () => {
     const today = new Date();
@@ -156,6 +169,9 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
 
   const getFilteredBirthdays = () => {
     let filtered = birthdays.filter(member => {
+      // Only show birthdays within next 30 days
+      if (member.daysUntilBirthday > 30) return false;
+      
       const matchesSearch = 
         member.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -262,20 +278,32 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
       {/* Stats Overview */}
       <div className="stats-overview">
         <div className="stat-card today-stat">
-          <div className="stat-number">{stats.today}</div>
-          <div className="stat-label">Today's Birthdays</div>
+          <div className="stat-icon">🎂</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.today}</h3>
+            <p className="stat-label">Today's Birthdays</p>
+          </div>
         </div>
         <div className="stat-card week-stat">
-          <div className="stat-number">{stats.thisWeek}</div>
-          <div className="stat-label">This Week</div>
+          <div className="stat-icon">📅</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.thisWeek}</h3>
+            <p className="stat-label">This Week</p>
+          </div>
         </div>
         <div className="stat-card month-stat">
-          <div className="stat-number">{stats.thisMonth}</div>
-          <div className="stat-label">This Month</div>
+          <div className="stat-icon">🗓️</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.thisMonth}</h3>
+            <p className="stat-label">This Month</p>
+          </div>
         </div>
         <div className="stat-card total-stat">
-          <div className="stat-number">{stats.total}</div>
-          <div className="stat-label">Total Upcoming</div>
+          <div className="stat-icon">🎉</div>
+          <div className="stat-content">
+            <h3 className="stat-number">{stats.total}</h3>
+            <p className="stat-label">Total Upcoming</p>
+          </div>
         </div>
       </div>
 
@@ -330,62 +358,71 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
         ) : (
           getFilteredBirthdays().map(member => {
             const status = getBirthdayStatus(member);
+            const isExpanded = expandedCards.has(member.id);
             
             return (
-              <div key={member.id} className={`birthday-card ${status.class}`}>
-                <div className="birthday-card-header">
+              <div key={member.id} className={`birthday-card ${status.class} ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                <div className="birthday-card-header" onClick={() => toggleCard(member.id)}>
                   <div className="member-avatar">
                     {member.firstName[0]}{member.lastName[0]}
                   </div>
                   <div className="member-info">
                     <h3 className="member-name">{member.firstName} {member.lastName}</h3>
-                    <p className="member-details">{member.email}</p>
-                    <p className="member-membership">{member.membershipType}</p>
+                    <p className="member-details-compact">
+                      {formatBirthdayDate(member.dateOfBirth)} • {member.age} years old
+                    </p>
                   </div>
                   <div className="birthday-status">
                     <span className={`status-badge ${status.class}`}>
                       {status.text}
                     </span>
                   </div>
+                  <button className="expand-toggle" onClick={(e) => {e.stopPropagation(); toggleCard(member.id);}}>
+                    {isExpanded ? '−' : '+'}
+                  </button>
                 </div>
 
-                <div className="birthday-details">
-                  <div className="detail-row">
-                    <span className="detail-icon">🎂</span>
-                    <span className="detail-label">Birthday:</span>
-                    <span className="detail-value">{formatBirthdayDate(member.dateOfBirth)}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-icon">🎈</span>
-                    <span className="detail-label">Turning:</span>
-                    <span className="detail-value">{member.age} years old</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-icon">📅</span>
-                    <span className="detail-label">Member since:</span>
-                    <span className="detail-value">{new Date(member.joinDate).toLocaleDateString()}</span>
-                  </div>
-                  <div className="detail-row">
-                    <span className="detail-icon">📱</span>
-                    <span className="detail-label">Phone:</span>
-                    <span className="detail-value">{member.phone}</span>
-                  </div>
-                </div>
+                {isExpanded && (
+                  <>
+                    <div className="birthday-details">
+                      <div className="detail-row">
+                        <span className="detail-icon">📧</span>
+                        <span className="detail-label">Email:</span>
+                        <span className="detail-value">{member.email}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-icon">📱</span>
+                        <span className="detail-label">Phone:</span>
+                        <span className="detail-value">{member.phone}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-icon">�</span>
+                        <span className="detail-label">Membership:</span>
+                        <span className="detail-value">{member.membershipType}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-icon">�</span>
+                        <span className="detail-label">Member since:</span>
+                        <span className="detail-value">{new Date(member.joinDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
 
-                <div className="birthday-actions">
-                  <button 
-                    className="wish-btn"
-                    onClick={() => handleSendBirthdayWish(member)}
-                  >
-                    🎉 Send Birthday Wish
-                  </button>
-                  <button className="contact-btn">
-                    📞 Call Member
-                  </button>
-                  <button className="email-btn">
-                    📧 Send Email
-                  </button>
-                </div>
+                    <div className="birthday-actions">
+                      <button 
+                        className="wish-btn"
+                        onClick={() => handleSendBirthdayWish(member)}
+                      >
+                        🎉 Send Birthday Wish
+                      </button>
+                      <button className="contact-btn">
+                        📞 Call Member
+                      </button>
+                      <button className="email-btn">
+                        📧 Send Email
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })

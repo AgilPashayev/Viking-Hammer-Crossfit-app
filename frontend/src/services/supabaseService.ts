@@ -78,9 +78,22 @@ export const countryCodes = [
 // Demo mode storage - persist in localStorage for better user experience
 const getDemoUsers = (): { [email: string]: { password: string; profile: UserProfile } } => {
   try {
+    console.log('🔍 getDemoUsers: Fetching from localStorage...');
     const stored = localStorage.getItem('viking_demo_users');
-    return stored ? JSON.parse(stored) : {};
-  } catch {
+    console.log('🔍 getDemoUsers: Raw stored value:', stored ? `EXISTS (${stored.length} chars)` : 'NULL');
+    
+    if (!stored) {
+      console.log('🔍 getDemoUsers: No stored data, returning empty object');
+      return {};
+    }
+    
+    const parsed = JSON.parse(stored);
+    console.log('🔍 getDemoUsers: Parsed successfully');
+    console.log('🔍 getDemoUsers: Found', Object.keys(parsed).length, 'users');
+    console.log('🔍 getDemoUsers: User emails:', Object.keys(parsed));
+    return parsed;
+  } catch (error) {
+    console.error('🔍 getDemoUsers: ERROR parsing localStorage:', error);
     return {};
   }
 };
@@ -125,6 +138,9 @@ export const signUpUser = async (
       }
 
       // Create mock user profile
+      // Use September 15, 2025 as default registration date
+      const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+      
       const mockUser: UserProfile = {
         id: 'demo-' + Date.now(),
         email: userData.email,
@@ -138,9 +154,9 @@ export const signUpUser = async (
         emergencyContactPhone: userData.emergencyContactPhone,
         emergencyContactCountryCode: userData.emergencyContactCountryCode,
         membershipType: userData.membershipType,
-        joinDate: new Date().toISOString(),
+        joinDate: registrationDate,
         isActive: true,
-        createdAt: new Date().toISOString(),
+        createdAt: registrationDate,
         updatedAt: new Date().toISOString(),
       };
 
@@ -179,6 +195,9 @@ export const signUpUser = async (
     console.log('Auth signup successful, creating profile...');
 
     // Create user profile in our custom table
+    // Use September 15, 2025 as default registration date
+    const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+    
     const userProfile = {
       id: authData.user.id,
       email: userData.email,
@@ -192,9 +211,9 @@ export const signUpUser = async (
       emergencyContactPhone: userData.emergencyContactPhone,
       emergencyContactCountryCode: userData.emergencyContactCountryCode,
       membershipType: userData.membershipType,
-      joinDate: new Date().toISOString(),
+      joinDate: registrationDate,
       isActive: true,
-      createdAt: new Date().toISOString(),
+      createdAt: registrationDate,
       updatedAt: new Date().toISOString(),
     };
 
@@ -231,35 +250,65 @@ export const signInUser = async (
   loginData: LoginData,
 ): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
-    console.log('Starting signin process...', { email: loginData.email });
+    console.log('🔐 === SIGNIN PROCESS STARTED ===');
+    console.log('📧 Email:', loginData.email);
+    console.log('🔑 Password length:', loginData.password?.length);
+    console.log('🔑 Password value:', loginData.password);
 
     // Check if we're in demo mode
     const isDemoMode = isInDemoMode();
+    console.log('🏠 Demo mode active:', isDemoMode);
 
     if (isDemoMode) {
-      console.log('Demo mode: Checking credentials...');
+      console.log('✅ Demo mode: Checking credentials...');
 
       // Refresh demo users from localStorage
       demoUsers = getDemoUsers();
-      console.log('Available demo users:', Object.keys(demoUsers));
+      console.log('📦 Retrieved demo users from localStorage');
+      console.log('👥 Available demo users:', Object.keys(demoUsers));
+      console.log('📊 Total users count:', Object.keys(demoUsers).length);
+
+      // Log the full localStorage content for debugging
+      const rawStorage = localStorage.getItem('viking_demo_users');
+      console.log('🗄️ Raw localStorage value:', rawStorage ? 'EXISTS' : 'NULL');
+      if (rawStorage) {
+        console.log('📏 Raw storage length:', rawStorage.length);
+      }
 
       // Check if user exists and password matches
       const storedUser = demoUsers[loginData.email];
+      console.log('🔍 Looking for user:', loginData.email);
+      console.log('🔍 User found in storage:', storedUser ? 'YES' : 'NO');
 
       if (!storedUser) {
-        console.log('User not found in demo storage');
+        console.error('❌ User not found in demo storage');
+        console.log('📋 Available emails:', Object.keys(demoUsers));
         return { user: null, error: 'Invalid email or password' };
       }
 
+      console.log('✅ User found! Checking password...');
+      console.log('🔐 Stored password:', storedUser.password);
+      console.log('🔐 Provided password:', loginData.password);
+      console.log('🔐 Passwords match:', storedUser.password === loginData.password);
+      console.log('🔐 Password comparison (strict):', storedUser.password === loginData.password);
+      console.log('🔐 Password comparison (loose):', storedUser.password == loginData.password);
+      console.log('🔐 Stored password type:', typeof storedUser.password);
+      console.log('🔐 Provided password type:', typeof loginData.password);
+
       if (storedUser.password !== loginData.password) {
-        console.log('Password mismatch');
+        console.error('❌ Password mismatch!');
+        console.log('Expected:', `"${storedUser.password}"`);
+        console.log('Received:', `"${loginData.password}"`);
         return { user: null, error: 'Invalid email or password' };
       }
 
       // Simulate network delay
+      console.log('⏳ Simulating network delay...');
       await new Promise((resolve) => setTimeout(resolve, 800));
 
-      console.log('Demo signin successful!', storedUser.profile);
+      console.log('🎉 Demo signin successful!');
+      console.log('👤 Profile data:', storedUser.profile);
+      console.log('🔐 === SIGNIN PROCESS COMPLETE ===');
       return { user: storedUser.profile, error: null };
     }
 

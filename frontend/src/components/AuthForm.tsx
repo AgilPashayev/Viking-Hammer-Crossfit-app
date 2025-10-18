@@ -99,18 +99,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
       setIsLoading(true);
 
       try {
-        const { user, error } = await signInUser({
+        console.log('🎯 === AUTHFORM: Initiating Login ===');
+        console.log('📧 Form Email:', formData.email);
+        console.log('🔑 Form Password:', formData.password);
+        console.log('🔑 Form Password Length:', formData.password?.length);
+        
+        const loginPayload = {
           email: formData.email,
           password: formData.password,
-        });
+        };
+        console.log('📦 Sending to signInUser:', loginPayload);
+        
+        const { user, error } = await signInUser(loginPayload);
+
+        console.log('📨 Response from signInUser:');
+        console.log('  - User:', user ? 'RECEIVED' : 'NULL');
+        console.log('  - Error:', error ? error : 'NONE');
 
         if (error) {
+          console.error('❌ Login failed with error:', error);
           setErrors({ general: error });
           setIsLoading(false);
           return;
         }
 
         if (user) {
+          console.log('✅ User data received, preparing userData object...');
           const userData = {
             id: user.id,
             email: user.email,
@@ -128,18 +142,25 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
             isAuthenticated: true,
           };
 
+          console.log('👤 Prepared userData:', userData);
           setIsLoading(false);
+          
           // Persist session if Remember Me is checked
           try {
             if (rememberMe) {
+              console.log('💾 Saving to localStorage (Remember Me)');
               localStorage.setItem('viking_remembered_user', JSON.stringify(userData));
             } else {
+              console.log('🗑️ Removing from localStorage (Remember Me off)');
               localStorage.removeItem('viking_remembered_user');
             }
-          } catch {
-            // ignore storage errors
+          } catch (err) {
+            console.error('⚠️ Storage error:', err);
           }
+          
+          console.log('📞 Calling onLogin callback with userData');
           onLogin(userData);
+          console.log('🎯 === AUTHFORM: Login Complete ===');
         }
       } catch (error) {
         console.error('Login error:', error);

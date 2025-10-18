@@ -40,42 +40,74 @@
   background: var(--viking-grad-deep);
 }
 
-.stats-overview {
+.membership-manager .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
 }
 
-.stat-card {
-  background: rgba(255, 255, 255, 0.1);
+.membership-manager .stats-overview .stat-card {
+  background: rgba(255, 255, 255, 0.95);
   border-radius: 15px;
   padding: 25px;
-  text-align: center;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(25, 118, 210, 0.2);
+  border-left-width: 4px !important;
+  border-left-style: solid !important;
+  display: flex;
+  align-items: center;
+  gap: 20px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(25, 118, 210, 0.1);
 }
 
-.stat-card:hover {
+.membership-manager .stats-overview .stat-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 30px rgba(11, 94, 255, 0.2);
-  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(25, 118, 210, 0.2);
 }
 
-.stat-number {
+.membership-manager .stats-overview .stat-card:nth-child(1) {
+  border-left-color: #3da5ff !important;
+}
+
+.membership-manager .stats-overview .stat-card:nth-child(2) {
+  border-left-color: #27ae60 !important;
+}
+
+.membership-manager .stats-overview .stat-card:nth-child(3) {
+  border-left-color: #f39c12 !important;
+}
+
+.membership-manager .stats-overview .stat-card:nth-child(4) {
+  border-left-color: #e74c3c !important;
+}
+
+.membership-manager .stats-overview .stat-icon {
   font-size: 2.5rem;
-  font-weight: bold;
-  color: var(--viking-primary);
-  margin-bottom: 8px;
-  text-shadow: 0 0 10px rgba(61, 165, 255, 0.5);
+  opacity: 0.8;
+  min-width: 50px;
+  text-align: center;
 }
 
-.stat-label {
-  font-size: 1rem;
-  color: #b0b0b0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.membership-manager .stats-overview .stat-content {
+  flex: 1;
+}
+
+.membership-manager .stats-overview .stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--viking-primary);
+  margin: 0 0 5px 0;
+  line-height: 1;
+}
+
+.membership-manager .stats-overview .stat-label {
+  font-size: 0.9rem;
+  color: #1e3a5f;
+  font-weight: 600;
+  margin: 0;
+  opacity: 0.8;
 }
 
 .tabs-navigation {
@@ -997,5 +1029,6 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
-} 
+}
+ 
  

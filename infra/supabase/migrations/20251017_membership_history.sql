@@ -9,7 +9,7 @@
 -- =====================================================
 CREATE TABLE IF NOT EXISTS membership_history (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users_profile(id) ON DELETE CASCADE,
   
   -- Membership Details
   plan_name VARCHAR(100) NOT NULL,
@@ -43,9 +43,9 @@ CREATE TABLE IF NOT EXISTS membership_history (
   -- Tracking
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  created_by UUID REFERENCES user_profiles(id),
+  created_by UUID REFERENCES users_profile(id),
   cancelled_at TIMESTAMP,
-  cancelled_by UUID REFERENCES user_profiles(id),
+  cancelled_by UUID REFERENCES users_profile(id),
   cancellation_reason TEXT,
   
   -- Notes
@@ -292,7 +292,7 @@ CREATE POLICY membership_history_select_admin ON membership_history
   FOR SELECT
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
+      SELECT 1 FROM users_profile
       WHERE id = auth.uid()
       AND role IN ('admin', 'reception')
     )
@@ -303,7 +303,7 @@ CREATE POLICY membership_history_insert_admin ON membership_history
   FOR INSERT
   WITH CHECK (
     EXISTS (
-      SELECT 1 FROM user_profiles
+      SELECT 1 FROM users_profile
       WHERE id = auth.uid()
       AND role IN ('admin', 'reception')
     )
@@ -314,7 +314,7 @@ CREATE POLICY membership_history_update_admin ON membership_history
   FOR UPDATE
   USING (
     EXISTS (
-      SELECT 1 FROM user_profiles
+      SELECT 1 FROM users_profile
       WHERE id = auth.uid()
       AND role IN ('admin', 'reception')
     )

@@ -336,9 +336,9 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   className="filter-select"
                 >
                   <option value="all">All Roles</option>
-                  <option value="member">Vikings</option>
-                  <option value="instructor">Warriors</option>
-                  <option value="admin">Commanders</option>
+                  <option value="member">Members</option>
+                  <option value="instructor">Instructors</option>
+                  <option value="admin">Admin</option>
                 </select>
               </div>
 
@@ -602,7 +602,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{selectedMember ? '⚔️ Edit Viking' : '🛡️ Join the Viking Army!'}</h3>
+              <h3>{selectedMember ? '⚔️ Edit Member' : '🛡️ Add Member'}</h3>
               <button className="close-btn" onClick={() => setShowAddForm(false)}>
                 ×
               </button>
@@ -736,7 +736,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 ❌ Cancel
               </button>
               <button className="btn btn-primary" onClick={handleAddMember}>
-                {selectedMember ? '⚡ Update Viking' : '🛡️ Join Army'}
+                {selectedMember ? '⚡ Update Member' : '🛡️ Add Member'}
               </button>
             </div>
           </div>

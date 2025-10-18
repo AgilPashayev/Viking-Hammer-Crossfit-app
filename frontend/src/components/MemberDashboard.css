@@ -110,6 +110,17 @@
   color: var(--viking-light);
 }
 
+.btn-success {
+  background: var(--viking-success);
+  color: white;
+  border: none;
+}
+
+.btn-success:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+}
+
 .btn-link {
   background: none;
   color: var(--viking-primary);
@@ -191,6 +202,56 @@
   margin: 0;
   font-size: 1.3rem;
   color: var(--viking-primary);
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(61, 165, 255, 0.1);
+  color: var(--viking-primary);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* No classes state */
+.no-classes {
+  text-align: center;
+  padding: 40px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border: 2px dashed rgba(255, 255, 255, 0.1);
+}
+
+.no-classes-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+  opacity: 0.5;
+}
+
+.no-classes p {
+  margin: 0 0 10px 0;
+  font-size: 1.05rem;
+  color: var(--viking-text);
+  font-weight: 500;
+}
+
+.no-classes small {
+  opacity: 0.6;
+  font-size: 0.85rem;
 }
 
 .classes-list {
@@ -588,6 +649,41 @@
   to { 
     opacity: 1;
     transform: translateY(0) scale(1);
+  }
+}
+
+/* Booking Toast Message */
+.booking-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1rem;
+  z-index: 2000;
+  animation: slideInRight 0.4s ease-out;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.booking-toast.success {
+  background: var(--viking-success);
+  color: white;
+}
+
+.booking-toast.error {
+  background: var(--viking-error);
+  color: white;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
   }
 }
 
