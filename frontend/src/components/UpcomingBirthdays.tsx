@@ -254,14 +254,96 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
   };
 
   const sendBirthdayMessage = () => {
-    // Here you would integrate with email/SMS service
-    console.log(`Sending birthday message to ${selectedMember?.email}:`, celebrationMessage);
+    if (!selectedMember) return;
+
+    // Get selected delivery methods from checkboxes
+    const emailCheckbox = document.querySelector('input[type="checkbox"]:nth-of-type(1)') as HTMLInputElement;
+    const smsCheckbox = document.querySelector('input[type="checkbox"]:nth-of-type(2)') as HTMLInputElement;
+    const whatsappCheckbox = document.querySelector('input[type="checkbox"]:nth-of-type(3)') as HTMLInputElement;
+    const inAppCheckbox = document.querySelector('input[type="checkbox"]:nth-of-type(4)') as HTMLInputElement;
+
+    const message = celebrationMessage || getBirthdayMessage(selectedMember, celebrationTemplate);
+    let sentVia: string[] = [];
+
+    // Send via Email (native mailto)
+    if (emailCheckbox?.checked) {
+      const subject = `🎉 Happy Birthday ${selectedMember.firstName}!`;
+      const mailtoLink = `mailto:${selectedMember.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+      window.location.href = mailtoLink;
+      sentVia.push('Email');
+    }
+
+    // Send via SMS (native sms)
+    if (smsCheckbox?.checked) {
+      // Format phone number (remove spaces and special characters)
+      const phoneNumber = selectedMember.phone.replace(/[^0-9+]/g, '');
+      const smsLink = `sms:${phoneNumber}?body=${encodeURIComponent(message)}`;
+      
+      // For Windows/Android
+      if (navigator.userAgent.includes('Windows') || navigator.userAgent.includes('Android')) {
+        window.location.href = smsLink;
+      } else {
+        // For iOS
+        window.location.href = smsLink.replace('?', '&');
+      }
+      sentVia.push('SMS');
+    }
+
+    // Send via WhatsApp (wa.me link)
+    if (whatsappCheckbox?.checked) {
+      const phoneNumber = selectedMember.phone.replace(/[^0-9]/g, ''); // Remove all non-digits
+      const whatsappLink = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappLink, '_blank');
+      sentVia.push('WhatsApp');
+    }
+
+    // Send In-App Notification (API call to notifications_outbox)
+    if (inAppCheckbox?.checked) {
+      sendInAppNotification(selectedMember.id, message);
+      sentVia.push('In-App');
+    }
+
+    if (sentVia.length > 0) {
+      alert(`✅ Birthday message prepared for: ${sentVia.join(', ')}\n\n` +
+            `Please review and send the message from your device's ${sentVia[0]} app.`);
+    } else {
+      alert('⚠️ Please select at least one delivery method.');
+      return;
+    }
     
-    // Simulate sending
-    alert(`Birthday message sent to ${selectedMember?.firstName} ${selectedMember?.lastName}!`);
     setShowCelebrationModal(false);
     setCelebrationMessage('');
     setSelectedMember(null);
+  };
+
+  // Send in-app notification via backend API
+  const sendInAppNotification = async (userId: string, message: string) => {
+    try {
+      const response = await fetch('http://localhost:4001/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recipient_user_id: userId,
+          payload: {
+            type: 'birthday',
+            title: '🎉 Happy Birthday!',
+            message: message,
+            timestamp: new Date().toISOString()
+          },
+          channel: 'in-app',
+          status: 'pending'
+        })
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ In-app notification queued successfully');
+      } else {
+        console.error('❌ Failed to queue notification:', result.error);
+      }
+    } catch (error) {
+      console.error('Error sending in-app notification:', error);
+    }
   };
 
   const stats = getStats();

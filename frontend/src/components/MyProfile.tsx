@@ -18,7 +18,7 @@ interface User {
   emergencyContactCountryCode?: string;
   membershipType: string;
   joinDate: string;
-  role?: 'member' | 'admin' | 'reception' | 'instructor';
+  role?: 'member' | 'admin' | 'reception' | 'sparta' | 'instructor';
   profilePhoto?: string;
   avatar_url?: string;
 }
@@ -26,7 +26,7 @@ interface User {
 interface MyProfileProps {
   user?: User | null;
   onNavigate?: (page: string) => void;
-  currentUserRole?: 'member' | 'admin' | 'reception' | 'instructor';
+  currentUserRole?: 'member' | 'admin' | 'reception' | 'sparta' | 'instructor';
   onUserUpdate?: (updatedUser: User) => void;
 }
 
@@ -53,7 +53,39 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
     theme: 'light',
     language: 'en'
   });
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Load user settings from API on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      if (user?.id) {
+        try {
+          setIsLoadingSettings(true);
+          const response = await fetch(`http://localhost:4001/api/settings/user/${user.id}`);
+          const result = await response.json();
+
+          if (result.success && result.data) {
+            setSettings({
+              notifications: result.data.email_notifications ?? true,
+              emailAlerts: result.data.email_notifications ?? true,
+              smsAlerts: result.data.sms_notifications ?? false,
+              pushNotifications: result.data.push_notifications ?? true,
+              theme: result.data.theme || 'light',
+              language: result.data.language || 'en',
+            });
+          }
+        } catch (error) {
+          console.error('Failed to load settings:', error);
+          // Use default settings on error
+        } finally {
+          setIsLoadingSettings(false);
+        }
+      }
+    };
+
+    loadSettings();
+  }, [user?.id]);
   
   // Load profile photo from user data on mount or user change
   useEffect(() => {
@@ -90,7 +122,7 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
   }, [showHistoryModal, user?.id]);
   
   // Check if current user can edit names
-  const canEditNames = currentUserRole === 'admin' || currentUserRole === 'reception';
+  const canEditNames = currentUserRole === 'admin' || currentUserRole === 'reception' || currentUserRole === 'sparta';
   
   // Format date to readable format (e.g., "January 15, 2025")
   const formatDate = (dateString: string): string => {
@@ -172,12 +204,37 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
     setIsEditingEmergency(false);
   };
   
-  const handleSaveSettings = () => {
-    // TODO: Save to database via API
-    console.log('⚙️ Saving settings:', settings);
-    localStorage.setItem('viking-user-settings', JSON.stringify(settings));
-    alert('✅ Settings saved successfully!');
-    setIsEditingSettings(false);
+  const handleSaveSettings = async () => {
+    if (!user?.id) return;
+
+    try {
+      const response = await fetch(`http://localhost:4001/api/settings/user/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          emailNotifications: settings.emailAlerts,
+          smsNotifications: settings.smsAlerts,
+          pushNotifications: settings.pushNotifications,
+          language: settings.language,
+          theme: settings.theme,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('⚙️ Settings saved successfully:', result.data);
+        alert('✅ Settings saved successfully!');
+        setIsEditingSettings(false);
+      } else {
+        alert('❌ Failed to save settings. Please try again.');
+      }
+    } catch (error) {
+      console.error('Failed to save settings:', error);
+      alert('❌ Failed to save settings. Please check your connection.');
+    }
   };
   
   // Request notification permission

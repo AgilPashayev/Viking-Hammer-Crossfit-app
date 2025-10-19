@@ -8,6 +8,7 @@ import {
   MembershipPlanDB,
   MembershipPlanInput 
 } from '../services/supabaseService';
+import { showConfirmDialog } from '../utils/confirmDialog';
 import './MembershipManager.css';
 import './MembershipManager-additions.css';
 
@@ -59,7 +60,7 @@ interface Company {
   activeSubscriptions: number;
   contractStartDate: string;
   contractEndDate: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'suspended';
 }
 
 interface MembershipManagerProps {
@@ -74,11 +75,15 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [showCreatePlanModal, setShowCreatePlanModal] = useState(false);
   const [showCreateCompanyModal, setShowCreateCompanyModal] = useState(false);
+  const [showEditSubscriptionModal, setShowEditSubscriptionModal] = useState(false);
+  const [showAddSubscriptionModal, setShowAddSubscriptionModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterType, setFilterType] = useState<string>('all');
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
+  const [editingSubscriptionId, setEditingSubscriptionId] = useState<string | null>(null);
+  const [editingSubscription, setEditingSubscription] = useState<Partial<Subscription>>({});
 
   // New plan form state
   const [newPlan, setNewPlan] = useState<Partial<MembershipPlan>>({
@@ -110,7 +115,8 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
   useEffect(() => {
     loadPlansFromDatabase();
-    loadMockData(); // Load mock subscriptions and companies
+    loadSubscriptionsFromDatabase(); // Load real subscriptions from database
+    loadMockData(); // Load mock companies only
   }, []);
 
   // Load plans from Supabase database
@@ -152,6 +158,27 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     }));
 
     setMembershipPlans(convertedPlans);
+  };
+
+  // Load subscriptions from backend API
+  const loadSubscriptionsFromDatabase = async () => {
+    try {
+      const response = await fetch('http://localhost:4001/api/subscriptions');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        console.log('✅ Loaded subscriptions from database:', result.data.length);
+        setSubscriptions(result.data);
+      } else {
+        console.error('Failed to load subscriptions:', result.error);
+        // Fallback to mock data if database is empty
+        console.log('⚠️ No subscriptions in database, loading mock data');
+      }
+    } catch (error) {
+      console.error('Error fetching subscriptions:', error);
+      // On error, use empty array (database might be empty)
+      console.log('⚠️ Database connection issue, subscriptions list will be empty');
+    }
   };
 
   // keep global plans count in sync
@@ -424,12 +451,24 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const handleCreatePlan = async () => {
     // Validation
     if (!newPlan.name || !newPlan.name.trim()) {
-      alert('❌ Please enter a plan name');
+      await showConfirmDialog({
+        title: '⚠️ Validation Error',
+        message: 'Please enter a plan name',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'warning'
+      });
       return;
     }
     
     if (!newPlan.price || newPlan.price <= 0) {
-      alert('❌ Please enter a valid price (greater than 0)');
+      await showConfirmDialog({
+        title: '⚠️ Validation Error',
+        message: 'Please enter a valid price (greater than 0)',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'warning'
+      });
       return;
     }
     
@@ -440,7 +479,13 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     );
     
     if (isDuplicate) {
-      alert(`❌ A plan with the name "${newPlan.name}" already exists. Please choose a different name.`);
+      await showConfirmDialog({
+        title: '⚠️ Duplicate Plan',
+        message: `A plan with the name "${newPlan.name}" already exists. Please choose a different name.`,
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'warning'
+      });
       return;
     }
     
@@ -471,22 +516,46 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         const { plan, error } = await updateMembershipPlan(planId, planInput);
         
         if (error) {
-          alert(`❌ Failed to update plan: ${error}`);
+          await showConfirmDialog({
+            title: '❌ Update Failed',
+            message: `Failed to update plan: ${error}\n\nPlease check your connection and try again.`,
+            confirmText: 'OK',
+            cancelText: '',
+            type: 'danger'
+          });
           return;
         }
         
-        alert('✅ Plan updated successfully in database!');
+        await showConfirmDialog({
+          title: '✅ Success',
+          message: 'Plan updated successfully in database!',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
         setEditingPlanId(null);
       } else {
         // Create new plan in database
         const { plan, error } = await createMembershipPlan(planInput);
         
         if (error) {
-          alert(`❌ Failed to create plan: ${error}`);
+          await showConfirmDialog({
+            title: '❌ Creation Failed',
+            message: `Failed to create plan: ${error}\n\nPlease check your connection and try again.`,
+            confirmText: 'OK',
+            cancelText: '',
+            type: 'danger'
+          });
           return;
         }
         
-        alert('✅ Plan created successfully in database!');
+        await showConfirmDialog({
+          title: '✅ Success',
+          message: 'Plan created successfully in database!',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
       }
       
       // Reload plans from database
@@ -576,64 +645,202 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   };
 
   const handleDeletePlan = async (planId: string) => {
-    if (!confirm('⚠️ Are you sure you want to delete this plan? This action cannot be undone.')) {
-      return;
-    }
+    const plan = membershipPlans.find(p => p.id === planId);
+    if (!plan) return;
+
+    const confirmed = await showConfirmDialog({
+      title: '🗑️ Delete Membership Plan',
+      message: `Plan: ${plan.name}\nPrice: ${plan.price} ${plan.currency}\nType: ${plan.type}\n\n⚠️ WARNING: This action cannot be undone.\n\nAll subscriptions using this plan will be affected. Are you sure you want to delete this plan?`,
+      confirmText: 'Yes, Delete It',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
 
     try {
       const planIdNum = parseInt(planId);
       const { success, error } = await deleteMembershipPlan(planIdNum);
       
       if (error) {
-        alert(`❌ Failed to delete plan: ${error}`);
+        await showConfirmDialog({
+          title: '❌ Delete Failed',
+          message: `Failed to delete plan: ${error}`,
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'danger'
+        });
         return;
       }
       
-      alert('✅ Plan deleted successfully from database!');
+      await showConfirmDialog({
+        title: '✅ Success',
+        message: 'Plan deleted successfully from database!',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'success'
+      });
       
       // Reload plans from database
       await loadPlansFromDatabase();
       
     } catch (error) {
       console.error('Unexpected error deleting plan:', error);
-      alert('❌ An unexpected error occurred. Please try again.');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred. Please try again.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
     }
   };
 
   const handleEditSubscription = (subscriptionId: string) => {
-    console.log('Edit subscription:', subscriptionId);
-    // Implementation for editing subscription
-  };
-
-  const handleRenewSubscription = (subscriptionId: string) => {
     const subscription = subscriptions.find(s => s.id === subscriptionId);
     if (subscription) {
-      const updatedSubscriptions = subscriptions.map(s => 
-        s.id === subscriptionId 
-          ? { ...s, status: 'active' as const, paymentStatus: 'paid' as const } 
-          : s
-      );
-      setSubscriptions(updatedSubscriptions);
+      setEditingSubscriptionId(subscriptionId);
+      setEditingSubscription({
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        remainingEntries: subscription.remainingEntries,
+        status: subscription.status
+      });
+      setShowEditSubscriptionModal(true);
     }
   };
 
-  const handleSuspendSubscription = (subscriptionId: string) => {
-    const updatedSubscriptions = subscriptions.map(s => 
-      s.id === subscriptionId 
-        ? { ...s, status: 'suspended' as const } 
-        : s
-    );
-    setSubscriptions(updatedSubscriptions);
+  const handleSaveSubscriptionEdit = async () => {
+    if (!editingSubscriptionId) return;
+
+    try {
+      const response = await fetch(`http://localhost:4001/api/subscriptions/${editingSubscriptionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_date: editingSubscription.startDate,
+          end_date: editingSubscription.endDate,
+          remaining_visits: editingSubscription.remainingEntries,
+          status: editingSubscription.status
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('✅ Subscription updated successfully!');
+        await loadSubscriptionsFromDatabase();
+        setShowEditSubscriptionModal(false);
+        setEditingSubscriptionId(null);
+        setEditingSubscription({});
+      } else {
+        alert(`❌ Failed to update: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      alert('❌ Error updating subscription');
+    }
   };
 
-  const handleCancelSubscription = (subscriptionId: string) => {
-    if (confirm('Are you sure you want to cancel this subscription?')) {
-      const updatedSubscriptions = subscriptions.map(s => 
-        s.id === subscriptionId 
-          ? { ...s, status: 'inactive' as const } 
-          : s
-      );
-      setSubscriptions(updatedSubscriptions);
+  const handleRenewSubscription = async (subscriptionId: string) => {
+    const subscription = subscriptions.find(s => s.id === subscriptionId);
+    if (!subscription) return;
+
+    const confirmed = await showConfirmDialog({
+      title: '🔄 Renew Subscription',
+      message: `Member: ${subscription.memberName}\nPlan: ${subscription.planName}\nCurrent Status: ${subscription.status}\nCurrent End Date: ${subscription.endDate || 'N/A'}\n\nThis will extend the subscription period and reset available visits (if applicable).\n\nDo you want to renew this subscription?`,
+      confirmText: 'Yes, Renew',
+      cancelText: 'Cancel',
+      type: 'success'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`http://localhost:4001/api/subscriptions/${subscriptionId}/renew`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('✅ Subscription renewed successfully!');
+        await loadSubscriptionsFromDatabase(); // Reload data
+      } else {
+        alert(`❌ Failed to renew: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error renewing subscription:', error);
+      alert('❌ Error renewing subscription');
+    }
+  };
+
+  const handleSuspendSubscription = async (subscriptionId: string) => {
+    const subscription = subscriptions.find(s => s.id === subscriptionId);
+    if (!subscription) return;
+
+    const confirmed = await showConfirmDialog({
+      title: '⏸️ Suspend Subscription',
+      message: `Member: ${subscription.memberName}\nPlan: ${subscription.planName}\nCurrent Status: ${subscription.status}\n\nThis will temporarily pause the subscription. You can reactivate it later.\n\nThe member will not be able to access gym facilities while suspended.\n\nDo you want to continue?`,
+      confirmText: 'Yes, Suspend',
+      cancelText: 'Cancel',
+      type: 'warning'
+    });
+
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`http://localhost:4001/api/subscriptions/${subscriptionId}/suspend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('✅ Subscription suspended successfully!');
+        await loadSubscriptionsFromDatabase(); // Reload data
+      } else {
+        alert(`❌ Failed to suspend: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error suspending subscription:', error);
+      alert('❌ Error suspending subscription');
+    }
+  };
+
+  const handleCancelSubscription = async (subscriptionId: string) => {
+    const subscription = subscriptions.find(s => s.id === subscriptionId);
+    if (!subscription) return;
+
+    const confirmed = await showConfirmDialog({
+      title: '🗑️ Cancel Subscription',
+      message: `Member: ${subscription.memberName}\nEmail: ${subscription.memberEmail}\nPlan: ${subscription.planName}\nStart Date: ${subscription.startDate}\nEnd Date: ${subscription.endDate || 'N/A'}\n\n⚠️ WARNING: This will mark the subscription as INACTIVE.\n\nThe member will immediately lose access to all membership benefits and gym facilities.\n\nThis action can be reversed by creating a new subscription.\n\nAre you absolutely sure you want to cancel this subscription?`,
+      confirmText: 'Yes, Cancel It',
+      cancelText: 'No, Keep It',
+      type: 'danger'
+    });
+
+    if (!confirmed) return;
+    
+    try {
+      const response = await fetch(`http://localhost:4001/api/subscriptions/${subscriptionId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('✅ Subscription cancelled successfully!');
+        await loadSubscriptionsFromDatabase(); // Reload data
+      } else {
+        alert(`❌ Failed to cancel: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error cancelling subscription:', error);
+      alert('❌ Error cancelling subscription');
     }
   };
 
@@ -659,6 +866,59 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (confirm('Are you sure you want to remove this company?')) {
       setCompanies(companies.filter(c => c.id !== companyId));
     }
+  };
+
+  const handleContactCompany = async (company: Company) => {
+    const confirmed = await showConfirmDialog({
+      title: '📞 Contact Company',
+      message: `Contact: ${company.contactPerson}\nCompany: ${company.name}\nPhone: ${company.phone}\n\nHow would you like to contact them?`,
+      confirmText: '📱 WhatsApp',
+      cancelText: '☎️ Regular Call',
+      type: 'info'
+    });
+
+    if (confirmed) {
+      // WhatsApp call
+      const phoneNumber = company.phone.replace(/\D/g, ''); // Remove non-digits
+      window.open(`https://wa.me/${phoneNumber}`, '_blank');
+    } else {
+      // Regular phone call
+      window.location.href = `tel:${company.phone}`;
+    }
+  };
+
+  const handleToggleCompanyStatus = async (companyId: string, newStatus: 'active' | 'pending' | 'suspended') => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
+
+    const statusMessages = {
+      active: '✅ Activate this company partnership?',
+      pending: '⏳ Set this company partnership to pending?',
+      suspended: '⏸️ Suspend this company partnership?'
+    };
+
+    const confirmed = await showConfirmDialog({
+      title: `${newStatus === 'active' ? '✅' : newStatus === 'pending' ? '⏳' : '⏸️'} Change Status`,
+      message: `Company: ${company.name}\nCurrent Status: ${company.status}\n\n${statusMessages[newStatus]}`,
+      confirmText: 'Yes, Change Status',
+      cancelText: 'Cancel',
+      type: newStatus === 'suspended' ? 'warning' : 'info'
+    });
+
+    if (!confirmed) return;
+
+    const updatedCompanies = companies.map(c =>
+      c.id === companyId ? { ...c, status: newStatus } : c
+    );
+    setCompanies(updatedCompanies);
+
+    await showConfirmDialog({
+      title: '✅ Status Updated',
+      message: `Company status changed to: ${newStatus}`,
+      confirmText: 'OK',
+      cancelText: '',
+      type: 'success'
+    });
   };
 
   const getStats = () => {
@@ -807,7 +1067,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     <div className="tab-content">
       <div className="section-header">
         <h3>Active Subscriptions</h3>
-        <button className="add-btn">➕ Add Subscription</button>
+        <button className="add-btn" onClick={() => setShowAddSubscriptionModal(true)}>➕ Add Subscription</button>
       </div>
 
       <div className="subscriptions-list">
@@ -945,8 +1205,16 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
             <div className="company-actions">
               <button className="edit-btn" onClick={() => handleEditCompany(company.id)}>✏️ Edit</button>
-              <button className="contact-btn" onClick={() => window.open(`mailto:${company.email}`)}>📞 Contact</button>
-              <button className="contract-btn" onClick={() => console.log('View contract for:', company.name)}>📄 Contract</button>
+              <button className="contact-btn" onClick={() => handleContactCompany(company)}>📞 Contact</button>
+              {company.status !== 'active' && (
+                <button className="activate-btn" onClick={() => handleToggleCompanyStatus(company.id, 'active')}>✅ Activate</button>
+              )}
+              {company.status !== 'pending' && (
+                <button className="pending-btn" onClick={() => handleToggleCompanyStatus(company.id, 'pending')}>⏳ Pending</button>
+              )}
+              {company.status !== 'suspended' && (
+                <button className="suspend-btn" onClick={() => handleToggleCompanyStatus(company.id, 'suspended')}>⏸️ Suspend</button>
+              )}
               <button className="delete-btn" onClick={() => handleRemoveCompany(company.id)}>🗑️ Remove</button>
             </div>
           </div>
@@ -1376,13 +1644,17 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 </div>
                 
                 <div className="form-group">
-                  <label>Discount Percentage:</label>
+                  <label>Discount Percentage (0-100%):</label>
                   <input
                     type="number"
                     min="0"
                     max="100"
-                    value={newCompany.discountPercentage || 10}
-                    onChange={(e) => setNewCompany({...newCompany, discountPercentage: parseInt(e.target.value)})}
+                    value={newCompany.discountPercentage !== undefined ? newCompany.discountPercentage : 10}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 0 : parseInt(e.target.value);
+                      const validValue = Math.min(100, Math.max(0, isNaN(value) ? 0 : value));
+                      setNewCompany({...newCompany, discountPercentage: validValue});
+                    }}
                   />
                 </div>
               </div>
@@ -1394,6 +1666,130 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               </button>
               <button className="confirm-btn" onClick={handleCreateCompany}>
                 Add Company
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Subscription Modal */}
+      {showEditSubscriptionModal && editingSubscriptionId && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>✏️ Edit Subscription</h3>
+              <button className="close-btn" onClick={() => {
+                setShowEditSubscriptionModal(false);
+                setEditingSubscriptionId(null);
+                setEditingSubscription({});
+              }}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Start Date:</label>
+                <input
+                  type="date"
+                  value={editingSubscription.startDate || ''}
+                  onChange={(e) => setEditingSubscription({...editingSubscription, startDate: e.target.value})}
+                  className="form-input-large"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>End Date:</label>
+                <input
+                  type="date"
+                  value={editingSubscription.endDate || ''}
+                  onChange={(e) => setEditingSubscription({...editingSubscription, endDate: e.target.value})}
+                  className="form-input-large"
+                />
+              </div>
+              
+              {editingSubscription.remainingEntries !== undefined && (
+                <div className="form-group">
+                  <label>Remaining Entries:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editingSubscription.remainingEntries || 0}
+                    onChange={(e) => setEditingSubscription({...editingSubscription, remainingEntries: parseInt(e.target.value)})}
+                    className="form-input-large"
+                  />
+                </div>
+              )}
+              
+              <div className="form-group">
+                <label>Status:</label>
+                <select
+                  value={editingSubscription.status || 'active'}
+                  onChange={(e) => setEditingSubscription({...editingSubscription, status: e.target.value as any})}
+                  className="form-select-large"
+                >
+                  <option value="active">✅ Active</option>
+                  <option value="inactive">❌ Inactive</option>
+                  <option value="suspended">⏸️ Suspended</option>
+                  <option value="expired">⏳ Expired</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => {
+                setShowEditSubscriptionModal(false);
+                setEditingSubscriptionId(null);
+                setEditingSubscription({});
+              }}>
+                ❌ Cancel
+              </button>
+              <button className="confirm-btn" onClick={handleSaveSubscriptionEdit}>
+                💾 Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Subscription Modal */}
+      {showAddSubscriptionModal && (
+        <div className="modal-overlay">
+          <div className="modal-content large-modal">
+            <div className="modal-header">
+              <h3>➕ Add New Subscription</h3>
+              <button className="close-btn" onClick={() => setShowAddSubscriptionModal(false)}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="info-box">
+                <p>ℹ️ <strong>Note:</strong> To add a new subscription, please use the <strong>Member Management</strong> page to assign a membership plan to a member.</p>
+                <p>This ensures all member details and payment information are properly recorded.</p>
+              </div>
+              
+              <div className="quick-actions">
+                <h4>Quick Actions:</h4>
+                <ul>
+                  <li>✅ Go to <strong>Member Management</strong></li>
+                  <li>✅ Select the member</li>
+                  <li>✅ Click <strong>"Assign Membership"</strong></li>
+                  <li>✅ Choose a plan and set dates</li>
+                  <li>✅ Subscription will appear here automatically</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => setShowAddSubscriptionModal(false)}>
+                Close
+              </button>
+              <button className="confirm-btn" onClick={() => {
+                setShowAddSubscriptionModal(false);
+                onBack(); // Go back to Reception dashboard where Member Management is
+              }}>
+                📋 Go to Reception Dashboard
               </button>
             </div>
           </div>

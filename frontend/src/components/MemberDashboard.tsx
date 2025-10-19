@@ -11,6 +11,7 @@ import {
   getUserQRCode,
   QRCodeData,
 } from '../services/qrCodeService';
+import { pushNotificationService } from '../services/pushNotificationService';
 
 interface UserProfile {
   name: string;
@@ -36,6 +37,7 @@ interface Announcement {
   message: string;
   date: string;
   type: 'info' | 'warning' | 'success';
+  readBy?: string[];
 }
 
 interface MemberDashboardProps {
@@ -183,22 +185,142 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     })
     .slice(0, 5); // Show only next 5 upcoming classes
 
-  const [announcements, setAnnouncements] = useState<Announcement[]>([
-    {
-      id: '1',
-      title: 'New Equipment Arrival',
-      message: 'Check out our new Rogue fitness equipment in the main training area!',
-      date: '2025-10-05',
-      type: 'success',
-    },
-    {
-      id: '2',
-      title: 'Holiday Schedule',
-      message: 'Modified hours during the upcoming holiday weekend.',
-      date: '2025-10-04',
-      type: 'info',
-    },
-  ]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [isLoadingAnnouncements, setIsLoadingAnnouncements] = useState(true);
+  const [unreadAnnouncements, setUnreadAnnouncements] = useState<Announcement[]>([]);
+  const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
+
+  // Load announcements from API
+  useEffect(() => {
+    const loadAnnouncements = async () => {
+      try {
+        setIsLoadingAnnouncements(true);
+        const response = await fetch('http://localhost:4001/api/announcements/member');
+        const result = await response.json();
+
+        if (result.success && result.data) {
+          // Transform API data to match our interface
+          const transformedAnnouncements: Announcement[] = result.data.map((ann: any) => ({
+            id: ann.id,
+            title: ann.title,
+            message: ann.content,
+            date: ann.published_at || ann.created_at,
+            type: ann.priority === 'urgent' ? 'warning' : 
+                  ann.priority === 'high' ? 'success' : 'info',
+            readBy: ann.read_by_users || [],
+          }));
+          setAnnouncements(transformedAnnouncements);
+          
+          // Filter unread announcements for current user
+          if (user?.id) {
+            const unread = transformedAnnouncements.filter(
+              (ann: any) => !ann.readBy.includes(user.id)
+            );
+            if (unread.length > 0) {
+              setUnreadAnnouncements(unread);
+              setShowAnnouncementPopup(true);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load announcements:', error);
+        // Set default announcements as fallback
+        setAnnouncements([
+          {
+            id: '1',
+            title: 'Welcome to Viking Hammer',
+            message: 'Check out our facility and meet our amazing team!',
+            date: new Date().toISOString(),
+            type: 'info',
+          },
+        ]);
+      } finally {
+        setIsLoadingAnnouncements(false);
+      }
+    };
+
+    loadAnnouncements();
+    
+    // Refresh announcements every 5 minutes
+    const refreshInterval = setInterval(loadAnnouncements, 300000);
+    
+    return () => clearInterval(refreshInterval);
+  }, [user?.id]);
+
+  // Initialize push notifications
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      if (!user?.id) return;
+
+      // Check if notifications are supported
+      if (pushNotificationService.isSupported()) {
+        const permission = pushNotificationService.getPermissionStatus();
+        setPushNotificationsEnabled(permission.granted);
+
+        // If permission is granted, ensure subscription
+        if (permission.granted) {
+          try {
+            await pushNotificationService.subscribe(user.id);
+          } catch (error) {
+            console.error('Failed to subscribe to push notifications:', error);
+          }
+        }
+      }
+    };
+
+    initPushNotifications();
+  }, [user?.id]);
+
+  // Request push notification permission
+  const handleEnablePushNotifications = async () => {
+    if (!user?.id) return;
+
+    try {
+      const granted = await pushNotificationService.requestPermission();
+      if (granted) {
+        await pushNotificationService.subscribe(user.id);
+        setPushNotificationsEnabled(true);
+        
+        // Show test notification
+        await pushNotificationService.showNotification(
+          'Notifications Enabled! 🎉',
+          {
+            body: 'You will now receive updates about gym announcements and classes.',
+          }
+        );
+      }
+    } catch (error) {
+      console.error('Failed to enable push notifications:', error);
+    }
+  };
+
+  // Mark announcement as read
+  const markAnnouncementAsRead = async (announcementId: string) => {
+    if (!user?.id) return;
+
+    try {
+      await fetch(`http://localhost:4001/api/announcements/${announcementId}/mark-read`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+    } catch (error) {
+      console.error('Failed to mark announcement as read:', error);
+    }
+  };
+
+  // Handle closing announcement popup
+  const handleCloseAnnouncementPopup = () => {
+    // Mark all unread announcements as read
+    unreadAnnouncements.forEach((ann) => {
+      markAnnouncementAsRead(ann.id);
+    });
+    setShowAnnouncementPopup(false);
+    setUnreadAnnouncements([]);
+  };
 
   const [quickStats, setQuickStats] = useState({
     nextClass: 'CrossFit WOD - Tomorrow 6:00 AM',
@@ -286,15 +408,6 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       setBookingMessage({ type: 'error', text: 'An error occurred. Please try again.' });
     } finally {
       setIsBooking(false);
-    }
-  };
-
-  const handleViewProfile = () => {
-    // Navigate to profile page
-    if (onNavigate) {
-      onNavigate('profile');
-    } else {
-      console.log('Navigate to profile');
     }
   };
 
@@ -410,13 +523,12 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           </div>
         </div>
         <div className="quick-actions">
-          <button className="btn btn-primary" onClick={handleGenerateQR}>
+          <button className="btn btn-primary qr-code-btn" onClick={handleGenerateQR}>
             <span className="icon">📱</span>
-            Check-In QR Code
-          </button>
-          <button className="btn btn-secondary" onClick={handleViewProfile}>
-            <span className="icon">�</span>
-            My Profile
+            <span className="btn-text">
+              <strong>My QR Code</strong>
+              <small>Tap to show your check-in code</small>
+            </span>
           </button>
         </div>
       </div>
@@ -609,6 +721,54 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       {bookingMessage && (
         <div className={`booking-toast ${bookingMessage.type}`}>
           {bookingMessage.type === 'success' ? '✅' : '❌'} {bookingMessage.text}
+        </div>
+      )}
+
+      {/* Announcement Popup Modal */}
+      {showAnnouncementPopup && unreadAnnouncements.length > 0 && (
+        <div className="announcement-popup-overlay" onClick={handleCloseAnnouncementPopup}>
+          <div className="announcement-popup-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="announcement-popup-header">
+              <h2>📢 New Announcements</h2>
+              <button className="close-btn" onClick={handleCloseAnnouncementPopup}>
+                ✕
+              </button>
+            </div>
+            <div className="announcement-popup-content">
+              {unreadAnnouncements.map((announcement) => (
+                <div key={announcement.id} className={`announcement-popup-item ${announcement.type}`}>
+                  <div className="announcement-popup-icon">
+                    {announcement.type === 'warning' && '⚠️'}
+                    {announcement.type === 'success' && '✅'}
+                    {announcement.type === 'info' && 'ℹ️'}
+                  </div>
+                  <div className="announcement-popup-details">
+                    <h3>{announcement.title}</h3>
+                    <p>{announcement.message}</p>
+                    <span className="announcement-popup-date">
+                      {new Date(announcement.date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="announcement-popup-footer">
+              {!pushNotificationsEnabled && (
+                <button className="btn-enable-notifications" onClick={handleEnablePushNotifications}>
+                  🔔 Enable Push Notifications
+                </button>
+              )}
+              <button className="btn-acknowledge" onClick={handleCloseAnnouncementPopup}>
+                Got it!
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

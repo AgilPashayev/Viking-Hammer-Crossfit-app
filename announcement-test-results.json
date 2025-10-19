@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-10-19T07:20:21.375Z",
+  "results": {
+    "backendHealth": true,
+    "frontendHealth": false,
+    "receptionAnnouncementCreated": false,
+    "spartaAnnouncementCreated": false,
+    "memberFetchSuccess": true,
+    "announcements": {
+      "success": true,
+      "data": []
+    },
+    "errors": [
+      "Frontend: connect ECONNREFUSED ::1:5173",
+      "reception announcement: {\"error\":\"insert or update on table \\\"announcements\\\" violates foreign key constraint \\\"announcements_created_by_fkey\\\"\"}",
+      "sparta announcement: {\"error\":\"insert or update on table \\\"announcements\\\" violates foreign key constraint \\\"announcements_created_by_fkey\\\"\"}"
+    ]
+  },
+  "summary": {
+    "totalTests": 5,
+    "passed": 2
+  }
+}

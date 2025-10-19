@@ -24,6 +24,6 @@ CREATE POLICY "memberships_select" ON public.memberships
     EXISTS (SELECT 1 FROM public.users_profile u WHERE u.id = memberships.user_id AND u.auth_uid::text = auth.uid())
   );
 
--- checkins: reception/admin can insert; members cannot insert checkins for themselves
+-- checkins: reception/sparta/admin can insert; members cannot insert checkins for themselves
 CREATE POLICY "checkins_insert_staff" ON public.checkins
-  FOR INSERT WITH CHECK (auth.role() IN ('reception','admin') OR auth.role() = 'service_role');
+  FOR INSERT WITH CHECK (auth.role() IN ('reception','sparta','admin') OR auth.role() = 'service_role');

@@ -467,7 +467,8 @@
 .renew-btn,
 .suspend-btn,
 .contact-btn,
-.contract-btn {
+.activate-btn,
+.pending-btn {
   padding: 8px 12px;
   border: none;
   border-radius: 6px;
@@ -545,15 +546,26 @@
   box-shadow: 0 4px 15px rgba(111, 66, 193, 0.4);
 }
 
-.contract-btn {
-  background: linear-gradient(45deg, #0b5eff, #4a90e2);
+.activate-btn {
+  background: linear-gradient(45deg, #28a745, #20893a);
   color: white;
-  box-shadow: 0 2px 10px rgba(11, 94, 255, 0.3);
+  box-shadow: 0 2px 10px rgba(40, 167, 69, 0.3);
 }
 
-.contract-btn:hover {
+.activate-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(11, 94, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
+}
+
+.pending-btn {
+  background: linear-gradient(45deg, #ffc107, #e0a800);
+  color: #333;
+  box-shadow: 0 2px 10px rgba(255, 193, 7, 0.3);
+}
+
+.pending-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 15px rgba(255, 193, 7, 0.4);
 }
 
 /* Subscriptions List */
@@ -1032,3 +1044,60 @@
 }
  
  
+ 
+ 
+/* Info box and quick actions for Add Subscription modal */
+.info-box {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.info-box p {
+  margin: 8px 0;
+  color: #1976d2;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.info-box strong {
+  color: #0d47a1;
+  font-weight: 600;
+}
+
+.quick-actions {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px dashed #0b5eff;
+}
+
+.quick-actions h4 {
+  margin: 0 0 16px 0;
+  color: #0b5eff;
+  font-size: 1.1rem;
+}
+
+.quick-actions ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.quick-actions li {
+  padding: 10px 0;
+  color: #333;
+  font-size: 0.95rem;
+  border-bottom: 1px solid rgba(11, 94, 255, 0.1);
+}
+
+.quick-actions li:last-child {
+  border-bottom: none;
+}
+
+.quick-actions strong {
+  color: #0b5eff;
+  font-weight: 600;
+}

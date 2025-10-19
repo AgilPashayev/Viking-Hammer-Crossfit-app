@@ -5,7 +5,7 @@
 CREATE TABLE IF NOT EXISTS public.users_profile (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   auth_uid uuid, -- reference to auth.users.id (managed by Supabase Auth)
-  role text NOT NULL CHECK (role IN ('admin','reception','member')),
+  role text NOT NULL CHECK (role IN ('admin','reception','member','sparta')),
   name text,
   phone text,
   dob date,

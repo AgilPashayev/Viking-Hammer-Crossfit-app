@@ -384,3 +384,53 @@
     width: 100%;
   }
 }
+
+/* Enhanced QR Scan Button Styling */
+.qr-scan-btn {
+  padding: 16px 24px !important;
+  height: auto !important;
+  min-width: 220px !important;
+  font-size: 1rem !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: linear-gradient(135deg, #0b5eff 0%, #0066ff 100%) !important;
+  box-shadow: 0 4px 15px rgba(11, 94, 255, 0.3);
+}
+
+.qr-scan-btn:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  box-shadow: 0 8px 25px rgba(11, 94, 255, 0.4) !important;
+}
+
+.qr-scan-btn .icon {
+  font-size: 2rem;
+  animation: scan-pulse 2s ease-in-out infinite;
+}
+
+.qr-scan-btn .btn-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.qr-scan-btn .btn-text strong {
+  font-size: 1rem;
+  font-weight: 700;
+  display: block;
+  line-height: 1.2;
+}
+
+.qr-scan-btn .btn-text small {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+@keyframes scan-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.15); opacity: 0.8; }
+}

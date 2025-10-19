@@ -338,6 +338,8 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <option value="all">All Roles</option>
                   <option value="member">Members</option>
                   <option value="instructor">Instructors</option>
+                  <option value="reception">Reception</option>
+                  <option value="sparta">Sparta</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

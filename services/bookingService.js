@@ -112,16 +112,16 @@ async function cancelBooking(bookingId, userId) {
       return { error: 'Booking not found', status: 404 };
     }
 
-    // Verify booking belongs to user (or allow admin to cancel)
+    // Verify booking belongs to user (or allow admin/reception/sparta to cancel)
     if (booking.user_id !== userId) {
-      // Check if requester is admin
+      // Check if requester is admin, reception, or sparta
       const { data: requester } = await supabase
         .from('users_profile')
         .select('role')
         .eq('id', userId)
         .single();
 
-      if (!requester || requester.role !== 'admin') {
+      if (!requester || !['admin', 'reception', 'sparta'].includes(requester.role)) {
         return { error: 'Unauthorized to cancel this booking', status: 403 };
       }
     }

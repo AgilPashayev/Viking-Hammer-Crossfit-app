@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import MemberDashboard from './components/MemberDashboard';
 import MyProfile from './components/MyProfile';
 import Reception from './components/Reception';
+import Sparta from './components/Sparta';
 import AuthForm from './components/AuthForm';
 import EmailVerification from './components/EmailVerification';
+import InvitationRegistration from './components/InvitationRegistration';
 import { DataProvider } from './contexts/DataContext';
 import './styles.css';
 // Import debug utilities for development
@@ -26,18 +28,28 @@ interface UserData {
   isAuthenticated: boolean;
   avatar_url?: string;
   profilePhoto?: string;
-  role?: 'member' | 'admin' | 'reception' | 'instructor';
+  role?: 'member' | 'admin' | 'reception' | 'sparta' | 'instructor';
 }
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'dashboard' | 'profile' | 'reception' | 'auth' | 'verify-email'
+    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'auth' | 'verify-email' | 'invite-register'
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
+  const [invitationToken, setInvitationToken] = useState<string | null>(null);
 
   // Load remembered session, if any
   React.useEffect(() => {
     try {
+      // Check if user is on invitation registration page
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('invitation');
+      if (token) {
+        setInvitationToken(token);
+        setCurrentPage('invite-register');
+        return;
+      }
+      
       // Check if user is on email verification page
       if (window.location.pathname === '/verify-email' || window.location.search.includes('token=')) {
         setCurrentPage('verify-email');
@@ -98,6 +110,8 @@ export default function App() {
       setCurrentPage('profile');
     } else if (page === 'reception') {
       setCurrentPage('reception');
+    } else if (page === 'sparta') {
+      setCurrentPage('sparta');
     } else if (page === 'logout') {
       handleLogout();
     }
@@ -108,6 +122,19 @@ export default function App() {
     return (
       <DataProvider>
         <EmailVerification onNavigate={handleNavigate} />
+      </DataProvider>
+    );
+  }
+
+  // Show invitation registration page
+  if (currentPage === 'invite-register') {
+    return (
+      <DataProvider>
+        <InvitationRegistration
+          token={invitationToken || ''}
+          onSuccess={() => setCurrentPage('auth')}
+          onCancel={() => setCurrentPage('home')}
+        />
       </DataProvider>
     );
   }
@@ -189,6 +216,12 @@ export default function App() {
                       >
                         🏢 Reception Panel
                       </button>
+                      <button
+                        className="cta-button secondary"
+                        onClick={() => setCurrentPage('sparta')}
+                      >
+                        ⚔️ Sparta Panel
+                      </button>
                     </>
                   )}
                 </div>
@@ -207,6 +240,9 @@ export default function App() {
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('reception')}>
                 🏢 Reception
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                ⚔️ Sparta
               </button>
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
                 🚪 Logout
@@ -227,11 +263,36 @@ export default function App() {
                 👤 Profile
               </button>
               <button className="nav-btn active">🏢 Reception</button>
+              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                ⚔️ Sparta
+              </button>
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                � Logout
+                🚪 Logout
               </button>
             </div>
             <Reception onNavigate={handleNavigate} />
+          </div>
+        ) : currentPage === 'sparta' ? (
+          <div>
+            <div className="navigation-bar">
+              <button className="nav-btn" onClick={() => handleNavigate('home')}>
+                🏠 Home
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
+                📊 Dashboard
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('profile')}>
+                👤 Profile
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+                🏢 Reception
+              </button>
+              <button className="nav-btn active">⚔️ Sparta</button>
+              <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
+                🚪 Logout
+              </button>
+            </div>
+            <Sparta onNavigate={handleNavigate} />
           </div>
         ) : (
           <div>
@@ -242,9 +303,12 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
               </button>
-              <button className="nav-btn active">�👤 Profile</button>
+              <button className="nav-btn active">👤 Profile</button>
               <button className="nav-btn" onClick={() => handleNavigate('reception')}>
                 🏢 Reception
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                ⚔️ Sparta
               </button>
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
                 🚪 Logout

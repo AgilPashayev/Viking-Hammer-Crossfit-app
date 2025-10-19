@@ -235,11 +235,12 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
           </div>
         </div>
         <div className="quick-actions">
-          <button className="btn btn-primary" onClick={handleQRScanClick}>
-            📱 Scan QR
-          </button>
-          <button className="btn btn-secondary" onClick={() => onNavigate?.('dashboard')}>
-            🏠 Member View
+          <button className="btn btn-primary qr-scan-btn" onClick={handleQRScanClick}>
+            <span className="icon">📱</span>
+            <span className="btn-text">
+              <strong>Scan Member QR</strong>
+              <small>Check-in members quickly</small>
+            </span>
           </button>
         </div>
       </div>
