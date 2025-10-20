@@ -229,7 +229,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -245,7 +245,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -261,7 +261,7 @@ app.post(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.status(201).json(result.data);
+    res.status(201).json(result); // Return full result object like GET does
   }),
 );
 
@@ -277,7 +277,7 @@ app.put(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result); // Return full result object like GET does
   }),
 );
 
@@ -315,7 +315,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -331,7 +331,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -404,7 +404,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -420,7 +420,7 @@ app.get(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -1081,7 +1081,7 @@ app.post(
     // For demo mode: Set created_by to NULL if user doesn't exist in database
     // This allows announcements to be created without foreign key constraints
     let finalCreatedBy = null;
-    
+
     if (createdBy) {
       // Check if user exists in database
       const { data: userExists } = await supabase
@@ -1089,12 +1089,14 @@ app.post(
         .select('id')
         .eq('id', createdBy)
         .single();
-      
+
       // Only set created_by if user exists in database
       if (userExists) {
         finalCreatedBy = createdBy;
       } else {
-        console.log(`⚠️ User ${createdBy} not in database - setting created_by to NULL for demo mode`);
+        console.log(
+          `⚠️ User ${createdBy} not in database - setting created_by to NULL for demo mode`,
+        );
       }
     }
 
@@ -1106,7 +1108,7 @@ app.post(
         target_audience: targetAudience || 'all',
         priority: priority || 'normal',
         status: 'published',
-        created_by: finalCreatedBy,  // NULL if demo user, UUID if real user
+        created_by: finalCreatedBy, // NULL if demo user, UUID if real user
         published_at: new Date().toISOString(),
       })
       .select()
@@ -1114,9 +1116,9 @@ app.post(
 
     if (error) {
       console.error('❌ Database error:', error);
-      return res.status(500).json({ 
+      return res.status(500).json({
         error: error.message,
-        details: 'Database constraint violation. Please check your account setup.'
+        details: 'Database constraint violation. Please check your account setup.',
       });
     }
 
@@ -1574,22 +1576,24 @@ async function startServer() {
       console.log('');
       console.log('==============================================');
       console.log('✅ Ready for UAT testing');
-      
+
       // Keep process alive
       setInterval(() => {
         // Heartbeat to prevent process exit
       }, 60000); // Every minute
     });
-    
+
     // Handle server errors
     server.on('error', (error) => {
       console.error('❌ Server error:', error);
       if (error.code === 'EADDRINUSE') {
-        console.error(`Port ${PORT} is already in use. Please close other instances or change the port.`);
+        console.error(
+          `Port ${PORT} is already in use. Please close other instances or change the port.`,
+        );
         process.exit(1);
       }
     });
-    
+
     return server;
   } catch (error) {
     console.error('❌ Failed to start server:', error);

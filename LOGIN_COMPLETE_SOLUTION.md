@@ -1,9 +1,11 @@
 # Login Issue - Complete Solution
 
 ## Problem
+
 Getting "Invalid email or password" when trying to login as demo user.
 
 ## Root Cause
+
 You're attempting to login with **OLD demo user credentials** that were created **BEFORE** the UUID fix. These old users have invalid ID format (`"demo-{timestamp}"`) that cannot create announcements.
 
 ## Complete Solution Applied
@@ -13,11 +15,13 @@ You're attempting to login with **OLD demo user credentials** that were created 
 **File:** `frontend/src/components/AuthForm.tsx`
 
 **What was added:**
+
 - A red "Clear Demo Data & Start Fresh" button on the login page (visible in demo mode only)
 - Function to clear all demo user data and reload page
 - Helper text explaining the button's purpose
 
 **Code added:**
+
 ```typescript
 const handleClearDemoData = () => {
   if (confirm('⚠️ This will clear ALL demo users and logout. Continue?')) {
@@ -36,6 +40,7 @@ const handleClearDemoData = () => {
 **File:** `frontend/src/App.tsx` (lines 44-85)
 
 **What it does:**
+
 - Automatically scans demo users on page load
 - Removes ONLY old users with `"demo-{timestamp}"` IDs
 - Keeps new users with valid UUID format
@@ -97,11 +102,13 @@ const handleClearDemoData = () => {
 ### What Changed:
 
 **1. AuthForm.tsx:**
+
 - Added clear demo data function
 - Added button to login form (demo mode only)
 - Button triggers manual cleanup and reload
 
 **2. App.tsx:**
+
 - Selective cleanup logic
 - Scans each user individually
 - Removes only old format users
@@ -110,11 +117,13 @@ const handleClearDemoData = () => {
 ### ID Format Comparison:
 
 **Old Format (Invalid):** ❌
+
 ```
 "demo-1760739847374"
 ```
 
 **New Format (Valid):** ✅
+
 ```
 "f47ac10b-58cc-4372-a567-0e02b2c3d479"
 ```
@@ -131,6 +140,7 @@ Both fields require valid UUID format. Old string IDs are rejected.
 ## Status
 
 ✅ **COMPLETE** - All solutions implemented:
+
 - ✅ Clear button added to login page
 - ✅ Selective auto-cleanup in App.tsx
 - ✅ Manual cleanup instructions provided

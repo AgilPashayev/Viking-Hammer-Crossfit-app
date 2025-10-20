@@ -23,7 +23,8 @@ if (Test-Path $sqlFile) {
     Write-Host "7. You should see the announcement popup" -ForegroundColor White
     Write-Host ""
     
-} else {
+}
+else {
     Write-Host "Error: SQL file not found" -ForegroundColor Red
     Write-Host "Expected: insert-test-announcement-simple.sql" -ForegroundColor Yellow
 }

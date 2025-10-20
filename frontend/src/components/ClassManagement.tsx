@@ -75,7 +75,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     // Update active classes count when classes change
     const activeCount = classes.filter(c => c.status === 'active').length;
     setActiveClassesCount(activeCount);
-  }, [classes, setActiveClassesCount]);
+  }, [classes]);
 
   // Force 24-hour time format on all time inputs
   useEffect(() => {
@@ -419,6 +419,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   };
 
   const handleEditClass = (gymClass: GymClass) => {
+    console.log('=== EDITING CLASS ===');
+    console.log('Class data:', gymClass);
+    console.log('Schedule data:', gymClass.schedule);
     setNewClass(gymClass);
     setEditingClass(gymClass);
     setShowAddClassModal(true);
@@ -1269,19 +1272,21 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <div className="schedule-times-header">
                       <span>⏰ Set time for selected days (24-hour format):</span>
                     </div>
-                    {newClass.schedule.map((scheduleItem, idx) => (
-                      <div key={idx} className="schedule-time-row">
-                        <span className="day-name-in-schedule">
-                          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][scheduleItem.dayOfWeek]}
-                        </span>
-                        <div className="time-inputs-group">
-                          <input
-                            type="time"
-                            value={scheduleItem.startTime}
-                            required
-                            min="00:00"
-                            max="23:59"
-                            pattern="[0-9]{2}:[0-9]{2}"
+                    {(() => {
+                      console.log('Rendering schedule times. newClass.schedule:', newClass.schedule);
+                      return newClass.schedule.map((scheduleItem, idx) => (
+                        <div key={idx} className="schedule-time-row">
+                          <span className="day-name-in-schedule">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][scheduleItem.dayOfWeek]}
+                          </span>
+                          <div className="time-inputs-group">
+                            <input
+                              type="time"
+                              value={scheduleItem.startTime}
+                              required
+                              min="00:00"
+                              max="23:59"
+                              pattern="[0-9]{2}:[0-9]{2}"
                             style={{ fontFamily: "'Courier New', monospace", fontSize: "1rem", fontWeight: "700" }}
                             onChange={(e) => {
                               const updatedSchedule = [...(newClass.schedule || [])];
@@ -1306,7 +1311,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                           />
                         </div>
                       </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 )}
               </div>

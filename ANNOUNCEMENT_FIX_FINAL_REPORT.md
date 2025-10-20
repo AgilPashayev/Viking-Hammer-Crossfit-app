@@ -41,24 +41,26 @@ loadAnnouncements() runs (from 5-min interval or re-render)
 **Added:** Local state update after marking as read
 
 ### Before (Broken):
+
 ```typescript
 const handleCloseAnnouncementPopup = async () => {
   await Promise.all(markPromises);
   console.log('✅ All announcements marked as read');
-  
+
   setShowAnnouncementPopup(false);
   setUnreadAnnouncements([]);
-  
+
   // ❌ No state update!
 };
 ```
 
 ### After (Fixed):
+
 ```typescript
 const handleCloseAnnouncementPopup = async () => {
   await Promise.all(markPromises);
   console.log('✅ All announcements marked as read');
-  
+
   // ✅ UPDATE LOCAL STATE
   if (user?.id) {
     const updatedAnnouncements = announcements.map((ann) => {
@@ -73,7 +75,7 @@ const handleCloseAnnouncementPopup = async () => {
     setAnnouncements(updatedAnnouncements);
     console.log('🔄 Local state updated with new read status');
   }
-  
+
   setShowAnnouncementPopup(false);
   setUnreadAnnouncements([]);
 };
@@ -84,16 +86,19 @@ const handleCloseAnnouncementPopup = async () => {
 ## 🧪 TESTING RESULTS
 
 ### Backend API: ✅ WORKING
+
 - GET /api/announcements/member → Returns correct data
 - POST /api/announcements/:id/mark-read → Updates database
 - All 4 test announcements have correct `read_by_users` arrays
 
 ### Frontend Fix: ✅ APPLIED
+
 - Local state now updated immediately after API call
 - Filter uses fresh data on next render
 - Console logs show state updates
 
 ### Expected Behavior NOW:
+
 1. ✅ User sees popup with unread announcements
 2. ✅ Clicks "Got it!"
 3. ✅ API updates database
@@ -106,6 +111,7 @@ const handleCloseAnnouncementPopup = async () => {
 ## 📊 FILES CHANGED
 
 **Modified:**
+
 - `frontend/src/components/MemberDashboard.tsx` (Lines 348-363)
   - Added local state update in `handleCloseAnnouncementPopup()`
   - Maps through announcements and adds user.id to readBy arrays

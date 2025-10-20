@@ -1,6 +1,7 @@
 # Quick Testing Guide: Announcement Display
 
 ## ✅ Status
+
 - **Backend Server**: Running on port 4001
 - **Frontend Server**: Running on port 5173
 - **API Health**: All endpoints working correctly
@@ -23,15 +24,15 @@ WITH system_user AS (
     RETURNING id
 )
 INSERT INTO public.announcements (
-    title, 
-    content, 
-    target_audience, 
-    priority, 
-    status, 
-    created_by, 
+    title,
+    content,
+    target_audience,
+    priority,
+    status,
+    created_by,
     published_at
 )
-SELECT 
+SELECT
     '🎉 Welcome to Viking Hammer!',
     'This is a test announcement to verify Member Dashboard display. Enable push notifications to receive future updates!',
     'members',
@@ -57,12 +58,12 @@ If you have existing users and know a user ID:
 
 ```sql
 INSERT INTO public.announcements (
-    title, 
-    content, 
-    target_audience, 
-    priority, 
-    status, 
-    created_by, 
+    title,
+    content,
+    target_audience,
+    priority,
+    status,
+    created_by,
     published_at
 ) VALUES (
     '🎉 Welcome to Viking Hammer!',
@@ -98,16 +99,19 @@ INSERT INTO public.announcements (
 ## 🔍 Troubleshooting
 
 ### Popup doesn't appear?
+
 - Check browser console for errors (F12)
 - Verify announcement exists: Check Supabase Table Editor → `announcements` table
 - Verify `status='published'` and `target_audience IN ('all', 'members')`
 - Check backend API: http://localhost:4001/api/announcements/member (should return array with announcement)
 
 ### Backend not responding?
+
 - Check if backend is still running on port 4001
 - Restart using: `.\start-app.bat`
 
 ### Frontend error?
+
 - Clear browser cache
 - Check frontend is running on port 5173
 - Look for TypeScript compilation errors
@@ -115,11 +119,13 @@ INSERT INTO public.announcements (
 ## 📊 API Test
 
 Test the announcement API directly:
+
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:4001/api/announcements/member" -Method GET | ConvertTo-Json -Depth 3
 ```
 
 Should return:
+
 ```json
 {
   "success": true,

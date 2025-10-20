@@ -11,10 +11,12 @@
 
 ## 🐛 Problem
 
-**User Report**:  
+**User Report**:
+
 > "I see the same announcements on every refresh, but I don't want to see it every time. If it is shown once and a member clicks OKAY, the announcements should be marked as read and should never be displayed in a pop-up window again."
 
 **Root Causes**:
+
 1. ❌ Inconsistent data types (number vs string IDs)
 2. ❌ No response validation in mark-as-read calls
 3. ❌ Missing async/await in popup close handler
@@ -29,11 +31,13 @@
 **File**: `frontend/src/components/MemberDashboard.tsx`
 
 1. **Data Type Consistency**
+
    ```typescript
-   id: String(ann.id)  // Ensure IDs are always strings
+   id: String(ann.id); // Ensure IDs are always strings
    ```
 
 2. **Enhanced Logging**
+
    ```typescript
    console.log('📢 Loaded announcements:', result.data.length);
    console.log(`Announcement #${ann.id}: ${isRead ? 'READ ✓' : 'UNREAD ⚠'}`);
@@ -41,21 +45,21 @@
    ```
 
 3. **Response Validation**
+
    ```typescript
    if (!response.ok) {
      const errorData = await response.json();
      throw new Error(errorData.error || 'Failed to mark as read');
    }
-   return true;  // Return success status
+   return true; // Return success status
    ```
 
 4. **Async Popup Close**
+
    ```typescript
    const handleCloseAnnouncementPopup = async () => {
-     const markPromises = unreadAnnouncements.map((ann) => 
-       markAnnouncementAsRead(ann.id)
-     );
-     await Promise.all(markPromises);  // Wait for all API calls
+     const markPromises = unreadAnnouncements.map((ann) => markAnnouncementAsRead(ann.id));
+     await Promise.all(markPromises); // Wait for all API calls
      setShowAnnouncementPopup(false);
    };
    ```
@@ -69,13 +73,13 @@
 
 ### Automated Test Results:
 
-| Test | Result |
-|------|--------|
-| Fetch announcements | ✅ PASS |
-| Filter unread | ✅ PASS |
-| Mark as read | ✅ PASS |
-| Verify database | ✅ PASS |
-| Refresh (no popup) | ✅ PASS |
+| Test                       | Result  |
+| -------------------------- | ------- |
+| Fetch announcements        | ✅ PASS |
+| Filter unread              | ✅ PASS |
+| Mark as read               | ✅ PASS |
+| Verify database            | ✅ PASS |
+| Refresh (no popup)         | ✅ PASS |
 | Persistent across sessions | ✅ PASS |
 
 **Success Rate**: 100% (6/6 tests)
@@ -87,6 +91,7 @@
 ## 📊 Before vs After
 
 ### Before Fix:
+
 ```
 User logs in       → ✅ See popup
 Click "Got it!"    → ❌ Popup closes but not marked
@@ -95,6 +100,7 @@ Logout/Login       → ❌ Popup appears AGAIN
 ```
 
 ### After Fix:
+
 ```
 User logs in       → ✅ See popup
 Click "Got it!"    → ✅ Marked as read in database
@@ -120,6 +126,7 @@ Logout/Login       → ✅ NO popup (persistent)
 ## 🚀 Deployment
 
 **Current Status**:
+
 - ✅ Backend: Running on port 4001
 - ✅ Frontend: Running on port 5173 (with fixes)
 - ✅ Database: No changes needed
@@ -133,11 +140,10 @@ Logout/Login       → ✅ NO popup (persistent)
 
 1. **`frontend/src/components/MemberDashboard.tsx`**
    - Lines 195-345: Enhanced announcement loading and marking logic
-   
 2. **`test-mark-read-complete-flow.js`** (NEW)
    - Automated end-to-end test script
-   
 3. **`ANNOUNCEMENT_MARK_READ_FIX_REPORT.md`** (NEW)
+
    - Detailed technical documentation
 
 4. **`reset-announcement-read-status.sql`** (NEW)
@@ -180,5 +186,5 @@ The announcement mark-as-read functionality now works exactly as requested:
 
 ---
 
-*Report Generated: October 19, 2025*  
-*Status: ✅ FIX COMPLETE & VERIFIED*
+_Report Generated: October 19, 2025_  
+_Status: ✅ FIX COMPLETE & VERIFIED_

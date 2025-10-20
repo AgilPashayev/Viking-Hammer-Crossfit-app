@@ -22,31 +22,34 @@ async function insertTestAnnouncements() {
   const announcements = [
     {
       title: '🏋️ New CrossFit Class Schedule - FROM RECEPTION',
-      content: 'Exciting news! We have added new morning CrossFit classes starting next week. Check the schedule for details. This announcement was created to test the RECEPTION role functionality.',
+      content:
+        'Exciting news! We have added new morning CrossFit classes starting next week. Check the schedule for details. This announcement was created to test the RECEPTION role functionality.',
       target_audience: 'members',
       priority: 'high',
       status: 'published',
       published_at: new Date().toISOString(),
-      created_by: null  // NULL to bypass foreign key
+      created_by: null, // NULL to bypass foreign key
     },
     {
       title: '⚔️ Sparta Challenge This Weekend - FROM SPARTA',
-      content: 'Join us for the ultimate Sparta Challenge this Saturday at 9 AM! Test your strength, endurance, and determination. Sign up at the front desk. Limited spots available! This announcement was created to test the SPARTA role functionality.',
+      content:
+        'Join us for the ultimate Sparta Challenge this Saturday at 9 AM! Test your strength, endurance, and determination. Sign up at the front desk. Limited spots available! This announcement was created to test the SPARTA role functionality.',
       target_audience: 'members',
       priority: 'urgent',
       status: 'published',
       published_at: new Date().toISOString(),
-      created_by: null  // NULL to bypass foreign key
+      created_by: null, // NULL to bypass foreign key
     },
     {
       title: '📢 Welcome to Viking Hammer CrossFit!',
-      content: 'This is a general announcement for all members. You should see this in your Member Dashboard and as a popup notification. Click "Enable Push Notifications" to receive future updates on your device!',
+      content:
+        'This is a general announcement for all members. You should see this in your Member Dashboard and as a popup notification. Click "Enable Push Notifications" to receive future updates on your device!',
       target_audience: 'all',
       priority: 'normal',
       status: 'published',
       published_at: new Date().toISOString(),
-      created_by: null
-    }
+      created_by: null,
+    },
   ];
 
   let successCount = 0;
@@ -54,13 +57,11 @@ async function insertTestAnnouncements() {
 
   for (let i = 0; i < announcements.length; i++) {
     const ann = announcements[i];
-    console.log(`📢 [${i + 1}/${announcements.length}] Creating: "${ann.title.substring(0, 50)}..."`);
+    console.log(
+      `📢 [${i + 1}/${announcements.length}] Creating: "${ann.title.substring(0, 50)}..."`,
+    );
 
-    const { data, error } = await supabase
-      .from('announcements')
-      .insert(ann)
-      .select()
-      .single();
+    const { data, error } = await supabase.from('announcements').insert(ann).select().single();
 
     if (error) {
       console.log(`   ❌ Failed: ${error.message}`);

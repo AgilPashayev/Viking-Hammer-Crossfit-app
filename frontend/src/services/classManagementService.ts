@@ -3,6 +3,15 @@
  * Handles all API calls for classes, instructors, and schedules
  */
 
+import {
+  transformClassFromAPI,
+  transformClassToAPI,
+  transformInstructorFromAPI,
+  transformInstructorToAPI,
+  transformScheduleFromAPI,
+  transformScheduleToAPI,
+} from './classTransformer';
+
 const API_BASE_URL = 'http://localhost:4001/api';
 
 // ========== INTERFACES ==========
@@ -58,8 +67,13 @@ export const classService = {
   async getAll(): Promise<GymClass[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/classes`);
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const result = await response.json();
+      
+      // Handle both response formats for backward compatibility
+      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
+      
+      // Transform each class from API format to frontend format
+      return data.map(transformClassFromAPI);
     } catch (error) {
       console.error('Error fetching classes:', error);
       return [];
@@ -70,8 +84,9 @@ export const classService = {
   async getById(id: string): Promise<GymClass | null> {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${id}`);
-      const data = await response.json();
-      return data.success ? data.data : null;
+      const result = await response.json();
+      const data = result.success ? result.data : result;
+      return data ? transformClassFromAPI(data) : null;
     } catch (error) {
       console.error('Error fetching class:', error);
       return null;
@@ -81,15 +96,25 @@ export const classService = {
   // Create new class
   async create(gymClass: Partial<GymClass>): Promise<{ success: boolean; data?: GymClass; message?: string }> {
     try {
+      const apiData = transformClassToAPI(gymClass);
       const response = await fetch(`${API_BASE_URL}/classes`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(gymClass),
+        body: JSON.stringify(apiData),
       });
-      const data = await response.json();
-      return data;
+      const result = await response.json();
+      
+      if (result.success || result.id) {
+        const classData = result.data || result;
+        return {
+          success: true,
+          data: transformClassFromAPI(classData),
+        };
+      }
+      
+      return { success: false, message: result.message || 'Failed to create class' };
     } catch (error) {
       console.error('Error creating class:', error);
       return { success: false, message: 'Failed to create class' };
@@ -136,8 +161,9 @@ export const instructorService = {
   async getAll(): Promise<Instructor[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/instructors`);
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const result = await response.json();
+      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
+      return data.map(transformInstructorFromAPI);
     } catch (error) {
       console.error('Error fetching instructors:', error);
       return [];
@@ -159,15 +185,25 @@ export const instructorService = {
   // Create new instructor
   async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?: Instructor; message?: string }> {
     try {
+      const apiData = transformInstructorToAPI(instructor);
       const response = await fetch(`${API_BASE_URL}/instructors`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(instructor),
+        body: JSON.stringify(apiData),
       });
-      const data = await response.json();
-      return data;
+      const result = await response.json();
+      
+      if (result.success || result.id) {
+        const instructorData = result.data || result;
+        return {
+          success: true,
+          data: transformInstructorFromAPI(instructorData),
+        };
+      }
+      
+      return { success: false, message: result.message || 'Failed to create instructor' };
     } catch (error) {
       console.error('Error creating instructor:', error);
       return { success: false, message: 'Failed to create instructor' };
@@ -219,8 +255,9 @@ export const scheduleService = {
       if (filters?.instructorId) params.append('instructorId', filters.instructorId);
       
       const response = await fetch(`${API_BASE_URL}/schedule?${params.toString()}`);
-      const data = await response.json();
-      return data.success ? data.data : [];
+      const result = await response.json();
+      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
+      return data.map(transformScheduleFromAPI);
     } catch (error) {
       console.error('Error fetching schedule:', error);
       return [];
@@ -243,15 +280,25 @@ export const scheduleService = {
   // Create schedule slot
   async create(slot: Partial<ScheduleSlot>): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
     try {
+      const apiData = transformScheduleToAPI(slot);
       const response = await fetch(`${API_BASE_URL}/schedule`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(slot),
+        body: JSON.stringify(apiData),
       });
-      const data = await response.json();
-      return data;
+      const result = await response.json();
+      
+      if (result.success || result.id) {
+        const scheduleData = result.data || result;
+        return {
+          success: true,
+          data: transformScheduleFromAPI(scheduleData),
+        };
+      }
+      
+      return { success: false, message: result.message || 'Failed to create schedule slot' };
     } catch (error) {
       console.error('Error creating schedule slot:', error);
       return { success: false, message: 'Failed to create schedule slot' };

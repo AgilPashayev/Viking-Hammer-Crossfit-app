@@ -9,6 +9,7 @@
 ## 🎯 TEST OBJECTIVE
 
 Verify if the announcement popup issue is caused by user ID mismatch between:
+
 - Database user who marked announcements as read
 - Currently logged-in user seeing the popup
 
@@ -17,12 +18,15 @@ Verify if the announcement popup issue is caused by user ID mismatch between:
 ## 🧪 TEST METHODOLOGY
 
 ### Test 1: Database State Verification
+
 **Command:** Query backend API for all announcements
+
 ```powershell
 Invoke-RestMethod http://localhost:4001/api/announcements/member
 ```
 
 **Results:**
+
 - ✅ Total announcements: 4
 - ✅ All have `read_by_users` arrays populated
 - ✅ User `22a9215c-c72b-4aa9-964a-189363da5453` present in ALL 4 announcements
@@ -37,6 +41,7 @@ Invoke-RestMethod http://localhost:4001/api/announcements/member
 **Filter Logic:** `announcements.filter(ann => !ann.read_by_users.includes(userId))`
 
 **Results:**
+
 ```
 Announcement ID 8: READ ✓
 Announcement ID 7: READ ✓
@@ -57,6 +62,7 @@ Expected behavior: NO POPUP ✅
 **Filter Logic:** Same as above
 
 **Results:**
+
 ```
 Announcement ID 8: UNREAD ⚠️
 Announcement ID 7: UNREAD ⚠️
@@ -73,10 +79,10 @@ Expected behavior: POPUP SHOWN ⚠️
 
 ## 📊 TEST RESULTS SUMMARY
 
-| Test Case | User ID | Unread Count | Popup Expected | Result |
-|-----------|---------|--------------|----------------|--------|
-| Known User | 22a9215c... | 0 | NO | ✅ PASS |
-| Different User | 00000000... | 4 | YES | ✅ PASS |
+| Test Case      | User ID     | Unread Count | Popup Expected | Result  |
+| -------------- | ----------- | ------------ | -------------- | ------- |
+| Known User     | 22a9215c... | 0            | NO             | ✅ PASS |
+| Different User | 00000000... | 4            | YES            | ✅ PASS |
 
 **Both tests behaved exactly as expected!**
 
@@ -89,11 +95,13 @@ Expected behavior: POPUP SHOWN ⚠️
 The filtering logic is working **100% correctly**. The behavior depends entirely on the user ID:
 
 **Scenario A: Logged in as `22a9215c-c72b-4aa9-964a-189363da5453`**
+
 - Result: 0 unread announcements
 - Popup: Does NOT appear ✅
 - Behavior: CORRECT
 
 **Scenario B: Logged in as ANY OTHER user**
+
 - Result: 4 unread announcements
 - Popup: APPEARS on every refresh ⚠️
 - Behavior: CORRECT (user hasn't read them yet!)
@@ -107,6 +115,7 @@ The filtering logic is working **100% correctly**. The behavior depends entirely
 You are seeing the popup because you are logged in with a **different user account** than the one that marked the announcements as read.
 
 **Evidence:**
+
 1. ✅ Database has correct read status for user `22a9215c...`
 2. ✅ Backend API returns correct data
 3. ✅ Frontend filtering logic is correct
@@ -120,6 +129,7 @@ You are seeing the popup because you are logged in with a **different user accou
 To verify this is YOUR specific problem:
 
 ### **Method 1: Check Browser Console**
+
 1. Open http://localhost:5173
 2. Press F12 → Console tab
 3. Login as Member
@@ -129,6 +139,7 @@ To verify this is YOUR specific problem:
 **If they don't match → THAT'S THE PROBLEM!**
 
 ### **Method 2: Use Diagnostic Tool**
+
 1. Open: `test-user-id-check.html` in browser
 2. Tool will auto-test the filtering logic
 3. Paste your user ID from console
@@ -139,13 +150,16 @@ To verify this is YOUR specific problem:
 ## ✅ SOLUTIONS
 
 ### **Solution 1: Mark as Read for YOUR Account**
+
 1. See the popup
 2. Click "Got it!"
 3. Your user ID will be added to `read_by_users`
 4. Refresh → Popup won't appear again
 
 ### **Solution 2: Login with Correct Account**
+
 If you want to login as the user who already marked them as read:
+
 - Use account with ID: `22a9215c-c72b-4aa9-964a-189363da5453`
 - No popup will appear
 
@@ -157,7 +171,7 @@ If you want to login as the user who already marked them as read:
 ❌ **NOT** a database issue  
 ❌ **NOT** a backend API problem  
 ❌ **NOT** a frontend logic error  
-❌ **NOT** a browser cache issue  
+❌ **NOT** a browser cache issue
 
 ✅ **IT IS:** Working as designed - each user has their own read status!
 
@@ -166,6 +180,7 @@ If you want to login as the user who already marked them as read:
 ## 📈 CODE BEHAVIOR VERIFICATION
 
 ### **Backend API** ✅
+
 ```javascript
 // GET /api/announcements/member
 // Returns ALL announcements with read_by_users arrays
@@ -173,15 +188,17 @@ If you want to login as the user who already marked them as read:
 ```
 
 ### **Frontend Filtering** ✅
+
 ```javascript
 const unread = announcements.filter((ann) => {
   const isRead = ann.readBy && ann.readBy.includes(user.id);
-  return !isRead;  // Keep only unread
+  return !isRead; // Keep only unread
 });
 // ✅ Working correctly
 ```
 
 ### **Mark as Read** ✅
+
 ```javascript
 // POST /api/announcements/:id/mark-read
 // Adds userId to read_by_users array
@@ -204,7 +221,8 @@ The system is functioning **perfectly**. Each user maintains their own read stat
 
 ## 📝 ACTION REQUIRED
 
-**From User:** 
+**From User:**
+
 1. Check browser console for your actual user ID
 2. Confirm if it matches `22a9215c-c72b-4aa9-964a-189363da5453`
 3. If it doesn't match → Just click "Got it!" to mark for your account
@@ -215,10 +233,12 @@ The system is functioning **perfectly**. Each user maintains their own read stat
 ## 📊 TEST ARTIFACTS
 
 **Files Created:**
+
 - `test-user-id-check.html` - Interactive diagnostic tool
 - `USER_ID_MISMATCH_TEST_REPORT.md` - This report
 
 **Test Commands Used:**
+
 ```powershell
 # Get announcements
 Invoke-RestMethod http://localhost:4001/api/announcements/member

@@ -11,12 +11,13 @@ const BACKEND_URL = 'http://localhost:4001';
 // Test announcement data
 const testAnnouncement = {
   title: '🎉 Welcome to Viking Hammer CrossFit!',
-  content: 'This is a test announcement. You should see this in your Member Dashboard and as a popup notification! Click "Enable Push Notifications" to receive future updates on your device.',
+  content:
+    'This is a test announcement. You should see this in your Member Dashboard and as a popup notification! Click "Enable Push Notifications" to receive future updates on your device.',
   targetAudience: 'members',
   priority: 'high',
   createdBy: '00000000-0000-0000-0000-000000000001', // Dummy UUID for testing
   status: 'published',
-  published_at: new Date().toISOString()
+  published_at: new Date().toISOString(),
 };
 
 console.log('🧪 Testing Announcement Creation...\n');
@@ -34,8 +35,8 @@ const options = {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Content-Length': Buffer.byteLength(postData)
-  }
+    'Content-Length': Buffer.byteLength(postData),
+  },
 };
 
 console.log('🚀 Sending POST request to /api/announcements...\n');
@@ -50,11 +51,11 @@ const req = http.request(options, (res) => {
   res.on('end', () => {
     console.log(`📊 Response Status: ${res.statusCode}`);
     console.log('📄 Response Body:');
-    
+
     try {
       const jsonData = JSON.parse(data);
       console.log(JSON.stringify(jsonData, null, 2));
-      
+
       if (res.statusCode === 201 || res.statusCode === 200) {
         console.log('\n✅ SUCCESS! Announcement created successfully!');
         console.log('\n📋 Next Steps:');

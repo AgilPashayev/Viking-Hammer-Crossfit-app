@@ -10,16 +10,16 @@
 
 **Overall Implementation Status: 62.5% Complete (5/8 functionalities)**
 
-| Functionality | Status | Completion |
-|--------------|--------|------------|
-| 1. Register via invitation link | ⚠️ Partial | 40% |
-| 2. See class list & join classes | ✅ Complete | 100% |
-| 3. Receive announcements | ⚠️ Partial | 70% |
-| 4. Update personal information | ✅ Complete | 95% |
-| 5. View check-in information | ✅ Complete | 90% |
-| 6. Open QR code for check-in | ✅ Complete | 100% |
-| 7. See membership details/history | ✅ Complete | 100% |
-| 8. Manage app settings/notifications | ⚠️ Partial | 60% |
+| Functionality                        | Status      | Completion |
+| ------------------------------------ | ----------- | ---------- |
+| 1. Register via invitation link      | ⚠️ Partial  | 40%        |
+| 2. See class list & join classes     | ✅ Complete | 100%       |
+| 3. Receive announcements             | ⚠️ Partial  | 70%        |
+| 4. Update personal information       | ✅ Complete | 95%        |
+| 5. View check-in information         | ✅ Complete | 90%        |
+| 6. Open QR code for check-in         | ✅ Complete | 100%       |
+| 7. See membership details/history    | ✅ Complete | 100%       |
+| 8. Manage app settings/notifications | ⚠️ Partial  | 60%        |
 
 ---
 
@@ -32,6 +32,7 @@
 **Status:** ⚠️ **PARTIALLY IMPLEMENTED (40%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Table**: `public.invitations` ✅ EXISTS
 - **Schema**:
   ```sql
@@ -52,6 +53,7 @@
 - **Migration File**: `20251019_invitations.sql` ✅ EXISTS
 
 #### **API Layer** ✅ (100%)
+
 - **Service File**: `services/invitationService.js` ✅ EXISTS
 - **Functions Implemented**:
   - ✅ `generateInvitationToken()` - Secure 64-char hex token
@@ -63,6 +65,7 @@
   - ✅ `cleanupExpiredInvitations()` - Cron-ready cleanup
 
 #### **Backend Integration** ❌ (0%)
+
 - **MISSING**: No API endpoints in `backend-server.js`
 - **Required Endpoints**:
   ```
@@ -74,6 +77,7 @@
   ```
 
 #### **Frontend UI** ❌ (0%)
+
 - **MISSING**: No invitation registration component
 - **Required Components**:
   - `InvitationRegistration.tsx` - Registration page with token validation
@@ -83,6 +87,7 @@
   - Simplified registration flow (no need to re-enter email)
 
 #### **Security** ⚠️ (50%)
+
 - **Implemented**:
   - ✅ Secure token generation (crypto.randomBytes)
   - ✅ Token uniqueness constraint
@@ -96,33 +101,44 @@
 #### **MISSING COMPONENTS TO ADD:**
 
 1. **Backend API Endpoints** (High Priority):
+
 ```javascript
 // Add to backend-server.js
 
 // Create invitation (Admin/Reception only)
-app.post('/api/invitations', asyncHandler(async (req, res) => {
-  const result = await invitationService.createInvitation(req.body);
-  if (result.error) return res.status(500).json({ error: result.error });
-  res.status(201).json(result.data);
-}));
+app.post(
+  '/api/invitations',
+  asyncHandler(async (req, res) => {
+    const result = await invitationService.createInvitation(req.body);
+    if (result.error) return res.status(500).json({ error: result.error });
+    res.status(201).json(result.data);
+  }),
+);
 
 // Validate invitation token
-app.get('/api/invitations/:token', asyncHandler(async (req, res) => {
-  const result = await invitationService.validateInvitationToken(req.params.token);
-  if (!result.valid) return res.status(400).json({ error: result.error });
-  res.json(result.data);
-}));
+app.get(
+  '/api/invitations/:token',
+  asyncHandler(async (req, res) => {
+    const result = await invitationService.validateInvitationToken(req.params.token);
+    if (!result.valid) return res.status(400).json({ error: result.error });
+    res.json(result.data);
+  }),
+);
 
 // Accept invitation & register
-app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
-  // 1. Validate token
-  // 2. Create user account
-  // 3. Mark invitation as accepted
-  // Implementation needed
-}));
+app.post(
+  '/api/invitations/:token/accept',
+  asyncHandler(async (req, res) => {
+    // 1. Validate token
+    // 2. Create user account
+    // 3. Mark invitation as accepted
+    // Implementation needed
+  }),
+);
 ```
 
 2. **Frontend Invitation Registration Component** (High Priority):
+
 ```tsx
 // Create: frontend/src/components/InvitationRegistration.tsx
 - Token validation on mount
@@ -133,12 +149,14 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
 ```
 
 3. **App Routing** (Medium Priority):
+
 ```tsx
 // Add to App.tsx
 <Route path="/register/:token" element={<InvitationRegistration />} />
 ```
 
 4. **Database Migration** (LOW PRIORITY - Already created):
+
 - File exists but needs to be applied to production database
 - Run: `supabase db push infra/supabase/migrations/20251019_invitations.sql`
 
@@ -149,13 +167,15 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
 **Status:** ✅ **FULLY IMPLEMENTED (100%)**
 
 #### **Database Layer** ✅ (100%)
-- **Tables**: 
+
+- **Tables**:
   - `public.classes` ✅
   - `public.class_bookings` ✅
   - `public.class_schedule` ✅
 - **All required columns present**
 
 #### **API Layer** ✅ (100%)
+
 - **Service**: `services/bookingService.js` ✅
 - **Functions**:
   - ✅ `bookClassSlot()` - Book a class
@@ -164,6 +184,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   - ✅ `getClassBookings()` - Get bookings for a class
 
 #### **Backend Integration** ✅ (100%)
+
 - **Endpoints Implemented**:
   ```
   POST   /api/bookings ✅ - Book a class
@@ -175,6 +196,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   ```
 
 #### **Frontend UI** ✅ (100%)
+
 - **Components**:
   - ✅ `MemberDashboard.tsx` - Displays upcoming classes (lines 138-184)
   - ✅ `ClassDetailsModal.tsx` - Shows class details
@@ -191,12 +213,14 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   - ✅ Booking history tracking
 
 #### **Security** ✅ (100%)
+
 - ✅ Member can only book/cancel their own classes
 - ✅ Validates class capacity before booking
 - ✅ Prevents double-booking same class/time
 - ✅ Authorization checks on all booking endpoints
 
 #### **Test Results**: ✅ WORKING
+
 - Tested in `comprehensive-test.ps1`
 - ✅ Class creation
 - ✅ Class retrieval
@@ -209,6 +233,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
 **Status:** ⚠️ **PARTIALLY IMPLEMENTED (70%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Table**: `public.announcements` ✅ EXISTS
 - **Schema**:
   ```sql
@@ -224,6 +249,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   ```
 
 #### **API Layer** ⚠️ (50%)
+
 - **Service**: `services/notificationService.js` ✅ EXISTS
 - **BUT**: No dedicated announcements service
 - **Functions Missing**:
@@ -232,6 +258,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   - ❌ `markAnnouncementAsRead()` - Track read status
 
 #### **Backend Integration** ❌ (0%)
+
 - **MISSING**: No announcements API endpoints in `backend-server.js`
 - **Required Endpoints**:
   ```
@@ -241,6 +268,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   ```
 
 #### **Frontend UI** ✅ (90%)
+
 - **Components**:
   - ✅ `MemberDashboard.tsx` - Displays announcements (lines 186-202, 516-532)
   - ✅ `AnnouncementManager.tsx` - Full CRUD for admin/reception
@@ -251,6 +279,7 @@ app.post('/api/invitations/:token/accept', asyncHandler(async (req, res) => {
   - ✅ Currently shows **STATIC DATA** (hardcoded)
 
 #### **Current Implementation** (Static Data):
+
 ```tsx
 // MemberDashboard.tsx - Lines 186-202
 const [announcements, setAnnouncements] = useState<Announcement[]>([
@@ -272,6 +301,7 @@ const [announcements, setAnnouncements] = useState<Announcement[]>([
 ```
 
 #### **Security** ⚠️ (70%)
+
 - ✅ `AnnouncementManager` only accessible to admin/reception/sparta
 - ⚠️ No RLS policy for announcements table
 - ❌ No filtering by target_audience (members can see all announcements)
@@ -279,25 +309,30 @@ const [announcements, setAnnouncements] = useState<Announcement[]>([
 #### **MISSING COMPONENTS TO ADD:**
 
 1. **Backend API Endpoints** (High Priority):
+
 ```javascript
 // Add to backend-server.js
 
 // Get published announcements for members
-app.get('/api/announcements/member', asyncHandler(async (req, res) => {
-  const { data, error } = await supabase
-    .from('announcements')
-    .select('*')
-    .eq('status', 'published')
-    .or('target_audience.eq.all,target_audience.eq.members')
-    .order('published_at', { ascending: false })
-    .limit(10);
-    
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-}));
+app.get(
+  '/api/announcements/member',
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('status', 'published')
+      .or('target_audience.eq.all,target_audience.eq.members')
+      .order('published_at', { ascending: false })
+      .limit(10);
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  }),
+);
 ```
 
 2. **Frontend Integration** (High Priority):
+
 ```tsx
 // Update MemberDashboard.tsx
 useEffect(() => {
@@ -311,11 +346,12 @@ useEffect(() => {
 ```
 
 3. **RLS Policy** (Medium Priority):
+
 ```sql
 -- Add to rls_policies.sql
 CREATE POLICY "announcements_select_members" ON public.announcements
   FOR SELECT USING (
-    status = 'published' AND 
+    status = 'published' AND
     (target_audience = 'all' OR target_audience = 'members')
   );
 ```
@@ -327,6 +363,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 **Status:** ✅ **FULLY IMPLEMENTED (95%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Table**: `public.users_profile` ✅
 - **All editable columns present**:
   - ✅ email, phone, dob (dateOfBirth)
@@ -335,14 +372,17 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Membership details (in memberships table)
 
 #### **API Layer** ✅ (100%)
+
 - **Service**: `services/userService.js` ✅
 - **Function**: `updateUser()` ✅ - Updates user profile
 
 #### **Backend Integration** ✅ (100%)
+
 - **Endpoint**: `PUT /api/users/:id` ✅ IMPLEMENTED
 - **Authorization**: ✅ Checks user can only update own profile
 
 #### **Frontend UI** ✅ (100%)
+
 - **Component**: `MyProfile.tsx` ✅ FULLY IMPLEMENTED
 - **Sections**:
   - ✅ Personal Information (email, phone, DOB, gender)
@@ -352,9 +392,10 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 - **Features**:
   - ✅ **Name editing RESTRICTED** based on role (lines 93-95):
     ```tsx
-    const canEditNames = currentUserRole === 'admin' || 
-                         currentUserRole === 'reception' || 
-                         currentUserRole === 'sparta';
+    const canEditNames =
+      currentUserRole === 'admin' ||
+      currentUserRole === 'reception' ||
+      currentUserRole === 'sparta';
     ```
   - ✅ Members see read-only name fields
   - ✅ All other fields editable by member
@@ -363,18 +404,21 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Profile photo upload with preview
 
 #### **Security** ✅ (100%)
+
 - ✅ Name editing restricted to admin/reception/sparta roles
 - ✅ Members can only update their own profile
 - ✅ Backend validates user ID matches authenticated user
 - ✅ RLS policy enforces row-level access
 
 #### **Test Results**: ✅ WORKING
+
 - Verified in manual testing
 - ✅ Member can update phone, email, DOB
 - ✅ Member cannot edit first/last name (fields disabled)
 - ✅ Changes persist to database
 
 **Minor Issue** (5% missing):
+
 - ⚠️ No email verification when member changes email address
 - **Recommendation**: Add email verification step when email is updated
 
@@ -385,6 +429,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 **Status:** ✅ **FULLY IMPLEMENTED (90%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Table**: `public.checkins` ✅ EXISTS
 - **Schema**:
   ```sql
@@ -398,6 +443,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   ```
 
 #### **API Layer** ✅ (100%)
+
 - **Context**: `DataContext.tsx` provides check-in data
 - **Functions**:
   - ✅ `checkInMember()` - Records check-in
@@ -407,6 +453,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ `getMemberTotalVisits()` - Total visits
 
 #### **Backend Integration** ⚠️ (70%)
+
 - **Endpoint**: Currently using DataContext (frontend state)
 - **MISSING**: Dedicated API endpoint for check-in history
 - **Recommended**:
@@ -416,6 +463,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   ```
 
 #### **Frontend UI** ✅ (100%)
+
 - **Components**:
   - ✅ `MemberDashboard.tsx` - Shows visit stats (lines 401-425)
   - ✅ `CheckInHistory.tsx` - Full check-in history table
@@ -427,17 +475,20 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Search and filter capabilities
 
 #### **Security** ✅ (100%)
+
 - ✅ Members can only view their own check-ins
 - ✅ RLS policy: `checkins_select` restricts to own records
 - ✅ Reception/admin can view all check-ins
 
 #### **Test Results**: ✅ WORKING
+
 - Verified in `CheckInHistory.tsx`
 - ✅ Check-in counting works
 - ✅ History display functional
 - ✅ Filtering works correctly
 
 **Minor Issue** (10% missing):
+
 - ⚠️ Check-in data currently uses frontend state (DataContext)
 - **Recommendation**: Add backend API endpoint for persistent check-in retrieval
 
@@ -448,11 +499,13 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 **Status:** ✅ **FULLY IMPLEMENTED (100%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Service**: `qrCodeService.ts` ✅ COMPLETE
 - **Storage**: LocalStorage for demo mode ✅
 - **Production**: Can integrate with database (users_profile.qr_code_data)
 
 #### **API Layer** ✅ (100%)
+
 - **Service File**: `frontend/src/services/qrCodeService.ts` ✅
 - **Functions**:
   - ✅ `generateQRCodeId()` - Unique ID (VH-XX-XXXXXX-XXX format)
@@ -463,6 +516,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ `getUserQRCode()` - Retrieve user's QR code
 
 #### **Frontend UI** ✅ (100%)
+
 - **Component**: `MemberDashboard.tsx` - QR Modal (lines 536-597)
 - **Features**:
   - ✅ "Check-In QR Code" button on dashboard
@@ -475,6 +529,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Styled with Viking Hammer branding
 
 #### **QR Code Data Structure**:
+
 ```typescript
 {
   userId: string,
@@ -487,6 +542,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 ```
 
 #### **Security** ✅ (100%)
+
 - ✅ QR codes expire after 24 hours
 - ✅ Unique ID per member
 - ✅ Encrypted JSON payload
@@ -494,11 +550,13 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 - ✅ Cannot reuse expired QR codes
 
 #### **QR Scanner Integration** ✅ (100%)
+
 - **Scanner**: Reception/Sparta dashboards have QR scanner
 - **Validation**: `validateQRCode()` checks expiry and data integrity
 - **Check-in**: Automatically creates check-in record on successful scan
 
 #### **Test Results**: ✅ WORKING
+
 - Verified manually
 - ✅ QR generation works
 - ✅ QR display in modal
@@ -515,6 +573,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 **Status:** ✅ **FULLY IMPLEMENTED (100%)**
 
 #### **Database Layer** ✅ (100%)
+
 - **Tables**:
   - `public.memberships` ✅ EXISTS
   - `public.membership_history` ✅ EXISTS (via RPC function)
@@ -527,6 +586,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ class_limit, created_at, cancelled_at
 
 #### **API Layer** ✅ (100%)
+
 - **Service**: `membershipHistoryService.ts` ✅ COMPLETE
 - **Functions**:
   - ✅ `getUserMembershipHistory()` - Full history retrieval
@@ -535,11 +595,13 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Production mode calls Supabase RPC
 
 #### **Backend Integration** ✅ (100%)
+
 - **RPC Function**: `get_user_membership_history(p_user_id)` ✅
 - **Returns**: Complete membership history with all details
 - **Filters**: Active, expired, cancelled memberships
 
 #### **Frontend UI** ✅ (100%)
+
 - **Component**: `MyProfile.tsx` - Membership History Modal (lines 40-95)
 - **Features**:
   - ✅ "View Membership History" button
@@ -555,17 +617,20 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Empty state ("No membership history")
 
 #### **UI Design**:
+
 - ✅ Timeline layout with status badges
 - ✅ Color-coded status: Active (green), Expired (gray), Cancelled (red)
 - ✅ Formatted dates and currency
 - ✅ Mobile-responsive
 
 #### **Security** ✅ (100%)
+
 - ✅ RLS policy: Members can only view their own membership history
 - ✅ Backend validates user ID
 - ✅ No sensitive payment info exposed (card numbers hidden)
 
 #### **Test Results**: ✅ WORKING
+
 - Verified in MyProfile component
 - ✅ History modal opens
 - ✅ Demo data displays correctly
@@ -573,6 +638,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 - ✅ Error handling functional
 
 **Demo Mode Data** (3 mock memberships):
+
 1. Viking Warrior Basic (Active) - $49.99/month
 2. Viking Starter (Expired) - $29.99/month - 6 months
 3. Trial Membership (Completed) - Free - 1 month
@@ -586,6 +652,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 **Status:** ⚠️ **PARTIALLY IMPLEMENTED (60%)**
 
 #### **Database Layer** ⚠️ (50%)
+
 - **Table**: `public.notifications_outbox` ✅ EXISTS
 - **BUT**: No `user_settings` or `notification_preferences` table
 - **Current Schema** (notifications_outbox):
@@ -599,6 +666,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
 - **MISSING**: User-specific notification preferences table
 
 #### **API Layer** ⚠️ (50%)
+
 - **Service**: `notificationService.js` ✅ EXISTS
 - **Functions**:
   - ✅ `createNotification()` - Create notification
@@ -609,6 +677,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ❌ `getUserPreferences()` - Load settings
 
 #### **Backend Integration** ❌ (0%)
+
 - **MISSING**: No settings/preferences API endpoints
 - **Required Endpoints**:
   ```
@@ -618,6 +687,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   ```
 
 #### **Frontend UI** ✅ (100%)
+
 - **Component**: `MyProfile.tsx` - Settings Tab (lines 434-580)
 - **Features Implemented**:
   - ✅ Notification Preferences section
@@ -632,6 +702,7 @@ CREATE POLICY "announcements_select_members" ON public.announcements
   - ✅ Browser notification API integration
 
 #### **Current Implementation** (Frontend State Only):
+
 ```tsx
 const [settings, setSettings] = useState({
   notifications: true,
@@ -639,13 +710,15 @@ const [settings, setSettings] = useState({
   smsAlerts: false,
   pushNotifications: true,
   theme: 'light',
-  language: 'en'
+  language: 'en',
 });
 ```
+
 - ⚠️ Settings stored in component state (NOT PERSISTED)
 - ⚠️ Resets on page reload
 
 #### **Push Notifications** ✅ (90%):
+
 - ✅ Browser Notification API integration
 - ✅ Permission request on toggle
 - ✅ `requestNotificationPermission()` function
@@ -653,6 +726,7 @@ const [settings, setSettings] = useState({
 - ⚠️ No backend registration of device tokens
 
 #### **Security** ⚠️ (60%)
+
 - ✅ Settings UI only visible to authenticated users
 - ⚠️ No backend validation of preference updates
 - ❌ No encryption of sensitive settings
@@ -660,6 +734,7 @@ const [settings, setSettings] = useState({
 #### **MISSING COMPONENTS TO ADD:**
 
 1. **Database Table** (High Priority):
+
 ```sql
 -- Create user_settings table
 CREATE TABLE IF NOT EXISTS public.user_settings (
@@ -677,37 +752,45 @@ CREATE TABLE IF NOT EXISTS public.user_settings (
 ```
 
 2. **Backend API Endpoints** (High Priority):
+
 ```javascript
 // Get user settings
-app.get('/api/settings/user/:userId', asyncHandler(async (req, res) => {
-  const { data, error } = await supabase
-    .from('user_settings')
-    .select('*')
-    .eq('user_id', req.params.userId)
-    .single();
-    
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data || getDefaultSettings());
-}));
+app.get(
+  '/api/settings/user/:userId',
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', req.params.userId)
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data || getDefaultSettings());
+  }),
+);
 
 // Update user settings
-app.put('/api/settings/user/:userId', asyncHandler(async (req, res) => {
-  const { data, error } = await supabase
-    .from('user_settings')
-    .upsert({
-      user_id: req.params.userId,
-      ...req.body,
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single();
-    
-  if (error) return res.status(500).json({ error: error.message });
-  res.json(data);
-}));
+app.put(
+  '/api/settings/user/:userId',
+  asyncHandler(async (req, res) => {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .upsert({
+        user_id: req.params.userId,
+        ...req.body,
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) return res.status(500).json({ error: error.message });
+    res.json(data);
+  }),
+);
 ```
 
 3. **Frontend Integration** (Medium Priority):
+
 ```tsx
 // Update MyProfile.tsx to persist settings
 
@@ -726,19 +809,23 @@ const handleSaveSettings = async () => {
   await fetch(`/api/settings/user/${user.id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(settings)
+    body: JSON.stringify(settings),
   });
 };
 ```
 
 4. **Push Notification Backend** (Low Priority):
+
 ```javascript
 // Register push device token
-app.post('/api/notifications/register', asyncHandler(async (req, res) => {
-  const { userId, deviceToken, platform } = req.body;
-  // Store device token in user_settings
-  // Implementation needed
-}));
+app.post(
+  '/api/notifications/register',
+  asyncHandler(async (req, res) => {
+    const { userId, deviceToken, platform } = req.body;
+    // Store device token in user_settings
+    // Implementation needed
+  }),
+);
 ```
 
 ---
@@ -748,11 +835,13 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ### **HIGH PRIORITY** (Must Implement)
 
 1. **Invitation System Backend Integration** (Functionality #1)
+
    - **Effort**: Medium (2-3 hours)
    - **Impact**: High (critical for member onboarding)
    - **Files**: `backend-server.js`, `InvitationRegistration.tsx`, `App.tsx`
 
 2. **Announcements Backend API** (Functionality #3)
+
    - **Effort**: Low (1-2 hours)
    - **Impact**: High (member engagement)
    - **Files**: `backend-server.js`, update `MemberDashboard.tsx`
@@ -765,11 +854,13 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ### **MEDIUM PRIORITY** (Should Implement)
 
 4. **Check-In History API Endpoint** (Functionality #5)
+
    - **Effort**: Low (1 hour)
    - **Impact**: Medium (data persistence)
    - **Files**: `backend-server.js`
 
 5. **Announcement RLS Policy** (Functionality #3)
+
    - **Effort**: Low (30 min)
    - **Impact**: Medium (security)
    - **Files**: `rls_policies.sql`
@@ -782,6 +873,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ### **LOW PRIORITY** (Nice to Have)
 
 7. **Push Notification Device Registration** (Functionality #8)
+
    - **Effort**: Medium (2-3 hours)
    - **Impact**: Low (advanced feature)
    - **Files**: `backend-server.js`, notification service
@@ -796,6 +888,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ## 🔒 SECURITY ANALYSIS
 
 ### **Strengths** ✅
+
 - ✅ Strong authentication (JWT + bcrypt)
 - ✅ RLS policies on most tables
 - ✅ Name editing restricted by role
@@ -805,6 +898,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 - ✅ Booking authorization checks
 
 ### **Vulnerabilities** ⚠️
+
 - ⚠️ No RLS policy on announcements table
 - ⚠️ No rate limiting on invitation creation
 - ⚠️ No email verification on profile email change
@@ -813,6 +907,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 - ⚠️ No audit trail for sensitive changes
 
 ### **Recommendations**
+
 1. Add RLS policy for announcements (target_audience filter)
 2. Implement rate limiting middleware (express-rate-limit)
 3. Add email verification flow for email changes
@@ -825,11 +920,13 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ## 🧪 TESTING RECOMMENDATIONS
 
 ### **Unit Tests Needed**
+
 1. `invitationService.js` - Token generation, validation, expiry
 2. `membershipHistoryService.ts` - Data retrieval, formatting
 3. `qrCodeService.ts` - QR generation, validation
 
 ### **Integration Tests Needed**
+
 1. End-to-end invitation flow (create → send → register)
 2. Member registration via invitation link
 3. Announcement retrieval and display
@@ -837,6 +934,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 5. QR code check-in flow
 
 ### **Manual Testing Checklist**
+
 - [ ] Register member via invitation link
 - [ ] Book and cancel a class
 - [ ] View announcements on dashboard
@@ -851,17 +949,20 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ## 📊 FINAL METRICS
 
 ### **Implementation Completeness**
+
 - **Fully Implemented**: 5/8 (62.5%)
 - **Partially Implemented**: 3/8 (37.5%)
 - **Not Started**: 0/8 (0%)
 
 ### **Layer Coverage**
+
 - **Database**: 90% complete (7.5/8 functionalities have DB support)
 - **API/Backend**: 60% complete (missing endpoints for 3 functionalities)
 - **Frontend UI**: 95% complete (excellent UI implementation)
 - **Security**: 75% complete (good foundation, needs hardening)
 
 ### **Code Quality**
+
 - ✅ Clean, modular architecture
 - ✅ TypeScript type safety in frontend
 - ✅ Consistent naming conventions
@@ -869,6 +970,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 - ✅ Separation of concerns (services, components, context)
 
 ### **Performance**
+
 - ✅ Real-time class list updates (30s polling)
 - ✅ Efficient QR code generation
 - ✅ LocalStorage caching for demo mode
@@ -879,6 +981,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ## 🎯 IMPLEMENTATION ROADMAP
 
 ### **Phase 1: Critical Features (1-2 weeks)**
+
 1. ✅ Implement invitation backend API (3 endpoints)
 2. ✅ Create InvitationRegistration component
 3. ✅ Add announcement backend API
@@ -888,6 +991,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 7. ✅ Update MyProfile to save/load settings
 
 ### **Phase 2: Security Hardening (1 week)**
+
 1. ✅ Add RLS policy for announcements
 2. ✅ Implement rate limiting
 3. ✅ Add email verification on change
@@ -895,6 +999,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 5. ✅ Enable HTTPS in production
 
 ### **Phase 3: Testing & Polish (1 week)**
+
 1. ✅ Write unit tests
 2. ✅ Write integration tests
 3. ✅ Manual testing checklist
@@ -902,6 +1007,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 5. ✅ Performance optimization
 
 ### **Phase 4: Advanced Features (Future)**
+
 1. Push notification backend
 2. Audit logging
 3. Advanced analytics
@@ -914,12 +1020,14 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 **Overall Assessment**: The Member role functionality is **62.5% complete** with a strong foundation. The UI layer is excellent (95% complete), but backend API integration is lagging at 60%. Three functionalities (#1, #3, #8) need backend endpoints to become fully functional.
 
 **Strengths**:
+
 - Excellent UI/UX implementation
 - Strong security foundation
 - Clean, maintainable codebase
 - Good service layer architecture
 
 **Weaknesses**:
+
 - Missing backend API endpoints for 3 functionalities
 - Settings not persisted (localStorage/state only)
 - Static announcement data
@@ -941,11 +1049,13 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 ## 📋 APPENDIX: Key Files Referenced
 
 ### **Database**
+
 - `infra/supabase/migrations/0001_init.sql` - Main schema
 - `infra/supabase/migrations/20251019_invitations.sql` - Invitations table
 - `infra/supabase/policies/rls_policies.sql` - Security policies
 
 ### **Backend Services**
+
 - `services/invitationService.js` - Invitation management
 - `services/bookingService.js` - Class bookings
 - `services/notificationService.js` - Notifications
@@ -953,11 +1063,13 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 - `backend-server.js` - Main API server
 
 ### **Frontend Services**
+
 - `frontend/src/services/qrCodeService.ts` - QR code generation
 - `frontend/src/services/membershipHistoryService.ts` - Membership history
 - `frontend/src/services/bookingService.ts` - Class booking client
 
 ### **Frontend Components**
+
 - `frontend/src/components/MemberDashboard.tsx` - Main member dashboard
 - `frontend/src/components/MyProfile.tsx` - Profile & settings
 - `frontend/src/components/CheckInHistory.tsx` - Check-in history
@@ -965,6 +1077,7 @@ app.post('/api/notifications/register', asyncHandler(async (req, res) => {
 - `frontend/src/components/ClassDetailsModal.tsx` - Class booking modal
 
 ### **Testing**
+
 - `comprehensive-test.ps1` - API tests (12 tests)
 - `security-test.ps1` - Security tests (10 tests)
 - `test-sparta-role.ps1` - Sparta role tests (9 tests)

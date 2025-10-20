@@ -1,0 +1,179 @@
+/**
+ * Class Data Transformer
+ * Converts backend API response (snake_case) to frontend interface (camelCase)
+ */
+
+import { GymClass, Instructor, ScheduleSlot } from './classManagementService';
+
+/**
+ * Transform class data from API format to frontend format
+ */
+export function transformClassFromAPI(apiClass: any): GymClass {
+  // Extract instructor IDs from the nested structure
+  const extractInstructorIds = (classInstructors: any[]): string[] => {
+    if (!classInstructors || !Array.isArray(classInstructors)) return [];
+    return classInstructors
+      .map((ci: any) => ci.instructor?.id || ci.instructor_id)
+      .filter(Boolean);
+  };
+
+  // Transform schedule slots if they exist
+  const transformSchedule = (scheduleSlots: any[] | undefined) => {
+    if (!scheduleSlots || !Array.isArray(scheduleSlots)) return [];
+    
+    return scheduleSlots.map((slot: any) => ({
+      dayOfWeek: slot.day_of_week || 0,
+      startTime: slot.start_time || '09:00',
+      endTime: slot.end_time || '10:00',
+    }));
+  };
+
+  // Calculate current enrollment from bookings
+  const calculateEnrollment = (bookings: any[] | undefined): number => {
+    if (!bookings || !Array.isArray(bookings)) return 0;
+    // Count only confirmed bookings
+    return bookings.filter((b: any) => b.status === 'confirmed' || b.status === 'attended').length;
+  };
+
+  return {
+    id: apiClass.id,
+    name: apiClass.name || '',
+    description: apiClass.description || '',
+    duration: apiClass.duration_minutes || apiClass.duration || 60,
+    maxCapacity: apiClass.max_capacity || apiClass.maxCapacity || 20,
+    currentEnrollment: calculateEnrollment(apiClass.class_bookings),
+    instructors: extractInstructorIds(apiClass.class_instructors),
+    schedule: transformSchedule(apiClass.schedule_slots),
+    equipment: apiClass.equipment_needed || apiClass.equipment || [],
+    difficulty: apiClass.difficulty || 'Beginner',
+    category: apiClass.category || 'Mixed',
+    price: apiClass.price || 0,
+    status: apiClass.status || 'active',
+  };
+}
+
+/**
+ * Transform instructor data from API format to frontend format
+ */
+export function transformInstructorFromAPI(apiInstructor: any): Instructor {
+  // Combine first and last name
+  const getName = () => {
+    if (apiInstructor.name) return apiInstructor.name;
+    const firstName = apiInstructor.first_name || apiInstructor.firstName || '';
+    const lastName = apiInstructor.last_name || apiInstructor.lastName || '';
+    return `${firstName} ${lastName}`.trim() || 'Unknown';
+  };
+
+  return {
+    id: apiInstructor.id,
+    name: getName(),
+    email: apiInstructor.email || '',
+    specialization: apiInstructor.specialties || apiInstructor.specialization || [],
+    availability: apiInstructor.availability || [],
+    rating: apiInstructor.rating || 0,
+    experience: apiInstructor.years_experience || apiInstructor.experience || 0,
+    phone: apiInstructor.phone || '',
+    status: apiInstructor.status || 'active',
+  };
+}
+
+/**
+ * Transform schedule slot data from API format to frontend format
+ */
+export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
+  // Map day_of_week string to number
+  const mapDayOfWeek = (day: string | number): number => {
+    if (typeof day === 'number') return day;
+    
+    const dayMap: Record<string, number> = {
+      'Sunday': 0,
+      'Monday': 1,
+      'Tuesday': 2,
+      'Wednesday': 3,
+      'Thursday': 4,
+      'Friday': 5,
+      'Saturday': 6,
+    };
+    
+    return dayMap[day] || 1;
+  };
+
+  return {
+    id: apiSchedule.id,
+    classId: apiSchedule.class_id || apiSchedule.classId || '',
+    instructorId: apiSchedule.instructor_id || apiSchedule.instructorId || '',
+    dayOfWeek: mapDayOfWeek(apiSchedule.day_of_week || apiSchedule.dayOfWeek),
+    startTime: apiSchedule.start_time || apiSchedule.startTime || '09:00',
+    endTime: apiSchedule.end_time || apiSchedule.endTime || '10:00',
+    date: apiSchedule.specific_date || apiSchedule.date || new Date().toISOString().split('T')[0],
+    enrolledMembers: apiSchedule.enrolled_members || apiSchedule.enrolledMembers || [],
+    status: apiSchedule.status || 'scheduled',
+  };
+}
+
+/**
+ * Transform class data from frontend format to API format (for POST/PUT)
+ */
+export function transformClassToAPI(gymClass: Partial<GymClass>): any {
+  // Transform schedule array to API format
+  const schedule_slots = (gymClass.schedule || []).map(slot => ({
+    day_of_week: slot.dayOfWeek,
+    start_time: slot.startTime,
+    end_time: slot.endTime,
+    status: 'active'
+  }));
+
+  return {
+    name: gymClass.name,
+    description: gymClass.description,
+    duration_minutes: gymClass.duration,
+    max_capacity: gymClass.maxCapacity,
+    equipment_needed: gymClass.equipment || [],
+    difficulty: gymClass.difficulty,
+    category: gymClass.category,
+    price: gymClass.price || 0,
+    status: gymClass.status || 'active',
+    instructorIds: gymClass.instructors || [],
+    schedule_slots: schedule_slots,  // Add schedule data
+  };
+}
+
+/**
+ * Transform instructor data from frontend format to API format (for POST/PUT)
+ */
+export function transformInstructorToAPI(instructor: Partial<Instructor>): any {
+  const nameParts = (instructor.name || '').split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  return {
+    first_name: firstName,
+    last_name: lastName,
+    email: instructor.email,
+    phone: instructor.phone,
+    specialties: instructor.specialization || [],
+    years_experience: instructor.experience || 0,
+    status: instructor.status || 'active',
+  };
+}
+
+/**
+ * Transform schedule slot from frontend format to API format (for POST/PUT)
+ */
+export function transformScheduleToAPI(slot: Partial<ScheduleSlot>): any {
+  // Map day number to day name
+  const mapDayOfWeek = (day: number | undefined): string => {
+    const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return dayMap[day || 1];
+  };
+
+  return {
+    class_id: slot.classId,
+    instructor_id: slot.instructorId,
+    day_of_week: mapDayOfWeek(slot.dayOfWeek),
+    start_time: slot.startTime,
+    end_time: slot.endTime,
+    specific_date: slot.date,
+    status: slot.status || 'scheduled',
+  };
+}

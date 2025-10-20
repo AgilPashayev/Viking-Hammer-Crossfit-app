@@ -121,7 +121,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     const pollInterval = setInterval(loadClasses, 30000);
 
     return () => clearInterval(pollInterval);
-  }, [classes]);
+  }, []);  // Empty dependency - only load on mount and poll
 
   // Update user profile when user data changes OR when visits change
   useEffect(() => {

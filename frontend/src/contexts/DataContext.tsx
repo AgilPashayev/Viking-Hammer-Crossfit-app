@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 export interface Member {
   id: string;
@@ -347,13 +347,13 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     });
   };
 
-  const setActiveClassesCount = (count: number) => {
+  const setActiveClassesCount = useCallback((count: number) => {
     setStats((prev) => ({ ...prev, activeClasses: count }));
-  };
+  }, []);
 
-  const setPlansCount = (count: number) => {
+  const setPlansCount = useCallback((count: number) => {
     setStats((prev) => ({ ...prev, plansCount: count }));
-  };
+  }, []);
 
   const updateMembershipTypes = (types: string[]) => {
     // Update membership types when plans are created/updated in MembershipManager

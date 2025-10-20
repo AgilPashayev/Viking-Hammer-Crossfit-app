@@ -10,14 +10,14 @@
 
 ### Implementation Status Overview:
 
-| Functionality | Status | Completion | Priority |
-|--------------|--------|------------|----------|
-| **Member Functionality Inheritance** | ⚠️ PARTIAL | 75% | 🔴 HIGH |
-| **Check-in Functionality** | ⚠️ PARTIAL | 60% | 🔴 HIGH |
-| **Create/Edit/Delete Own Classes** | ❌ MISSING | 0% | 🔴 CRITICAL |
-| **View Birthday Notifications** | ✅ FULL | 100% | 🟢 LOW |
-| **View All Notifications** | ⚠️ PARTIAL | 70% | 🟡 MEDIUM |
-| **Instructor-Related Notifications** | ❌ MISSING | 0% | 🟡 MEDIUM |
+| Functionality                        | Status     | Completion | Priority    |
+| ------------------------------------ | ---------- | ---------- | ----------- |
+| **Member Functionality Inheritance** | ⚠️ PARTIAL | 75%        | 🔴 HIGH     |
+| **Check-in Functionality**           | ⚠️ PARTIAL | 60%        | 🔴 HIGH     |
+| **Create/Edit/Delete Own Classes**   | ❌ MISSING | 0%         | 🔴 CRITICAL |
+| **View Birthday Notifications**      | ✅ FULL    | 100%       | 🟢 LOW      |
+| **View All Notifications**           | ⚠️ PARTIAL | 70%        | 🟡 MEDIUM   |
+| **Instructor-Related Notifications** | ❌ MISSING | 0%         | 🟡 MEDIUM   |
 
 **Overall Instructor Role Completion:** **51%** ⚠️
 
@@ -30,6 +30,7 @@
 ## 1️⃣ MEMBER FUNCTIONALITY INHERITANCE
 
 ### Requirement:
+
 "Instructors have all member functionality."
 
 ### Status: ⚠️ **PARTIAL (75%)**
@@ -39,12 +40,14 @@
 #### 🗄️ **DATABASE LAYER** - ✅ READY (100%)
 
 **Evidence:**
+
 - ✅ `users_profile` table supports `role='instructor'` (but NOT in CHECK constraint)
 - ⚠️ Role constraint only allows: `'admin','reception','member','sparta'`
 - ✅ No separate instructor table needed for role-based access
 - ✅ All member-accessible tables are available to instructors
 
 **File:** `infra/supabase/migrations/0001_init.sql`
+
 ```sql
 CREATE TABLE IF NOT EXISTS public.users_profile (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -60,12 +63,13 @@ CREATE TABLE IF NOT EXISTS public.users_profile (
 **🚨 CRITICAL ISSUE:** The database CHECK constraint does NOT include 'instructor' role. This will cause INSERT failures when creating instructor users.
 
 **Migration Needed:**
+
 ```sql
-ALTER TABLE public.users_profile 
+ALTER TABLE public.users_profile
   DROP CONSTRAINT IF EXISTS users_profile_role_check;
 
-ALTER TABLE public.users_profile 
-  ADD CONSTRAINT users_profile_role_check 
+ALTER TABLE public.users_profile
+  ADD CONSTRAINT users_profile_role_check
   CHECK (role IN ('admin','reception','member','sparta','instructor'));
 ```
 
@@ -74,6 +78,7 @@ ALTER TABLE public.users_profile
 #### 🔌 **API LAYER** - ✅ READY (100%)
 
 **Evidence:**
+
 - ✅ No role-specific restrictions on member endpoints
 - ✅ All 8 member functionalities have API endpoints:
   1. Invitations: `POST /api/invitations`, `GET /api/invitations/:token` ✅
@@ -86,6 +91,7 @@ ALTER TABLE public.users_profile
   8. Settings: `GET/PUT /api/settings/user/:userId` ✅
 
 **File:** `backend-server.js` (Lines 1-1265)
+
 - No instructor-specific blocking logic found
 - All endpoints validate `userId` or token, not role
 - Instructors can access all member endpoints once authenticated
@@ -95,17 +101,20 @@ ALTER TABLE public.users_profile
 #### 🎨 **UI LAYER** - ⚠️ PARTIAL (50%)
 
 **Evidence:**
+
 - ❌ No dedicated `InstructorDashboard.tsx` component exists
 - ❌ `App.tsx` does NOT render instructor-specific UI
 - ✅ `MemberDashboard.tsx` exists with all 8 functionalities
 - ⚠️ Instructor role is typed in `App.tsx` but not routed
 
 **File:** `frontend/src/App.tsx` (Line 31)
+
 ```tsx
 role?: 'member' | 'admin' | 'reception' | 'sparta' | 'instructor';  // ✅ Type exists
 ```
 
 **Routing Logic:**
+
 ```tsx
 // ❌ NO INSTRUCTOR ROUTING FOUND
 // Current logic:
@@ -120,6 +129,7 @@ if (user.role === 'member') → Member Dashboard
 **Workaround:** If instructors currently use MemberDashboard, they DO have access to all member features.
 
 **Recommendation:** Create `InstructorDashboard.tsx` that:
+
 - Inherits MemberDashboard component
 - Adds instructor-specific features (class management, birthday notifications)
 - Keeps all 8 member functionalities visible
@@ -129,11 +139,13 @@ if (user.role === 'member') → Member Dashboard
 #### 🔒 **SECURITY LAYER** - ✅ READY (100%)
 
 **Evidence:**
+
 - ✅ No RLS policies block instructors from member tables
 - ✅ Authentication is role-agnostic for member endpoints
 - ⚠️ Database constraint prevents instructor user creation (see DB layer issue)
 
 **File:** `infra/supabase/policies/rls_policies.sql`
+
 ```sql
 -- users_profile: members can read their own profile, admins can read all
 CREATE POLICY "users_profile_select" ON public.users_profile
@@ -149,16 +161,17 @@ CREATE POLICY "users_profile_select" ON public.users_profile
 
 ### Summary: Member Functionality Inheritance
 
-| Layer | Status | Issue |
-|-------|--------|-------|
-| Database | ⚠️ 80% | Missing 'instructor' in role constraint |
-| API | ✅ 100% | All member endpoints accessible |
-| UI | ⚠️ 50% | No InstructorDashboard, unclear routing |
-| Security | ✅ 100% | No blocking policies |
+| Layer    | Status  | Issue                                   |
+| -------- | ------- | --------------------------------------- |
+| Database | ⚠️ 80%  | Missing 'instructor' in role constraint |
+| API      | ✅ 100% | All member endpoints accessible         |
+| UI       | ⚠️ 50%  | No InstructorDashboard, unclear routing |
+| Security | ✅ 100% | No blocking policies                    |
 
 **Overall:** ⚠️ **75% Complete**
 
 **Action Items:**
+
 1. 🔴 HIGH: Add 'instructor' to `users_profile.role` CHECK constraint
 2. 🔴 HIGH: Create `InstructorDashboard.tsx` component
 3. 🟡 MEDIUM: Add instructor routing in `App.tsx`
@@ -169,6 +182,7 @@ CREATE POLICY "users_profile_select" ON public.users_profile
 ## 2️⃣ CHECK-IN FUNCTIONALITY
 
 ### Requirement:
+
 "Check-in functionality" (presumably scanning members' QR codes)
 
 ### Status: ⚠️ **PARTIAL (60%)**
@@ -178,11 +192,13 @@ CREATE POLICY "users_profile_select" ON public.users_profile
 #### 🗄️ **DATABASE LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `checkins` table exists with all necessary fields
 - ✅ `scanned_by` field tracks who performed the check-in
 - ✅ `qr_tokens` table supports QR-based check-ins
 
 **File:** `infra/supabase/migrations/0001_init.sql` (Lines 51-61)
+
 ```sql
 CREATE TABLE IF NOT EXISTS public.checkins (
   id bigserial PRIMARY KEY,
@@ -201,12 +217,14 @@ CREATE TABLE IF NOT EXISTS public.checkins (
 #### 🔌 **API LAYER** - ⚠️ PARTIAL (70%)
 
 **Evidence:**
+
 - ✅ Backend server has check-in related infrastructure
 - ⚠️ No explicit `POST /api/checkins` endpoint found
 - ⚠️ Check-in logic likely embedded in QR validation
 - ✅ `GET /api/checkins/history/:userId` exists (CheckInHistory component)
 
 **Missing Endpoint:**
+
 ```javascript
 // ❌ NOT FOUND IN backend-server.js:
 POST /api/checkins
@@ -226,12 +244,14 @@ POST /api/checkins
 #### 🎨 **UI LAYER** - ⚠️ PARTIAL (50%)
 
 **Evidence:**
+
 - ✅ `QRScanner.tsx` component exists (for scanning QR codes)
 - ✅ `QRValidator.tsx` component exists (for validating scanned codes)
 - ⚠️ Check-in UI is primarily in Reception/Sparta dashboards
 - ❌ No instructor-specific check-in interface
 
 **Files Found:**
+
 - `frontend/src/components/QRScanner.tsx` ✅
 - `frontend/src/components/QRValidator.tsx` ✅
 - `frontend/src/components/CheckInHistory.tsx` ✅
@@ -239,6 +259,7 @@ POST /api/checkins
 **🚨 ISSUE:** Instructors cannot access QR scanner from their dashboard (no dedicated dashboard exists).
 
 **Recommendation:**
+
 - Add QR scanner button to InstructorDashboard
 - Enable instructors to scan member QR codes for check-ins
 - Display check-in history for classes they teach
@@ -248,10 +269,12 @@ POST /api/checkins
 #### 🔒 **SECURITY LAYER** - ⚠️ PARTIAL (60%)
 
 **Evidence:**
+
 - ⚠️ RLS policy allows `reception`, `sparta`, `admin` to insert check-ins
 - ❌ Policy does NOT explicitly include `instructor` role
 
 **File:** `infra/supabase/policies/rls_policies.sql` (Lines 27-29)
+
 ```sql
 -- checkins: reception/sparta/admin can insert; members cannot insert checkins for themselves
 CREATE POLICY "checkins_insert_staff" ON public.checkins
@@ -260,6 +283,7 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 ```
 
 **Updated Policy Needed:**
+
 ```sql
 DROP POLICY IF EXISTS "checkins_insert_staff" ON public.checkins;
 
@@ -271,16 +295,17 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 
 ### Summary: Check-in Functionality
 
-| Layer | Status | Issue |
-|-------|--------|-------|
-| Database | ✅ 100% | Full support for check-ins |
-| API | ⚠️ 70% | No explicit POST /api/checkins endpoint |
-| UI | ⚠️ 50% | QR scanner exists, but not accessible to instructors |
-| Security | ⚠️ 60% | RLS policy excludes instructor role |
+| Layer    | Status  | Issue                                                |
+| -------- | ------- | ---------------------------------------------------- |
+| Database | ✅ 100% | Full support for check-ins                           |
+| API      | ⚠️ 70%  | No explicit POST /api/checkins endpoint              |
+| UI       | ⚠️ 50%  | QR scanner exists, but not accessible to instructors |
+| Security | ⚠️ 60%  | RLS policy excludes instructor role                  |
 
 **Overall:** ⚠️ **60% Complete**
 
 **Action Items:**
+
 1. 🔴 HIGH: Update RLS policy to include 'instructor' role
 2. 🟡 MEDIUM: Add QR scanner to InstructorDashboard
 3. 🟡 MEDIUM: Create explicit `POST /api/checkins` endpoint
@@ -291,6 +316,7 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 ## 3️⃣ CREATE, EDIT, DELETE OWN CLASSES
 
 ### Requirement:
+
 "Create, edit, and delete only their own classes."
 
 ### Status: ❌ **MISSING (0%)**
@@ -300,6 +326,7 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 #### 🗄️ **DATABASE LAYER** - ⚠️ PARTIAL (60%)
 
 **Evidence:**
+
 - ✅ `classes` table exists
 - ✅ `instructors` table exists
 - ✅ `class_instructors` junction table maps classes to instructors
@@ -307,6 +334,7 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 - ❌ NO `created_by` or `owner_id` field in `classes` table
 
 **File:** `infra/supabase/migrations/20251018_classes_instructors_schedule.sql`
+
 ```sql
 -- classes table
 CREATE TABLE IF NOT EXISTS public.classes (
@@ -331,8 +359,9 @@ CREATE TABLE IF NOT EXISTS public.classes (
 **🚨 CRITICAL ISSUE:** No ownership field exists. Cannot enforce "only edit their own classes" without tracking who created the class.
 
 **Migration Needed:**
+
 ```sql
-ALTER TABLE public.classes 
+ALTER TABLE public.classes
   ADD COLUMN created_by uuid REFERENCES public.users_profile(id) ON DELETE SET NULL;
 
 CREATE INDEX IF NOT EXISTS idx_classes_created_by ON public.classes(created_by);
@@ -343,11 +372,13 @@ CREATE INDEX IF NOT EXISTS idx_classes_created_by ON public.classes(created_by);
 #### 🔌 **API LAYER** - ❌ MISSING (0%)
 
 **Evidence:**
+
 - ✅ Class CRUD endpoints exist: `POST/PUT/DELETE /api/classes/:id`
 - ❌ NO ownership validation in classService
 - ❌ NO instructor-specific endpoints
 
 **File:** `services/classService.js`
+
 ```javascript
 // ❌ NO OWNERSHIP CHECK IN updateClass:
 async function updateClass(classId, updates) {
@@ -373,6 +404,7 @@ async function deleteClass(classId) {
 ```
 
 **Required Logic:**
+
 ```javascript
 // ✅ REQUIRED: Add ownership validation
 async function updateClass(classId, updates, requestingUserId) {
@@ -386,7 +418,7 @@ async function updateClass(classId, updates, requestingUserId) {
   if (classData.created_by !== requestingUserId) {
     return { error: 'Unauthorized: You can only edit your own classes', status: 403 };
   }
-  
+
   // Proceed with update...
 }
 ```
@@ -396,12 +428,14 @@ async function updateClass(classId, updates, requestingUserId) {
 #### 🎨 **UI LAYER** - ⚠️ PARTIAL (40%)
 
 **Evidence:**
+
 - ✅ `ClassManagement.tsx` component exists with full CRUD UI
 - ⚠️ Component is admin-focused, not instructor-focused
 - ❌ No filtering to show only "my classes"
 - ❌ No instructor ownership UI indicators
 
 **File:** `frontend/src/components/ClassManagement.tsx` (1300+ lines)
+
 - ✅ Has class creation form
 - ✅ Has class edit form
 - ✅ Has class delete functionality
@@ -409,6 +443,7 @@ async function updateClass(classId, updates, requestingUserId) {
 - ❌ Does NOT validate instructor ownership before edit/delete
 
 **Required UI Changes:**
+
 ```tsx
 // ✅ REQUIRED: Filter classes by ownership
 const [myClasses, setMyClasses] = useState<GymClass[]>([]);
@@ -417,7 +452,7 @@ useEffect(() => {
   const loadMyClasses = async () => {
     const allClasses = await classService.getAll();
     // Filter to only show classes created by logged-in instructor
-    const filteredClasses = allClasses.filter(c => c.createdBy === user.id);
+    const filteredClasses = allClasses.filter((c) => c.createdBy === user.id);
     setMyClasses(filteredClasses);
   };
   loadMyClasses();
@@ -429,14 +464,17 @@ useEffect(() => {
 #### 🔒 **SECURITY LAYER** - ❌ MISSING (0%)
 
 **Evidence:**
+
 - ❌ No RLS policies for `classes` table
 - ❌ No API-level ownership validation
 - ❌ No UI-level ownership checks
 
 **File:** `infra/supabase/policies/rls_policies.sql`
+
 - ❌ NO policies for `classes`, `instructors`, `class_instructors`, or `schedule_slots` tables
 
 **Required RLS Policies:**
+
 ```sql
 -- Enable RLS on classes table
 ALTER TABLE public.classes ENABLE ROW LEVEL SECURITY;
@@ -448,23 +486,23 @@ CREATE POLICY "classes_select_public" ON public.classes
 -- Policy: Instructors can INSERT classes (they become the owner)
 CREATE POLICY "classes_insert_instructor" ON public.classes
   FOR INSERT WITH CHECK (
-    auth.role() IN ('admin', 'instructor') OR 
+    auth.role() IN ('admin', 'instructor') OR
     auth.role() = 'service_role'
   );
 
 -- Policy: Instructors can UPDATE only their own classes
 CREATE POLICY "classes_update_own" ON public.classes
   FOR UPDATE USING (
-    created_by::text = auth.uid() OR 
-    auth.role() = 'admin' OR 
+    created_by::text = auth.uid() OR
+    auth.role() = 'admin' OR
     auth.role() = 'service_role'
   );
 
 -- Policy: Instructors can DELETE only their own classes
 CREATE POLICY "classes_delete_own" ON public.classes
   FOR DELETE USING (
-    created_by::text = auth.uid() OR 
-    auth.role() = 'admin' OR 
+    created_by::text = auth.uid() OR
+    auth.role() = 'admin' OR
     auth.role() = 'service_role'
   );
 ```
@@ -473,16 +511,17 @@ CREATE POLICY "classes_delete_own" ON public.classes
 
 ### Summary: Create/Edit/Delete Own Classes
 
-| Layer | Status | Issue |
-|-------|--------|-------|
-| Database | ⚠️ 60% | Missing created_by/owner field |
-| API | ❌ 0% | No ownership validation logic |
-| UI | ⚠️ 40% | CRUD UI exists, but no filtering by ownership |
-| Security | ❌ 0% | No RLS policies or validation |
+| Layer    | Status | Issue                                         |
+| -------- | ------ | --------------------------------------------- |
+| Database | ⚠️ 60% | Missing created_by/owner field                |
+| API      | ❌ 0%  | No ownership validation logic                 |
+| UI       | ⚠️ 40% | CRUD UI exists, but no filtering by ownership |
+| Security | ❌ 0%  | No RLS policies or validation                 |
 
 **Overall:** ❌ **0% Functional** (Infrastructure exists but ownership enforcement missing)
 
 **Action Items:**
+
 1. 🔴 CRITICAL: Add `created_by` column to `classes` table
 2. 🔴 CRITICAL: Implement ownership validation in classService
 3. 🔴 CRITICAL: Create RLS policies for classes table
@@ -495,6 +534,7 @@ CREATE POLICY "classes_delete_own" ON public.classes
 ## 4️⃣ VIEW MEMBERS' BIRTHDAY NOTIFICATIONS
 
 ### Requirement:
+
 "View members' birthday notifications."
 
 ### Status: ✅ **FULL (100%)**
@@ -504,10 +544,12 @@ CREATE POLICY "classes_delete_own" ON public.classes
 #### 🗄️ **DATABASE LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `users_profile` table has `dob` (date of birth) field
 - ✅ Can query birthdays by calculating from `dob`
 
 **File:** `infra/supabase/migrations/0001_init.sql`
+
 ```sql
 CREATE TABLE IF NOT EXISTS public.users_profile (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -528,10 +570,12 @@ CREATE TABLE IF NOT EXISTS public.users_profile (
 #### 🔌 **API LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `GET /api/users` endpoint returns all users with `dob` field
 - ✅ Frontend calculates upcoming birthdays from user data
 
 **File:** `backend-server.js` (Lines 163-176)
+
 ```javascript
 /**
  * GET /api/users - Get all users (with optional filters)
@@ -555,12 +599,14 @@ app.get(
 #### 🎨 **UI LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `UpcomingBirthdays.tsx` component exists (600 lines)
 - ✅ Component calculates upcoming birthdays from member data
 - ✅ Supports filters: Today, This Week, This Month
 - ✅ Shows birthday countdown, age, member details
 
 **File:** `frontend/src/components/UpcomingBirthdays.tsx` (Lines 1-600)
+
 ```tsx
 interface BirthdayMember {
   id: string;
@@ -568,12 +614,12 @@ interface BirthdayMember {
   lastName: string;
   email: string;
   phone: string;
-  dateOfBirth: string;  // ✅ DOB field used
+  dateOfBirth: string; // ✅ DOB field used
   membershipType: string;
   profileImage?: string;
   joinDate: string;
   age: number;
-  daysUntilBirthday: number;  // ✅ Calculated
+  daysUntilBirthday: number; // ✅ Calculated
   isToday: boolean;
   thisWeek: boolean;
   thisMonth: boolean;
@@ -581,6 +627,7 @@ interface BirthdayMember {
 ```
 
 **Accessibility:**
+
 - ✅ Component is used in Reception/Sparta dashboards
 - ✅ Can be added to InstructorDashboard easily
 
@@ -589,6 +636,7 @@ interface BirthdayMember {
 #### 🔒 **SECURITY LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ No restrictions on viewing user DOB data
 - ✅ All staff roles can access user list
 
@@ -596,16 +644,17 @@ interface BirthdayMember {
 
 ### Summary: Birthday Notifications
 
-| Layer | Status | Notes |
-|-------|--------|-------|
-| Database | ✅ 100% | DOB field exists |
-| API | ✅ 100% | Users API returns DOB |
-| UI | ✅ 100% | UpcomingBirthdays component ready |
-| Security | ✅ 100% | No restrictions |
+| Layer    | Status  | Notes                             |
+| -------- | ------- | --------------------------------- |
+| Database | ✅ 100% | DOB field exists                  |
+| API      | ✅ 100% | Users API returns DOB             |
+| UI       | ✅ 100% | UpcomingBirthdays component ready |
+| Security | ✅ 100% | No restrictions                   |
 
 **Overall:** ✅ **100% Complete**
 
 **Action Items:**
+
 1. 🟢 LOW: Add UpcomingBirthdays component to InstructorDashboard
 2. 🟢 LOW: Add "Birthday" stat card to instructor stats section
 
@@ -614,6 +663,7 @@ interface BirthdayMember {
 ## 5️⃣ VIEW ALL NOTIFICATIONS
 
 ### Requirement:
+
 "View all notifications and instructor-related notifications."
 
 ### Status: ⚠️ **PARTIAL (70%)**
@@ -623,11 +673,13 @@ interface BirthdayMember {
 #### 🗄️ **DATABASE LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `notifications_outbox` table exists
 - ✅ Supports `recipient_user_id` for user-specific notifications
 - ✅ Supports `payload` field for message content
 
 **File:** `infra/supabase/migrations/0001_init.sql` (Lines 83-92)
+
 ```sql
 -- notifications_outbox
 CREATE TABLE IF NOT EXISTS public.notifications_outbox (
@@ -642,11 +694,12 @@ CREATE TABLE IF NOT EXISTS public.notifications_outbox (
 
 **✅ Support for Role-Based Notifications:**
 Payload can include fields like:
+
 ```json
 {
   "title": "Class Cancelled",
   "message": "Your scheduled CrossFit class is cancelled",
-  "targetRole": "instructor",  // ✅ Can filter by role
+  "targetRole": "instructor", // ✅ Can filter by role
   "priority": "high"
 }
 ```
@@ -656,11 +709,13 @@ Payload can include fields like:
 #### 🔌 **API LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ `GET /api/notifications/user/:userId` endpoint exists
 - ✅ Returns all notifications for a user
 - ✅ Can be filtered by role in payload
 
 **File:** `backend-server.js` (Lines 792-805)
+
 ```javascript
 /**
  * GET /api/notifications/user/:userId - Get notifications for a user
@@ -680,6 +735,7 @@ app.get(
 ```
 
 **File:** `services/notificationService.js` (Lines 44-65)
+
 ```javascript
 async function getUserNotifications(userId) {
   try {
@@ -694,7 +750,7 @@ async function getUserNotifications(userId) {
       return { notifications: [], error: error.message };
     }
 
-    return { notifications: data, error: null };  // ✅ Returns all notifications
+    return { notifications: data, error: null }; // ✅ Returns all notifications
   } catch (error) {
     console.error('Unexpected error in getUserNotifications:', error);
     return { notifications: [], error: error.message };
@@ -707,15 +763,18 @@ async function getUserNotifications(userId) {
 #### 🎨 **UI LAYER** - ⚠️ PARTIAL (50%)
 
 **Evidence:**
+
 - ⚠️ No dedicated Notifications component found
 - ⚠️ Announcements displayed in MemberDashboard (not same as notifications)
 - ❌ No instructor-specific notifications UI
 
 **Workaround:**
+
 - Announcements (`GET /api/announcements/member`) exist and work
 - Can be repurposed for instructor-related announcements
 
 **Required UI:**
+
 ```tsx
 // ❌ MISSING: NotificationsPanel.tsx
 interface Notification {
@@ -736,6 +795,7 @@ interface Notification {
 #### 🔒 **SECURITY LAYER** - ✅ FULL (100%)
 
 **Evidence:**
+
 - ✅ Notifications filtered by `recipient_user_id`
 - ✅ Users can only see their own notifications
 
@@ -743,16 +803,17 @@ interface Notification {
 
 ### Summary: View Notifications
 
-| Layer | Status | Issue |
-|-------|--------|-------|
-| Database | ✅ 100% | Full support for notifications |
-| API | ✅ 100% | Endpoint returns user notifications |
-| UI | ⚠️ 50% | No dedicated notifications UI component |
-| Security | ✅ 100% | Filtered by user ID |
+| Layer    | Status  | Issue                                   |
+| -------- | ------- | --------------------------------------- |
+| Database | ✅ 100% | Full support for notifications          |
+| API      | ✅ 100% | Endpoint returns user notifications     |
+| UI       | ⚠️ 50%  | No dedicated notifications UI component |
+| Security | ✅ 100% | Filtered by user ID                     |
 
 **Overall:** ⚠️ **70% Complete** (Backend ready, UI missing)
 
 **Action Items:**
+
 1. 🟡 MEDIUM: Create `NotificationsPanel.tsx` component
 2. 🟡 MEDIUM: Add notification bell icon to InstructorDashboard
 3. 🟡 MEDIUM: Add filter for instructor-related notifications
@@ -763,6 +824,7 @@ interface Notification {
 ## 6️⃣ INSTRUCTOR-RELATED NOTIFICATIONS
 
 ### Requirement:
+
 "View instructor-related notifications" (subset of all notifications)
 
 ### Status: ❌ **MISSING (0%)**
@@ -772,12 +834,14 @@ interface Notification {
 This is a **filtering feature** of the "View All Notifications" functionality.
 
 **Required Implementation:**
+
 ```tsx
 // ✅ REQUIRED: Filter notifications in UI
-const instructorNotifications = allNotifications.filter(notif => 
-  notif.payload?.targetRole === 'instructor' || 
-  notif.payload?.category === 'class-schedule' ||
-  notif.payload?.category === 'member-booking'
+const instructorNotifications = allNotifications.filter(
+  (notif) =>
+    notif.payload?.targetRole === 'instructor' ||
+    notif.payload?.category === 'class-schedule' ||
+    notif.payload?.category === 'member-booking',
 );
 ```
 
@@ -785,6 +849,7 @@ const instructorNotifications = allNotifications.filter(notif =>
 **UI Support:** ❌ No UI to display filtered notifications
 
 **Action Items:**
+
 1. 🟡 MEDIUM: Add "Instructor Only" filter toggle in notifications panel
 2. 🟡 MEDIUM: Create notification categories (class-related, booking-related, member-related)
 3. 🟢 LOW: Add visual indicator for instructor-specific notifications
@@ -795,14 +860,14 @@ const instructorNotifications = allNotifications.filter(notif =>
 
 ### Completion Matrix:
 
-| Functionality | DB | API | UI | Security | Overall |
-|--------------|----|----|----|---------|----|
-| Member Functionality | 80% | 100% | 50% | 100% | **75%** ⚠️ |
-| Check-in Functionality | 100% | 70% | 50% | 60% | **60%** ⚠️ |
-| Own Classes CRUD | 60% | 0% | 40% | 0% | **0%** ❌ |
-| Birthday Notifications | 100% | 100% | 100% | 100% | **100%** ✅ |
-| All Notifications | 100% | 100% | 50% | 100% | **70%** ⚠️ |
-| Instructor Notifications | 100% | 100% | 0% | 100% | **0%** ❌ |
+| Functionality            | DB   | API  | UI   | Security | Overall     |
+| ------------------------ | ---- | ---- | ---- | -------- | ----------- |
+| Member Functionality     | 80%  | 100% | 50%  | 100%     | **75%** ⚠️  |
+| Check-in Functionality   | 100% | 70%  | 50%  | 60%      | **60%** ⚠️  |
+| Own Classes CRUD         | 60%  | 0%   | 40%  | 0%       | **0%** ❌   |
+| Birthday Notifications   | 100% | 100% | 100% | 100%     | **100%** ✅ |
+| All Notifications        | 100% | 100% | 50%  | 100%     | **70%** ⚠️  |
+| Instructor Notifications | 100% | 100% | 0%   | 100%     | **0%** ❌   |
 
 ### Weighted Average: **51%** ⚠️
 
@@ -814,21 +879,23 @@ const instructorNotifications = allNotifications.filter(notif =>
 
 **Issue:** `users_profile.role` CHECK constraint does NOT include 'instructor'
 
-**Impact:** 
+**Impact:**
+
 - ❌ Cannot create instructor users
 - ❌ Instructors cannot authenticate
 - ❌ Entire instructor role is non-functional
 
 **Required Migration:**
+
 ```sql
 -- File: infra/supabase/migrations/20251019_add_instructor_role.sql
 
 -- Add 'instructor' to role constraint
-ALTER TABLE public.users_profile 
+ALTER TABLE public.users_profile
   DROP CONSTRAINT IF EXISTS users_profile_role_check;
 
-ALTER TABLE public.users_profile 
-  ADD CONSTRAINT users_profile_role_check 
+ALTER TABLE public.users_profile
+  ADD CONSTRAINT users_profile_role_check
   CHECK (role IN ('admin','reception','member','sparta','instructor'));
 
 -- Update RLS policy for check-ins to include instructor
@@ -845,11 +912,13 @@ CREATE POLICY "checkins_insert_staff" ON public.checkins
 **Issue:** No dedicated UI for instructor role
 
 **Impact:**
+
 - ❌ Instructors have no landing page after login
 - ❌ Cannot access instructor-specific features
 - ❌ Likely defaults to MemberDashboard (unverified)
 
 **Required Component:**
+
 ```tsx
 // File: frontend/src/components/InstructorDashboard.tsx
 
@@ -880,19 +949,17 @@ const InstructorDashboard: React.FC<InstructorDashboardProps> = (props) => {
       </nav>
 
       {activeSection === 'overview' && (
-        <MemberDashboard {...props} />  // ✅ Inherit all member features
+        <MemberDashboard {...props} /> // ✅ Inherit all member features
       )}
 
       {activeSection === 'my-classes' && (
-        <ClassManagement 
-          filterByInstructor={props.user.id}  // ✅ Show only owned classes
-          canEdit={true} 
+        <ClassManagement
+          filterByInstructor={props.user.id} // ✅ Show only owned classes
+          canEdit={true}
         />
       )}
 
-      {activeSection === 'check-in' && (
-        <QRScanner onScan={handleCheckIn} />
-      )}
+      {activeSection === 'check-in' && <QRScanner onScan={handleCheckIn} />}
 
       {activeSection === 'birthdays' && (
         <UpcomingBirthdays onBack={() => setActiveSection('overview')} />
@@ -911,11 +978,13 @@ export default InstructorDashboard;
 **Issue:** Classes have no `created_by` field, cannot enforce "only edit own classes"
 
 **Impact:**
+
 - ❌ Instructors can edit/delete ANY class
 - ❌ No way to filter "my classes"
 - ❌ Security vulnerability (instructors can sabotage other instructors' classes)
 
 **Required Changes:**
+
 1. Database migration to add `created_by` column
 2. API validation in classService
 3. RLS policies for classes table
@@ -928,12 +997,14 @@ export default InstructorDashboard;
 ### Phase 1: Critical Fixes (MUST DO FIRST)
 
 1. **Add 'instructor' Role to Database** 🔴
+
    - Migration: `20251019_add_instructor_role.sql`
    - Add to `users_profile.role` CHECK constraint
    - Update `checkins_insert_staff` RLS policy
    - Test: Create instructor user, login, verify no DB errors
 
 2. **Add Class Ownership Tracking** 🔴
+
    - Migration: `20251019_classes_ownership.sql`
    - Add `created_by uuid` column to `classes` table
    - Create index on `created_by`
@@ -950,12 +1021,14 @@ export default InstructorDashboard;
 ### Phase 2: Feature Completion (HIGH PRIORITY)
 
 4. **Implement Class Ownership Validation** 🟡
+
    - Update `classService.updateClass()` with ownership check
    - Update `classService.deleteClass()` with ownership check
    - Add RLS policies for classes table
    - Filter ClassManagement UI to show only owned classes
 
 5. **Add Check-in Interface for Instructors** 🟡
+
    - Add QR scanner button to InstructorDashboard
    - Create `POST /api/checkins` endpoint (explicit)
    - Test check-in flow with instructor role
@@ -971,11 +1044,13 @@ export default InstructorDashboard;
 ### Phase 3: Enhancements (MEDIUM PRIORITY)
 
 7. **Birthday Notifications Integration** 🟢
+
    - Add UpcomingBirthdays to InstructorDashboard stats
    - Show birthday count badge
    - Enable birthday greeting workflow
 
 8. **Instructor-Specific Notifications** 🟢
+
    - Add notification categories (class, booking, member)
    - Filter UI to show instructor-only notifications
    - Add visual indicators for notification types
@@ -990,6 +1065,7 @@ export default InstructorDashboard;
 ### Phase 4: Testing & Documentation (LOW PRIORITY)
 
 10. **End-to-End Testing** 🟢
+
     - Create test instructor user
     - Test all 6 functionalities
     - Verify member features still work
@@ -1004,17 +1080,17 @@ export default InstructorDashboard;
 
 ## 📈 IMPLEMENTATION EFFORT ESTIMATE
 
-| Task | Priority | Effort | Dependencies |
-|------|----------|--------|--------------|
-| Add 'instructor' role to DB | 🔴 CRITICAL | 1 hour | None |
-| Create InstructorDashboard | 🔴 CRITICAL | 4 hours | Role migration |
-| Add class ownership tracking | 🔴 CRITICAL | 3 hours | None |
-| Implement ownership validation | 🟡 HIGH | 4 hours | Ownership tracking |
-| Add check-in interface | 🟡 HIGH | 3 hours | InstructorDashboard |
-| Create notifications panel | 🟡 HIGH | 5 hours | InstructorDashboard |
-| Birthday notifications | 🟢 MEDIUM | 2 hours | InstructorDashboard |
-| Instructor notifications filter | 🟢 MEDIUM | 2 hours | Notifications panel |
-| Testing & QA | 🟢 LOW | 4 hours | All above |
+| Task                            | Priority    | Effort  | Dependencies        |
+| ------------------------------- | ----------- | ------- | ------------------- |
+| Add 'instructor' role to DB     | 🔴 CRITICAL | 1 hour  | None                |
+| Create InstructorDashboard      | 🔴 CRITICAL | 4 hours | Role migration      |
+| Add class ownership tracking    | 🔴 CRITICAL | 3 hours | None                |
+| Implement ownership validation  | 🟡 HIGH     | 4 hours | Ownership tracking  |
+| Add check-in interface          | 🟡 HIGH     | 3 hours | InstructorDashboard |
+| Create notifications panel      | 🟡 HIGH     | 5 hours | InstructorDashboard |
+| Birthday notifications          | 🟢 MEDIUM   | 2 hours | InstructorDashboard |
+| Instructor notifications filter | 🟢 MEDIUM   | 2 hours | Notifications panel |
+| Testing & QA                    | 🟢 LOW      | 4 hours | All above           |
 
 **Total Effort:** ~28 hours (3.5 days)
 
@@ -1044,18 +1120,21 @@ export default InstructorDashboard;
 ### Observations:
 
 1. **Separation of Instructors Table vs Role:**
+
    - `instructors` table exists for instructor profiles (certifications, specialties)
    - `users_profile.role='instructor'` is for authentication/authorization
    - These are **separate concepts** and both are needed
    - An instructor user (`role=instructor`) can link to an `instructors` record for profile data
 
 2. **Class Management Architecture:**
+
    - `classes` table = class definitions (e.g., "CrossFit Basics")
    - `schedule_slots` table = actual scheduled sessions (e.g., "Monday 9 AM")
    - `class_instructors` junction = which instructors can teach which class types
    - Ownership should track who created the class definition, not individual sessions
 
 3. **Notification System:**
+
    - `notifications_outbox` is a generic notification queue
    - `announcements` table is for gym-wide announcements
    - These are **different systems** but can be unified in UI
@@ -1070,18 +1149,21 @@ export default InstructorDashboard;
 ## 🔍 APPENDIX: FILES ANALYZED
 
 ### Database Migrations:
+
 - ✅ `infra/supabase/migrations/0001_init.sql` (users_profile, checkins, qr_tokens, notifications)
 - ✅ `infra/supabase/migrations/20251018_classes_instructors_schedule.sql` (classes, instructors, schedule)
 - ✅ `infra/supabase/migrations/0002_add_sparta_role.sql` (role constraint update)
 - ✅ `infra/supabase/policies/rls_policies.sql` (security policies)
 
 ### Backend Services:
+
 - ✅ `backend-server.js` (all API endpoints)
 - ✅ `services/classService.js` (class CRUD operations)
 - ✅ `services/instructorService.js` (instructor CRUD operations)
 - ✅ `services/notificationService.js` (notifications API)
 
 ### Frontend Components:
+
 - ✅ `frontend/src/App.tsx` (routing logic)
 - ✅ `frontend/src/components/MemberDashboard.tsx` (member features)
 - ✅ `frontend/src/components/ClassManagement.tsx` (class CRUD UI)
@@ -1091,6 +1173,7 @@ export default InstructorDashboard;
 - ✅ `frontend/src/components/CheckInHistory.tsx` (check-in records)
 
 ### Services:
+
 - ✅ `frontend/src/services/classManagementService.ts` (class API calls)
 - ✅ `frontend/src/services/qrCodeService.ts` (QR generation/validation)
 

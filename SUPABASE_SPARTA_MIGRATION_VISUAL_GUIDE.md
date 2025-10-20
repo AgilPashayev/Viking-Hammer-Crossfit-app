@@ -19,8 +19,9 @@ You should see your projects list.
 ### Step 2️⃣: Select Your Project
 
 Click on your project (it might be named something like):
+
 - "Viking Hammer CrossFit"
-- "viking-hammer-crossfit-app" 
+- "viking-hammer-crossfit-app"
 - Or whatever name you gave it
 
 ---
@@ -35,7 +36,7 @@ Look at the **LEFT SIDEBAR** - you'll see icons and menu items:
 ├── 📊 Table Editor          ← NOT this one
 ├── 🔐 Authentication
 ├── 💾 Storage
-├── </> SQL Editor          ← CLICK THIS ONE! 
+├── </> SQL Editor          ← CLICK THIS ONE!
 ├── 🔧 Database
 │   ├── Tables
 │   ├── Replication
@@ -79,20 +80,20 @@ You'll see a text editor. **Delete any placeholder text** and paste this:
 -- ================================================
 
 -- Step 1: Remove old constraint
-ALTER TABLE public.users_profile 
+ALTER TABLE public.users_profile
   DROP CONSTRAINT IF EXISTS users_profile_role_check;
 
 -- Step 2: Add new constraint with sparta
-ALTER TABLE public.users_profile 
-  ADD CONSTRAINT users_profile_role_check 
+ALTER TABLE public.users_profile
+  ADD CONSTRAINT users_profile_role_check
   CHECK (role IN ('admin', 'reception', 'member', 'sparta'));
 
 -- Step 3: Verify it worked
-SELECT 
+SELECT
   'Constraint updated successfully!' as status,
   pg_get_constraintdef(oid) as definition
-FROM pg_constraint 
-WHERE conrelid = 'public.users_profile'::regclass 
+FROM pg_constraint
+WHERE conrelid = 'public.users_profile'::regclass
   AND conname = 'users_profile_role_check';
 ```
 
@@ -118,6 +119,7 @@ Click the **green "RUN"** button (or press `F5` or `Ctrl+Enter`)
 At the bottom, you should see:
 
 **✅ SUCCESS:**
+
 ```
 Results (1 row)
 ┌────────────────────────────────┬──────────────────────────────────────┐
@@ -140,17 +142,21 @@ If you see **'sparta'** in the definition, **YOU'RE DONE!** 🎉
 ### Try These Paths:
 
 **Option A: Via Database Menu**
+
 ```
 Left Sidebar → Database → SQL Editor
 ```
 
 **Option B: Via URL**
+
 ```
 https://app.supabase.com/project/YOUR-PROJECT-ID/sql/new
 ```
+
 (Replace YOUR-PROJECT-ID with your actual project ID from the URL)
 
 **Option C: Command Palette**
+
 ```
 Press: Ctrl + K (Windows) or Cmd + K (Mac)
 Type: "SQL Editor"
@@ -162,11 +168,13 @@ Press Enter
 ## ❌ What NOT to Look For
 
 **DON'T** try to find:
+
 - ❌ "Constraints" tab (doesn't exist in new Supabase UI)
 - ❌ "Schema" tab (not in the main interface)
 - ❌ Column editing dialogs (too complicated)
 
 **DO** use:
+
 - ✅ SQL Editor (simplest and fastest!)
 
 ---
@@ -183,11 +191,13 @@ OR
 ### Use This Direct Link:
 
 Replace `YOUR-PROJECT-REF` with your project reference:
+
 ```
 https://app.supabase.com/project/YOUR-PROJECT-REF/sql/new
 ```
 
 You can find your project reference in the URL when you're on any Supabase page:
+
 ```
 https://app.supabase.com/project/abcdefghijklmnop/...
                                       ^^^^^^^^^^^^^^^^
@@ -201,18 +211,21 @@ https://app.supabase.com/project/abcdefghijklmnop/...
 ### Test It Worked:
 
 **Option 1: PowerShell Test**
+
 ```powershell
 cd C:\Users\AgiL\viking-hammer-crossfit-app
 powershell -ExecutionPolicy Bypass -File test-sparta-role.ps1
 ```
 
 **Expected Output:**
+
 ```
 ✅ Create Sparta User - PASS
 ✅ ALL SPARTA ROLE TESTS PASSED!
 ```
 
 **Option 2: Create Sparta User Manually**
+
 ```powershell
 $spartaUser = @{
     name = "Sparta Warrior"
@@ -250,9 +263,10 @@ I'll guide you to the exact location! 🚀
 **What you're doing:** Adding 'sparta' as a valid role value  
 **Where:** In the `users_profile` table's `role` column constraint  
 **How:** By running SQL that updates the CHECK constraint  
-**Time needed:** 2 minutes using SQL Editor  
+**Time needed:** 2 minutes using SQL Editor
 
 **The constraint change:**
+
 - **Before:** `role IN ('admin', 'reception', 'member')`
 - **After:** `role IN ('admin', 'reception', 'member', 'sparta')`
 

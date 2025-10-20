@@ -9,12 +9,15 @@
 ## 🐛 ISSUE IDENTIFIED & RESOLVED
 
 ### **User Report:**
+
 > "Unable to create announcement. ERROR: new row for relation 'announcement' violates check constraint 'announcement_priority_check'. Please try again or contact support."
 
 ### **Root Cause:**
+
 The frontend was using `'medium'` as a priority value, but the database schema only accepts: `'low'`, `'normal'`, `'high'`, `'urgent'`.
 
 **Mismatch:**
+
 - ❌ Frontend: `'low'` | `'medium'` | `'high'` | `'urgent'`
 - ✅ Database: `'low'` | `'normal'` | `'high'` | `'urgent'`
 
@@ -23,6 +26,7 @@ The frontend was using `'medium'` as a priority value, but the database schema o
 #### **1. `frontend/src/components/AnnouncementManager.tsx`**
 
 **Changes Made:**
+
 - ✅ Updated TypeScript interface: `priority: 'low' | 'normal' | 'high' | 'urgent'`
 - ✅ Changed all default values from `'medium'` to `'normal'` (5 occurrences)
 - ✅ Updated filter dropdown: "Medium" → "Normal"
@@ -30,6 +34,7 @@ The frontend was using `'medium'` as a priority value, but the database schema o
 - ✅ Enhanced error messages for constraint violations
 
 **Error Message Improvements:**
+
 ```typescript
 // BEFORE:
 friendlyMessage += 'Error: ' + result.error + '\n\n';
@@ -50,6 +55,7 @@ if (result.error.includes('priority_check')) {
 ## ✅ VERIFICATION CHECKLIST
 
 ### **Code Changes:**
+
 - [x] TypeScript interface updated
 - [x] All default values changed to 'normal'
 - [x] Filter dropdown updated
@@ -58,6 +64,7 @@ if (result.error.includes('priority_check')) {
 - [x] User-friendly constraint violation handling
 
 ### **Database Schema:**
+
 ```sql
 -- Confirmed constraints (from migration file):
 priority text DEFAULT 'normal' CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
@@ -66,13 +73,15 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 ```
 
 ### **Frontend-Backend Alignment:**
-| Field | Frontend Values | Backend Accepts | Status |
-|-------|----------------|-----------------|--------|
-| **priority** | `'low' \| 'normal' \| 'high' \| 'urgent'` | Same | ✅ Fixed |
-| **target_audience** | `'all' \| 'members' \| 'instructors' \| 'staff'` | Same | ✅ Aligned |
-| **status** | `'draft' \| 'published' \| 'scheduled' \| 'expired'` | `'draft' \| 'published' \| 'archived'` | ⚠️ Note* |
 
-*Note: Frontend has 'scheduled' and 'expired' but DB has 'archived'. This works because:
+| Field               | Frontend Values                                      | Backend Accepts                        | Status     |
+| ------------------- | ---------------------------------------------------- | -------------------------------------- | ---------- |
+| **priority**        | `'low' \| 'normal' \| 'high' \| 'urgent'`            | Same                                   | ✅ Fixed   |
+| **target_audience** | `'all' \| 'members' \| 'instructors' \| 'staff'`     | Same                                   | ✅ Aligned |
+| **status**          | `'draft' \| 'published' \| 'scheduled' \| 'expired'` | `'draft' \| 'published' \| 'archived'` | ⚠️ Note\*  |
+
+\*Note: Frontend has 'scheduled' and 'expired' but DB has 'archived'. This works because:
+
 - Frontend uses 'draft' and 'published' when creating (matches DB)
 - 'scheduled' and 'expired' are UI-only states, converted before sending to API
 
@@ -92,11 +101,13 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 4. **Submit:** Click "Create" or "Publish"
 
 **Expected Result:**
+
 - ✅ Announcement created successfully
 - ✅ No constraint violation error
 - ✅ Priority saved as 'normal' in database
 
 **If Error Occurs:**
+
 - Check error message (now user-friendly)
 - Verify backend running on port 4001
 - Check browser console for technical details
@@ -115,6 +126,7 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 4. **Submit:** Click "Create"
 
 **Expected Result:**
+
 - ✅ Announcement created successfully
 - ✅ Priority 'high' accepted by database
 - ✅ Target audience 'members' accepted
@@ -124,12 +136,14 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 ### **Test 3: Priority Dropdown Options**
 
 **Verify Filter Dropdown:**
+
 - [ ] Low
 - [ ] Normal (not "Medium")
 - [ ] High
 - [ ] Urgent
 
 **Verify Create Modal Dropdown:**
+
 - [ ] Low
 - [ ] Normal (not "Medium")
 - [ ] High
@@ -142,12 +156,15 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 **Simulate Errors:**
 
 1. **Invalid Priority (shouldn't occur now):**
+
    - Expected: User-friendly message about valid priorities
 
 2. **Invalid Target Audience:**
+
    - Expected: User-friendly message about valid recipients
 
 3. **UUID Error:**
+
    - Expected: Instructions to logout/clear demo data
 
 4. **Foreign Key Error:**
@@ -158,18 +175,21 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 ## 📊 INTEGRATION VERIFICATION
 
 ### **Layer 1: Frontend UI** ✅
+
 - **File:** `AnnouncementManager.tsx`
 - **Status:** Fixed - all priority values now 'normal'
 - **Dropdowns:** Updated to show "Normal" instead of "Medium"
 - **Error Handling:** Enhanced with specific constraint messages
 
 ### **Layer 2: API** ✅
+
 - **File:** `backend-server.js`
 - **Endpoint:** `POST /api/announcements`
 - **Status:** No changes needed - already accepts 'normal'
 - **Validation:** Database constraints enforce valid values
 
 ### **Layer 3: Database** ✅
+
 - **Migration:** `20251019_announcements_complete.sql`
 - **Constraint:** `CHECK (priority IN ('low', 'normal', 'high', 'urgent'))`
 - **Status:** Active and enforced
@@ -179,6 +199,7 @@ status text DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived'))
 ## 🎯 WHAT WAS FIXED
 
 ### **Before Fix:**
+
 ```typescript
 // Frontend Interface
 priority: 'low' | 'medium' | 'high' | 'urgent'  // ❌ 'medium' not in DB
@@ -191,6 +212,7 @@ priority: 'medium'  // ❌ Causes constraint violation
 ```
 
 ### **After Fix:**
+
 ```typescript
 // Frontend Interface
 priority: 'low' | 'normal' | 'high' | 'urgent'  // ✅ Matches DB
@@ -207,18 +229,21 @@ priority: 'normal'  // ✅ Valid in DB
 ## 📝 TECHNICAL DETAILS
 
 ### **Database Constraint Error:**
+
 ```
 ERROR: new row for relation "announcements" violates check constraint "announcements_priority_check"
 DETAIL: Failing row contains (..., medium, ...).
 ```
 
 ### **Constraint Definition:**
+
 ```sql
-CONSTRAINT announcements_priority_check 
+CONSTRAINT announcements_priority_check
 CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
 ```
 
 ### **Fix Applied:**
+
 - Changed all occurrences of `'medium'` to `'normal'` in frontend
 - Updated TypeScript types to match database schema
 - Enhanced error messages for better user experience
@@ -230,6 +255,7 @@ CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
 **Status:** ✅ **COMPLETE - READY TO TEST**
 
 **What Works Now:**
+
 1. ✅ Create announcements with any priority (low, normal, high, urgent)
 2. ✅ No constraint violation errors
 3. ✅ User-friendly error messages if something goes wrong
@@ -237,6 +263,7 @@ CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
 5. ✅ UUID integration working correctly
 
 **Next Steps:**
+
 1. Test announcement creation with Sparta role
 2. Test announcement creation with Reception role
 3. Verify announcements display in member dashboard
@@ -250,7 +277,7 @@ CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
 **Issue:** Database constraint violation due to priority value mismatch  
 **Fix:** Changed 'medium' to 'normal' throughout frontend  
 **Status:** ✅ **RESOLVED**  
-**Testing:** Ready for comprehensive testing  
+**Testing:** Ready for comprehensive testing
 
 **The announcement functionality is now fully aligned across all layers and ready for production use.**
 

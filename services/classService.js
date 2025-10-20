@@ -20,6 +20,13 @@ async function getAllClasses(filters = {}) {
             last_name,
             email
           )
+        ),
+        schedule_slots (
+          id,
+          day_of_week,
+          start_time,
+          end_time,
+          status
         )
       `,
       )
@@ -64,6 +71,13 @@ async function getClassById(classId) {
             email,
             specialties
           )
+        ),
+        schedule_slots (
+          id,
+          day_of_week,
+          start_time,
+          end_time,
+          status
         )
       `,
       )
@@ -86,6 +100,9 @@ async function getClassById(classId) {
  */
 async function createClass(classData) {
   try {
+    console.log('=== CREATE CLASS CALLED ===');
+    console.log('Received classData:', JSON.stringify(classData, null, 2));
+
     const {
       name,
       description,
@@ -97,7 +114,10 @@ async function createClass(classData) {
       image_url,
       color,
       instructorIds = [],
+      schedule_slots = [], // Add schedule_slots parameter
     } = classData;
+
+    console.log('Extracted schedule_slots:', schedule_slots);
 
     // Create class
     const { data: newClass, error: classError } = await supabase
@@ -139,6 +159,33 @@ async function createClass(classData) {
       }
     }
 
+    // Create schedule slots for the class
+    if (schedule_slots.length > 0) {
+      console.log(`Creating ${schedule_slots.length} schedule slots for class ${newClass.id}`);
+      const scheduleRecords = schedule_slots.map((slot) => ({
+        class_id: newClass.id,
+        instructor_id: instructorIds[0] || null, // Assign primary instructor if available
+        day_of_week: slot.day_of_week,
+        start_time: slot.start_time,
+        end_time: slot.end_time,
+        status: slot.status || 'active',
+      }));
+
+      console.log('Schedule records to insert:', JSON.stringify(scheduleRecords, null, 2));
+
+      const { error: scheduleError } = await supabase
+        .from('schedule_slots')
+        .insert(scheduleRecords);
+
+      if (scheduleError) {
+        console.error('ERROR: Failed to create schedule slots:', scheduleError);
+      } else {
+        console.log('✅ Successfully created schedule slots');
+      }
+    } else {
+      console.log('⚠️ No schedule_slots provided, skipping schedule creation');
+    }
+
     return { success: true, data: newClass };
   } catch (error) {
     console.error('Create class error:', error);
@@ -151,7 +198,8 @@ async function createClass(classData) {
  */
 async function updateClass(classId, updates) {
   try {
-    const { instructorIds, id, created_at, updated_at, ...allowedUpdates } = updates;
+    const { instructorIds, schedule_slots, id, created_at, updated_at, ...allowedUpdates } =
+      updates;
 
     const { data, error } = await supabase
       .from('classes')
@@ -179,6 +227,32 @@ async function updateClass(classId, updates) {
         }));
 
         await supabase.from('class_instructors').insert(classInstructorRecords);
+      }
+    }
+
+    // Update schedule slots if provided
+    if (schedule_slots !== undefined) {
+      // Delete existing schedule slots for this class
+      await supabase.from('schedule_slots').delete().eq('class_id', classId);
+
+      // Create new schedule slots
+      if (schedule_slots.length > 0) {
+        const scheduleRecords = schedule_slots.map((slot) => ({
+          class_id: classId,
+          instructor_id: instructorIds?.[0] || null, // Assign primary instructor if available
+          day_of_week: slot.day_of_week,
+          start_time: slot.start_time,
+          end_time: slot.end_time,
+          status: slot.status || 'active',
+        }));
+
+        const { error: scheduleError } = await supabase
+          .from('schedule_slots')
+          .insert(scheduleRecords);
+
+        if (scheduleError) {
+          console.warn('Warning: Failed to update schedule slots:', scheduleError);
+        }
       }
     }
 

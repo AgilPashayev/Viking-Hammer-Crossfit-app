@@ -11,6 +11,7 @@
 ### **Investigation Process:**
 
 #### 1️⃣ **Backend Verification** ✅
+
 - **Test:** Called mark-as-read endpoint with test user UUID
 - **Result:** Backend correctly adds user to `read_by_users` array in database
 - **Proof:**
@@ -21,12 +22,14 @@
 - **Conclusion:** ✅ **Backend is working perfectly**
 
 #### 2️⃣ **Database State Check** ✅
+
 - **Test:** Queried all announcements for real user ID `22a9215c-c72b-4aa9-964a-189363da5453`
 - **Result:** ALL 4 announcements show user IS in `read_by_users` array
 - **Expected Behavior:** Popup SHOULD NOT appear
 - **Conclusion:** ✅ **Database is correct - user is marked as read**
 
 #### 3️⃣ **Frontend Filter Logic** ✅
+
 - **Code Review:** `useAnnouncements.ts` filter logic
   ```typescript
   const unread = transformed.filter((ann) => {
@@ -37,6 +40,7 @@
 - **Conclusion:** ✅ **Filter logic is correct**
 
 #### 4️⃣ **Cache Investigation** ⚠️
+
 - **Search:** Checked for localStorage/sessionStorage caching of announcements
 - **Result:** No caching mechanism found in original code
 - **Potential Issue:** Without cache, relies 100% on database sync
@@ -54,6 +58,7 @@
 4. **No Backup Mechanism:** System has no fallback if database sync fails
 
 **Evidence:**
+
 - ✅ Backend API works perfectly
 - ✅ Database stores correctly
 - ✅ Filter logic is sound
@@ -67,6 +72,7 @@
 ### **Multi-Layered Defense Strategy:**
 
 #### **Layer 1: localStorage Backup Cache** 💾
+
 Added a client-side dismissed announcements cache:
 
 ```typescript
@@ -100,6 +106,7 @@ const addDismissedId = (announcementId: string) => {
 **Benefit:** Even if database sync fails, localStorage prevents re-showing
 
 #### **Layer 2: Double-Check Filter** 🔍
+
 Enhanced filter to check BOTH database AND localStorage:
 
 ```typescript
@@ -110,12 +117,12 @@ const unread = transformed.filter((ann) => {
   const isRead = ann.readBy && ann.readBy.includes(userId);
   const isDismissed = dismissedIds.includes(ann.id);
   const shouldShow = !isRead && !isDismissed;
-  
+
   console.log(
     `  Announcement #${ann.id}: ${isRead ? 'READ(DB)' : 'UNREAD(DB)'} ` +
-    `${isDismissed ? '+ DISMISSED(CACHE)' : ''} → ${shouldShow ? 'SHOW' : 'HIDE'}`
+      `${isDismissed ? '+ DISMISSED(CACHE)' : ''} → ${shouldShow ? 'SHOW' : 'HIDE'}`,
   );
-  
+
   return shouldShow;
 });
 ```
@@ -123,6 +130,7 @@ const unread = transformed.filter((ann) => {
 **Benefit:** Announcements must pass BOTH checks to appear
 
 #### **Layer 3: Save on Close** 💾
+
 When user clicks "Got it!", save to BOTH database AND localStorage:
 
 ```typescript
@@ -130,10 +138,10 @@ const handleClosePopup = async () => {
   // 1. Mark in database
   const markPromises = unreadAnnouncements.map((ann) => markAnnouncementAsRead(ann.id));
   await Promise.all(markPromises);
-  
+
   // 2. Save to localStorage cache (backup)
   unreadAnnouncements.forEach((ann) => addDismissedId(ann.id));
-  
+
   // 3. Update local React state
   // ... state update code ...
 };
@@ -142,6 +150,7 @@ const handleClosePopup = async () => {
 **Benefit:** Immediate protection even before database sync completes
 
 #### **Layer 4: Force Reload Verification** 🔄
+
 After marking as read, force a fresh fetch from database:
 
 ```typescript
@@ -209,6 +218,7 @@ User Clicks "Got it!"
 ## 🧪 **TESTING EVIDENCE**
 
 ### **Backend API Test:**
+
 ```powershell
 # Test mark-as-read endpoint
 POST http://localhost:4001/api/announcements/8/mark-read
@@ -229,6 +239,7 @@ Announcement #8:
 ```
 
 ### **Database State:**
+
 ```
 All announcements for user 22a9215c-c72b-4aa9-964a-189363da5453:
   ID: 8 → User in read_by_users ✅
@@ -244,6 +255,7 @@ Expected: Popup SHOULD NOT appear
 ## 📝 **FILES CHANGED**
 
 ### **Modified:**
+
 1. **`frontend/src/hooks/useAnnouncements.ts`** (+40 lines, enhanced)
    - Added `getStorageKey()` function
    - Added `getDismissedIds()` function
@@ -256,20 +268,21 @@ Expected: Popup SHOULD NOT appear
 
 ## ✅ **BENEFITS OF NEW APPROACH**
 
-| Feature | Before | After |
-|---------|--------|-------|
-| **Database Sync** | ✅ Works | ✅ Works |
-| **Browser Cache Protection** | ❌ None | ✅ localStorage backup |
-| **Race Condition Protection** | ❌ None | ✅ localStorage + forced reload |
-| **Stale Data Protection** | ❌ None | ✅ Double-check filter |
-| **User Experience** | ⚠️ Popup re-appears | ✅ Never shows again |
-| **Reliability** | 🟡 Single point of failure | 🟢 Multi-layered defense |
+| Feature                       | Before                     | After                           |
+| ----------------------------- | -------------------------- | ------------------------------- |
+| **Database Sync**             | ✅ Works                   | ✅ Works                        |
+| **Browser Cache Protection**  | ❌ None                    | ✅ localStorage backup          |
+| **Race Condition Protection** | ❌ None                    | ✅ localStorage + forced reload |
+| **Stale Data Protection**     | ❌ None                    | ✅ Double-check filter          |
+| **User Experience**           | ⚠️ Popup re-appears        | ✅ Never shows again            |
+| **Reliability**               | 🟡 Single point of failure | 🟢 Multi-layered defense        |
 
 ---
 
 ## 🧪 **HOW TO TEST**
 
 ### **Step 1: Clear Previous Cache**
+
 ```javascript
 // Open browser console (F12) and run:
 localStorage.removeItem('viking_dismissed_announcements_22a9215c-c72b-4aa9-964a-189363da5453');
@@ -277,11 +290,14 @@ localStorage.removeItem('viking_dismissed_announcements_22a9215c-c72b-4aa9-964a-
 ```
 
 ### **Step 2: Login and See Popup**
+
 1. Login to application: http://localhost:5173
 2. Should see announcement popup (if any unread)
 
 ### **Step 3: Click "Got it!"**
+
 Watch the console logs:
+
 ```
 📢 [MEMBER] Loaded announcements: 4
 👤 [MEMBER] Current user ID: 22a9215c-c72b-4aa9-964a-189363da5453
@@ -310,11 +326,13 @@ Watch the console logs:
 ```
 
 ### **Step 4: Refresh Page (F5)**
+
 1. Refresh browser
 2. Popup should NOT appear ✅
 3. Check console for verification logs
 
 ### **Step 5: Test with Different User**
+
 1. Logout
 2. Login with different account
 3. Popup SHOULD appear (independent read status)
@@ -325,6 +343,7 @@ Watch the console logs:
 ## 🎯 **EXPECTED BEHAVIOR**
 
 ### **Scenario 1: First Time User**
+
 - ✅ Sees popup with unread announcements
 - ✅ Clicks "Got it!"
 - ✅ Popup closes
@@ -332,12 +351,14 @@ Watch the console logs:
 - ✅ Refresh → No popup ✅
 
 ### **Scenario 2: Returning User (Already Read)**
+
 - ✅ Database shows user in read_by_users
 - ✅ localStorage shows IDs in dismissed cache
 - ✅ Filter blocks both checks
 - ✅ No popup appears ✅
 
 ### **Scenario 3: New Announcement Created**
+
 - ✅ Admin creates announcement #9
 - ✅ User refreshes page
 - ✅ Filter checks:
@@ -346,6 +367,7 @@ Watch the console logs:
 - ✅ Popup shows with only announcement #9 ✅
 
 ### **Scenario 4: Database Sync Failure (Edge Case)**
+
 - ⚠️ Backend API fails to update database
 - ✅ localStorage still saves dismissed ID
 - ✅ On refresh, double-check filter catches it
@@ -365,7 +387,7 @@ Examples:
 
 Value (JSON Array):
   ["8", "7", "6", "5"]
-  
+
 Per-User Isolation:
   ✅ Each user has separate cache
   ✅ Logging out doesn't clear cache
@@ -392,6 +414,7 @@ Per-User Isolation:
 **Root Cause:** System relied 100% on database sync with no client-side cache backup
 
 **Solution:** Multi-layered defense:
+
 1. 💾 localStorage backup cache (per-user)
 2. 🔍 Double-check filter (database + cache)
 3. ✅ Save to both sources on close

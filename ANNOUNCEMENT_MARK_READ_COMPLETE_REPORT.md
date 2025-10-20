@@ -15,6 +15,7 @@ The announcement mark-as-read functionality has been successfully implemented an
 ## 🎯 Requirements & Implementation
 
 ### ✅ Requirement 1: Mark Announcements as Read
+
 **Status**: IMPLEMENTED & VERIFIED
 
 - ✓ Database field `read_by_users` (UUID array) stores which users have read each announcement
@@ -23,6 +24,7 @@ The announcement mark-as-read functionality has been successfully implemented an
 - ✓ Idempotent implementation prevents duplicate user IDs in array
 
 ### ✅ Requirement 2: Filter Read Announcements from Popup
+
 **Status**: IMPLEMENTED & VERIFIED
 
 - ✓ Frontend `MemberDashboard.tsx` filters unread announcements before showing popup
@@ -31,6 +33,7 @@ The announcement mark-as-read functionality has been successfully implemented an
 - ✓ After closing popup, those announcements won't appear again
 
 ### ✅ Requirement 3: No Blocking of Other Functionality
+
 **Status**: VERIFIED
 
 - ✓ Mark-as-read code isolated in try/catch blocks
@@ -47,11 +50,13 @@ The announcement mark-as-read functionality has been successfully implemented an
 **Table**: `public.announcements`
 
 **Key Field Added**:
+
 ```sql
 read_by_users uuid[] DEFAULT ARRAY[]::uuid[]
 ```
 
 **Features**:
+
 - ✓ Stores array of user UUIDs who have read the announcement
 - ✓ GIN index for fast lookups: `idx_announcements_read_by_users`
 - ✓ Helper function: `has_user_read_announcement(announcement_id, user_id)`
@@ -64,6 +69,7 @@ read_by_users uuid[] DEFAULT ARRAY[]::uuid[]
 **File**: `backend-server.js`
 
 #### Endpoint 1: Mark as Read
+
 ```
 POST /api/announcements/:id/mark-read
 Body: { userId: "uuid" }
@@ -71,24 +77,28 @@ Response: { success: true, message: "Announcement marked as read" }
 ```
 
 **Implementation** (Lines 1200-1240):
+
 - Fetches current `read_by_users` array
 - Adds userId if not already present (prevents duplicates)
 - Updates database with new array
 - Returns success confirmation
 
 #### Endpoint 2: Get Member Announcements (Enhanced)
+
 ```
 GET /api/announcements/member?userId=xxx&unreadOnly=true
 Response: { success: true, data: [...unread announcements only] }
 ```
 
 **Implementation** (Lines 966-1000):
+
 - Returns all published announcements for members
 - Optional `userId` + `unreadOnly=true` filters to unread only
 - Includes `read_by_users` field in all responses
 - Sorted by published_at DESC
 
 **Key Features**:
+
 - ✓ Idempotent: Can mark as read multiple times without duplicates
 - ✓ Error handling: Returns proper HTTP status codes
 - ✓ Validation: Requires userId parameter
@@ -99,6 +109,7 @@ Response: { success: true, data: [...unread announcements only] }
 **File**: `frontend/src/components/MemberDashboard.tsx`
 
 #### Component State:
+
 ```typescript
 const [unreadAnnouncements, setUnreadAnnouncements] = useState<Announcement[]>([]);
 const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
@@ -107,24 +118,24 @@ const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
 #### Key Functions:
 
 **1. Load Announcements** (Lines 195-246):
+
 ```typescript
 const loadAnnouncements = async () => {
   const response = await fetch('http://localhost:4001/api/announcements/member');
   const result = await response.json();
-  
+
   // Transform and filter unread
-  const unread = transformedAnnouncements.filter(
-    ann => !ann.readBy.includes(user.id)
-  );
-  
+  const unread = transformedAnnouncements.filter((ann) => !ann.readBy.includes(user.id));
+
   if (unread.length > 0) {
     setUnreadAnnouncements(unread);
     setShowAnnouncementPopup(true);
   }
-}
+};
 ```
 
 **2. Mark as Read** (Lines 299-314):
+
 ```typescript
 const markAnnouncementAsRead = async (announcementId: string) => {
   await fetch(`http://localhost:4001/api/announcements/${announcementId}/mark-read`, {
@@ -136,6 +147,7 @@ const markAnnouncementAsRead = async (announcementId: string) => {
 ```
 
 **3. Close Popup Handler** (Lines 316-323):
+
 ```typescript
 const handleCloseAnnouncementPopup = () => {
   // Mark all unread announcements as read
@@ -148,6 +160,7 @@ const handleCloseAnnouncementPopup = () => {
 ```
 
 #### UI Flow:
+
 1. User logs in → Component loads announcements
 2. Frontend filters out already-read announcements
 3. If unread announcements exist → Show popup modal
@@ -156,6 +169,7 @@ const handleCloseAnnouncementPopup = () => {
 6. User refreshes page → Popup doesn't appear (announcements already marked read)
 
 **Key Features**:
+
 - ✓ Client-side filtering prevents unnecessary API calls
 - ✓ Error handling with try/catch
 - ✓ Fallback announcements if API fails
@@ -172,16 +186,17 @@ const handleCloseAnnouncementPopup = () => {
 
 **Tests Performed**:
 
-| # | Test Description | Status | Details |
-|---|------------------|--------|---------|
-| 1 | Fetch all member announcements | ✅ PASS | Retrieved 4 announcements with `read_by_users` field |
-| 2 | Fetch unread announcements | ✅ PASS | Filtered to 3 unread for test user |
-| 3 | Mark announcement as read | ✅ PASS | Successfully marked announcement #7 |
-| 4 | Verify database update | ✅ PASS | `read_by_users` array contains user ID |
-| 5 | Verify filtering works | ✅ PASS | Announcement #7 filtered from unread list |
-| 6 | Test idempotency | ✅ PASS | No duplicate user IDs in array |
+| #   | Test Description               | Status  | Details                                              |
+| --- | ------------------------------ | ------- | ---------------------------------------------------- |
+| 1   | Fetch all member announcements | ✅ PASS | Retrieved 4 announcements with `read_by_users` field |
+| 2   | Fetch unread announcements     | ✅ PASS | Filtered to 3 unread for test user                   |
+| 3   | Mark announcement as read      | ✅ PASS | Successfully marked announcement #7                  |
+| 4   | Verify database update         | ✅ PASS | `read_by_users` array contains user ID               |
+| 5   | Verify filtering works         | ✅ PASS | Announcement #7 filtered from unread list            |
+| 6   | Test idempotency               | ✅ PASS | No duplicate user IDs in array                       |
 
 **Test Output**:
+
 ```
 Total Tests: 6
 Passed: 6
@@ -198,11 +213,13 @@ Integration verified:
 ### Manual Testing Performed
 
 1. **Database Layer**:
+
    - ✓ Verified `read_by_users` column exists and has correct type
    - ✓ Tested GIN index performance
    - ✓ Ran helper functions successfully
 
 2. **Backend API Layer**:
+
    - ✓ Tested mark-as-read endpoint with valid user ID
    - ✓ Tested with invalid parameters (returns 400 error)
    - ✓ Verified unreadOnly filtering works correctly
@@ -314,18 +331,19 @@ Integration verified:
 
 ### ✅ Cross-Layer Integration Points
 
-| Integration Point | Status | Verification Method |
-|-------------------|--------|---------------------|
+| Integration Point  | Status      | Verification Method                           |
+| ------------------ | ----------- | --------------------------------------------- |
 | Database ↔ Backend | ✅ VERIFIED | API successfully reads/writes `read_by_users` |
-| Backend ↔ Frontend | ✅ VERIFIED | Frontend receives correct data structure |
-| Frontend ↔ User | ✅ VERIFIED | Popup shows/hides based on read status |
-| Mark Read Flow | ✅ VERIFIED | End-to-end test passed (user → DB → UI) |
-| Error Handling | ✅ VERIFIED | Failures don't break other features |
-| Performance | ✅ VERIFIED | GIN index optimizes array lookups |
+| Backend ↔ Frontend | ✅ VERIFIED | Frontend receives correct data structure      |
+| Frontend ↔ User    | ✅ VERIFIED | Popup shows/hides based on read status        |
+| Mark Read Flow     | ✅ VERIFIED | End-to-end test passed (user → DB → UI)       |
+| Error Handling     | ✅ VERIFIED | Failures don't break other features           |
+| Performance        | ✅ VERIFIED | GIN index optimizes array lookups             |
 
 ### ✅ No Blocking of Other Functionalities
 
 **Verified Non-Interference**:
+
 - ✓ **Booking System**: Still works normally (tested via API health check)
 - ✓ **Profile Management**: Unaffected by announcement code
 - ✓ **Push Notifications**: "Enable Push Notifications" button still functional
@@ -334,6 +352,7 @@ Integration verified:
 - ✓ **Other Dashboard Features**: All operational
 
 **Isolation Mechanisms**:
+
 - Try/catch blocks around all announcement code
 - Separate state management (unreadAnnouncements, showAnnouncementPopup)
 - Async operations don't block UI rendering
@@ -346,11 +365,13 @@ Integration verified:
 ### New Files Created:
 
 1. **`infra/supabase/migrations/20251019_announcements_mark_read_complete.sql`**
+
    - Database migration for mark-as-read functionality
    - Adds indexes and helper functions
    - Idempotent (safe to run multiple times)
 
 2. **`test-announcement-mark-read.js`**
+
    - Comprehensive automated test suite
    - Tests all layers of integration
    - 6 test cases with 100% pass rate
@@ -363,6 +384,7 @@ Integration verified:
 ### Modified Files:
 
 1. **`backend-server.js`**
+
    - **Lines 966-1000**: Enhanced `GET /api/announcements/member` endpoint
      - Added `userId` and `unreadOnly` query parameter support
      - Server-side filtering for better performance
@@ -414,17 +436,20 @@ Body: { userId: "uuid" }
 ## 📈 Performance Considerations
 
 ### Database Performance:
+
 - ✓ **GIN Index**: `idx_announcements_read_by_users` enables fast array lookups
 - ✓ **Query Optimization**: Indexes on status, target_audience, published_at
 - ✓ **Limit Clause**: API returns max 20 announcements to prevent large payloads
 
 ### Frontend Performance:
+
 - ✓ **Client-side Filtering**: Reduces API calls
 - ✓ **Memoization**: useEffect with dependency array
 - ✓ **Auto-refresh**: Every 5 minutes (300000ms) to balance freshness vs load
 - ✓ **Async Operations**: Non-blocking UI updates
 
 ### Backend Performance:
+
 - ✓ **Array Operations**: O(n) complexity where n = users who read announcement
 - ✓ **Async Handlers**: Non-blocking request processing
 - ✓ **Error Handling**: Fast-fail on validation errors
@@ -497,7 +522,7 @@ The announcement mark-as-read functionality has been **successfully implemented 
 ✅ **Frontend**: UI filters unread announcements and calls API on close  
 ✅ **Integration**: All layers work together seamlessly  
 ✅ **Testing**: 100% test pass rate (6/6 automated tests)  
-✅ **Non-Interference**: Other features unaffected by new code  
+✅ **Non-Interference**: Other features unaffected by new code
 
 **The system is production-ready and fully functional.**
 
@@ -506,12 +531,13 @@ The announcement mark-as-read functionality has been **successfully implemented 
 **Report Generated**: October 19, 2025  
 **Implementation Status**: ✅ COMPLETE  
 **Test Status**: ✅ ALL PASSED  
-**Deployment Status**: ✅ READY FOR PRODUCTION  
+**Deployment Status**: ✅ READY FOR PRODUCTION
 
 ---
 
-*For questions or issues, refer to:*
-- *Migration: `infra/supabase/migrations/20251019_announcements_mark_read_complete.sql`*
-- *Tests: `test-announcement-mark-read.js`*
-- *Backend: `backend-server.js` (lines 966-1000, 1200-1240)*
-- *Frontend: `frontend/src/components/MemberDashboard.tsx` (lines 195-246, 299-323)*
+_For questions or issues, refer to:_
+
+- _Migration: `infra/supabase/migrations/20251019_announcements_mark_read_complete.sql`_
+- _Tests: `test-announcement-mark-read.js`_
+- _Backend: `backend-server.js` (lines 966-1000, 1200-1240)_
+- _Frontend: `frontend/src/components/MemberDashboard.tsx` (lines 195-246, 299-323)_

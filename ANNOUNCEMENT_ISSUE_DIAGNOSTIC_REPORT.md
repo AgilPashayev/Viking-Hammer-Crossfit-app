@@ -16,16 +16,19 @@ User still sees announcement popup on every refresh after clicking "Got it!"
 ### ✅ **Backend API - WORKING CORRECTLY**
 
 **GET /api/announcements/member**
+
 - Returns 4 published announcements
 - All have `read_by_users` arrays populated
 - Test user ID `22a9215c-c72b-4aa9-964a-189363da5453` present in ALL announcements
 
 **POST /api/announcements/:id/mark-read**
+
 - Code correct: Adds user to `read_by_users` array
 - Prevents duplicates: Checks `includes()` before adding
 - Returns success response
 
 **Database State:**
+
 ```
 ID 8: read_by_users = ["22a9215c-c72b-4aa9-964a-189363da5453"]
 ID 7: read_by_users = ["22a9215c-c72b-4aa9-964a-189363da5453"]
@@ -40,6 +43,7 @@ ID 5: read_by_users = ["22a9215c-c72b-4aa9-964a-189363da5453"]
 ### ✅ **Frontend Code - LOGIC IS CORRECT**
 
 **loadAnnouncements() Function:**
+
 - ✅ Fetches from API correctly
 - ✅ Transforms data: `id: String(ann.id)` for consistency
 - ✅ Sets `readBy: ann.read_by_users || []`
@@ -48,12 +52,14 @@ ID 5: read_by_users = ["22a9215c-c72b-4aa9-964a-189363da5453"]
 - ✅ Sets popup state based on unread count
 
 **markAnnouncementAsRead() Function:**
+
 - ✅ Sends POST to API with userId
 - ✅ Validates response with `!response.ok` check
 - ✅ Returns boolean success/failure
 - ✅ Comprehensive error logging
 
 **handleCloseAnnouncementPopup() Function:**
+
 - ✅ Waits for all API calls: `await Promise.all(markPromises)`
 - ✅ Updates local state: Adds user.id to readBy arrays
 - ✅ Logs state update: '🔄 Local state updated'
@@ -74,6 +80,7 @@ ID 5: read_by_users = ["22a9215c-c72b-4aa9-964a-189363da5453"]
 3. **BUT: The logged-in user's ID might be DIFFERENT!** ❌
 
 **Example:**
+
 ```javascript
 // Database has:
 read_by_users: ["22a9215c-c72b-4aa9-964a-189363da5453"]
@@ -104,18 +111,22 @@ To confirm this is the issue, user needs to:
 ## 💡 **POSSIBLE SCENARIOS**
 
 ### **Scenario A: Different User Account**
+
 - User testing with a different account than the one used in previous tests
 - Solution: Login with correct account OR click "Got it!" to mark for new account
 
 ### **Scenario B: Browser Not Updated**
+
 - Browser still running old JavaScript (cached)
 - Solution: Hard refresh (Ctrl+Shift+R) or clear cache
 
 ### **Scenario C: Database Not Propagating**
+
 - Supabase connection issue or stale cache
 - Solution: Check Supabase dashboard to verify `read_by_users` updates
 
 ### **Scenario D: Frontend State Issue**
+
 - Local state update happening but loadAnnouncements() overwrites it
 - This would require timing analysis with exact logs
 
@@ -128,13 +139,14 @@ To confirm this is the issue, user needs to:
 ✅ Frontend filtering logic  
 ✅ Frontend API calls and error handling  
 ✅ Local state update after marking as read  
-✅ Console logging throughout the flow  
+✅ Console logging throughout the flow
 
 ---
 
 ## 🎯 **NEXT DIAGNOSTIC STEPS**
 
 ### **Step 1: Verify User ID**
+
 ```
 1. Open http://localhost:5173
 2. F12 → Console
@@ -144,6 +156,7 @@ To confirm this is the issue, user needs to:
 ```
 
 ### **Step 2: Verify API Response**
+
 ```
 In console, should see:
 📢 Loaded announcements: 4
@@ -154,6 +167,7 @@ In console, should see:
 ```
 
 ### **Step 3: Verify Mark Operation**
+
 ```
 Click "Got it!" → Console should show:
 🚪 Closing popup, marking X announcements
@@ -163,6 +177,7 @@ Click "Got it!" → Console should show:
 ```
 
 ### **Step 4: Verify Refresh**
+
 ```
 Refresh page (F5) → Console should show:
 📢 Loaded announcements: 4
@@ -176,8 +191,9 @@ Refresh page (F5) → Console should show:
 ## 🚨 **IF LOGS SHOW "READ ✓" BUT POPUP STILL APPEARS**
 
 This would indicate a different bug:
+
 - State management issue
-- React rendering issue  
+- React rendering issue
 - Conditional logic bug in popup display
 
 **Need to see actual console logs to diagnose further.**

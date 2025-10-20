@@ -7,6 +7,7 @@
 ## 🎯 QUICK START
 
 ### **Test Accounts:**
+
 ```
 Admin:     agil83p@yahoo.com     / password123
 Reception: reception@test.com    / reception123
@@ -14,6 +15,7 @@ Sparta:    sparta@test.com       / sparta123
 ```
 
 ### **Servers:**
+
 ```
 Backend:  http://localhost:4001
 Frontend: http://localhost:5173
@@ -38,11 +40,13 @@ Frontend: http://localhost:5173
 7. Click **"Create"** or **"Publish"**
 
 **Expected Result:**
+
 - ✅ Success message appears
 - ✅ No UUID error
 - ✅ Announcement appears in list
 
 **If Error Appears:**
+
 - Check browser console (F12)
 - Copy error message
 - Check backend terminal for logs
@@ -65,6 +69,7 @@ Frontend: http://localhost:5173
 6. Click **"Create"** or **"Publish"**
 
 **Expected Result:**
+
 - ✅ Success message appears
 - ✅ No errors
 - ✅ Announcement appears
@@ -84,6 +89,7 @@ Frontend: http://localhost:5173
 4. Check if **announcement popup** appears automatically
 
 **Expected Result:**
+
 - ✅ Popup shows both announcements (Sparta + Reception)
 - ✅ Displays title, content, priority
 - ✅ Shows "Got it!" button
@@ -98,6 +104,7 @@ Frontend: http://localhost:5173
 4. **Refresh page** (Ctrl+R or F5)
 
 **Expected Result:**
+
 - ✅ Popup closes immediately
 - ✅ After refresh, popup does NOT reappear
 - ✅ Announcements marked as read persist
@@ -116,6 +123,7 @@ Frontend: http://localhost:5173
 4. Check if popup appears for this new user
 
 **Expected Result:**
+
 - ✅ Popup DOES appear for new user
 - ✅ Shows same announcements
 - ✅ Per-user tracking working
@@ -131,22 +139,24 @@ Open browser DevTools (F12) → Network tab:
 3. Click on request, view **Payload** tab
 
 **Check Request Body:**
+
 ```json
 {
   "title": "...",
   "content": "...",
-  "createdBy": "f47ac10b-58cc-4372-a567-0e02b2c3d479"  // ✅ Should be UUID
+  "createdBy": "f47ac10b-58cc-4372-a567-0e02b2c3d479" // ✅ Should be UUID
 }
 ```
 
 **Check Response:**
+
 ```json
 {
   "success": true,
   "data": {
     "id": 1,
-    "created_by": "f47ac10b-...",  // ✅ UUID format
-    "read_by_users": []             // ✅ Empty array
+    "created_by": "f47ac10b-...", // ✅ UUID format
+    "read_by_users": [] // ✅ Empty array
   }
 }
 ```
@@ -160,6 +170,7 @@ Open browser DevTools (F12) → Network tab:
 **Cause:** Old demo user with string ID
 
 **Fix:**
+
 1. Click **"Clear Demo Data"** (red button on login)
 2. Sign up again as new user
 3. Try creating announcement again
@@ -171,6 +182,7 @@ Open browser DevTools (F12) → Network tab:
 **Cause:** User doesn't exist or was cleared
 
 **Fix:**
+
 1. Click **"Sign Up"** instead of login
 2. Create new demo account
 3. System auto-generates UUID
@@ -180,12 +192,14 @@ Open browser DevTools (F12) → Network tab:
 ### **Backend Not Responding**
 
 **Check Terminal:**
+
 ```powershell
 # Check if backend running
 Test-NetConnection localhost -Port 4001
 ```
 
 **If not running:**
+
 ```powershell
 cd c:\Users\AgiL\viking-hammer-crossfit-app
 node backend-server.js
@@ -196,12 +210,14 @@ node backend-server.js
 ### **Frontend Not Loading**
 
 **Check Terminal:**
+
 ```powershell
 # Check if frontend running
 Test-NetConnection localhost -Port 5173
 ```
 
 **If not running:**
+
 ```powershell
 cd c:\Users\AgiL\viking-hammer-crossfit-app\frontend
 npm run dev
@@ -231,6 +247,7 @@ Use this to track your manual tests:
 ## 🎉 SUCCESS CRITERIA
 
 **Test passes if:**
+
 1. ✅ All roles can create announcements without errors
 2. ✅ No "invalid input syntax for type uuid" errors
 3. ✅ Member dashboard displays announcements

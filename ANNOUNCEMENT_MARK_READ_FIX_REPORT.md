@@ -12,21 +12,25 @@
 ## 🐛 PROBLEM IDENTIFIED
 
 ### Original Issue:
-User reported: *"I see the same announcements on every refresh, but I don't want to see it every time. If it is shown once and a member clicks OKAY, the announcements should be marked as read and should never be displayed in a pop-up window again."*
+
+User reported: _"I see the same announcements on every refresh, but I don't want to see it every time. If it is shown once and a member clicks OKAY, the announcements should be marked as read and should never be displayed in a pop-up window again."_
 
 ### Root Causes Found:
 
 1. **Inconsistent Data Types** ❌
+
    - Announcement IDs from API were numbers
    - Frontend was comparing them as strings
    - Filtering logic failed silently
 
 2. **Inadequate Error Handling** ❌
+
    - mark-as-read API calls had no response verification
    - No logging to debug issues
    - Silent failures went unnoticed
 
 3. **No User Feedback** ❌
+
    - No console logging for debugging
    - User couldn't verify if marking worked
    - No way to track success/failure
@@ -45,6 +49,7 @@ User reported: *"I see the same announcements on every refresh, but I don't want
 **File**: `frontend/src/components/MemberDashboard.tsx` (Lines 195-250)
 
 **Changes:**
+
 ```typescript
 // BEFORE:
 id: ann.id,  // Could be number or string
@@ -58,6 +63,7 @@ id: String(ann.id),  // Always string for consistency
 ### 2. **Enhanced Logging System** ✅
 
 **Added comprehensive console logging:**
+
 ```typescript
 console.log('📢 Loaded announcements:', result.data.length);
 console.log('👤 Current user ID:', user.id);
@@ -66,7 +72,8 @@ console.log(`📊 Total: ${transformedAnnouncements.length}, Unread: ${unread.le
 console.log('🔔 Showing announcement popup with', unread.length, 'unread announcement(s)');
 ```
 
-**Impact**: 
+**Impact**:
+
 - Developers can debug issues instantly
 - Users can verify behavior in console
 - Transparent operation tracking
@@ -76,6 +83,7 @@ console.log('🔔 Showing announcement popup with', unread.length, 'unread annou
 **File**: `frontend/src/components/MemberDashboard.tsx` (Lines 299-345)
 
 **Changes:**
+
 ```typescript
 // BEFORE:
 const markAnnouncementAsRead = async (announcementId: string) => {
@@ -93,21 +101,21 @@ const markAnnouncementAsRead = async (announcementId: string) => {
     console.error('❌ Cannot mark as read: No user ID');
     return;
   }
-  
+
   console.log(`📝 Marking announcement #${announcementId} as read for user ${user.id}`);
-  
+
   try {
     const response = await fetch(...);
-    
+
     if (!response.ok) {  // Check HTTP status
       const errorData = await response.json();
       console.error('❌ API error:', errorData);
       throw new Error(errorData.error || 'Failed to mark as read');
     }
-    
+
     const result = await response.json();
     console.log(`✅ Announcement #${announcementId} marked as read:`, result);
-    
+
     return true;  // Return success status
   } catch (error) {
     console.error(`❌ Failed to mark announcement #${announcementId} as read:`, error);
@@ -117,6 +125,7 @@ const markAnnouncementAsRead = async (announcementId: string) => {
 ```
 
 **Improvements:**
+
 - ✅ Response validation
 - ✅ Error details logging
 - ✅ Success confirmation
@@ -125,33 +134,35 @@ const markAnnouncementAsRead = async (announcementId: string) => {
 ### 4. **Async/Await Popup Close Handler** ✅
 
 **Changes:**
+
 ```typescript
 // BEFORE:
 const handleCloseAnnouncementPopup = () => {
   unreadAnnouncements.forEach((ann) => {
-    markAnnouncementAsRead(ann.id);  // Fire and forget
+    markAnnouncementAsRead(ann.id); // Fire and forget
   });
-  setShowAnnouncementPopup(false);  // Close immediately
+  setShowAnnouncementPopup(false); // Close immediately
   setUnreadAnnouncements([]);
 };
 
 // AFTER:
 const handleCloseAnnouncementPopup = async () => {
   console.log('🚪 Closing popup, marking', unreadAnnouncements.length, 'announcements');
-  
+
   const markPromises = unreadAnnouncements.map((ann) => markAnnouncementAsRead(ann.id));
-  
+
   // Wait for all API calls to complete
   await Promise.all(markPromises);
-  
+
   console.log('✅ All announcements marked as read');
-  
+
   setShowAnnouncementPopup(false);
   setUnreadAnnouncements([]);
 };
 ```
 
 **Improvements:**
+
 - ✅ Waits for all API calls to complete
 - ✅ Ensures database is updated before closing
 - ✅ Tracks progress with logging
@@ -160,13 +171,14 @@ const handleCloseAnnouncementPopup = async () => {
 ### 5. **Removed Problematic Fallback** ✅
 
 **Before**: Set fallback announcements without `readBy` field  
-**After**: Just keep state empty on error  
+**After**: Just keep state empty on error
 
 **Impact**: Prevents confusion with un-markable announcements
 
 ### 6. **User Presence Check** ✅
 
 **Added check before loading:**
+
 ```typescript
 if (user?.id) {
   loadAnnouncements();
@@ -187,16 +199,17 @@ if (user?.id) {
 
 **Test Scenarios**:
 
-| # | Test Scenario | Result | Details |
-|---|---------------|--------|---------|
-| 1 | Fetch announcements | ✅ PASS | Retrieved 4 published announcements |
-| 2 | Filter unread | ✅ PASS | Correctly identified 2 unread announcements |
-| 3 | Mark as read | ✅ PASS | Successfully marked both announcements |
-| 4 | Verify database | ✅ PASS | User ID stored in read_by_users array |
-| 5 | Refresh & filter | ✅ PASS | 0 unread after marking |
-| 6 | Verify no popup | ✅ PASS | Popup correctly hidden (all read) |
+| #   | Test Scenario       | Result  | Details                                     |
+| --- | ------------------- | ------- | ------------------------------------------- |
+| 1   | Fetch announcements | ✅ PASS | Retrieved 4 published announcements         |
+| 2   | Filter unread       | ✅ PASS | Correctly identified 2 unread announcements |
+| 3   | Mark as read        | ✅ PASS | Successfully marked both announcements      |
+| 4   | Verify database     | ✅ PASS | User ID stored in read_by_users array       |
+| 5   | Refresh & filter    | ✅ PASS | 0 unread after marking                      |
+| 6   | Verify no popup     | ✅ PASS | Popup correctly hidden (all read)           |
 
 **Test Output**:
+
 ```
 ✅ SUCCESS: All announcements marked as read!
 ✅ Popup will NOT appear on next login/refresh!
@@ -230,6 +243,7 @@ Expected behavior verified:
 ## 📊 BEFORE vs AFTER Comparison
 
 ### Before Fix:
+
 ```
 User Action             Result
 ──────────────────────────────────────────
@@ -240,6 +254,7 @@ Logout/Login            ❌ Popup appears AGAIN (ISSUE!)
 ```
 
 ### After Fix:
+
 ```
 User Action             Result
 ──────────────────────────────────────────
@@ -283,7 +298,7 @@ New announcement        ✅ Shows in popup (only unread)
        ├─→ Log: "🔔 Showing popup with X announcements"
        ├─→ setUnreadAnnouncements(unread)
        └─→ setShowAnnouncementPopup(true)
-   
+
    └─→ If unread.length === 0:
        │
        ├─→ Log: "✅ All read - no popup"
@@ -300,7 +315,7 @@ New announcement        ✅ Shows in popup (only unread)
    │   ├─→ API: POST /api/announcements/:id/mark-read
    │   │       Body: { userId: "user-uuid" }
    │   │
-   │   └─→ Backend: 
+   │   └─→ Backend:
    │       ├─→ Fetch current read_by_users array
    │       ├─→ Add userId if not present (no duplicates)
    │       ├─→ UPDATE announcements SET read_by_users = ...
@@ -331,17 +346,17 @@ New announcement        ✅ Shows in popup (only unread)
 
 ### Cross-Layer Checks:
 
-| Layer | Component | Status | Notes |
-|-------|-----------|--------|-------|
-| Database | read_by_users field | ✅ WORKING | Stores UUID arrays correctly |
-| Database | GIN index | ✅ WORKING | Fast array lookups |
-| Backend | mark-read endpoint | ✅ WORKING | Updates database correctly |
-| Backend | member announcements endpoint | ✅ WORKING | Returns correct data structure |
-| Frontend | Data fetching | ✅ WORKING | Receives and parses correctly |
-| Frontend | Filtering logic | ✅ WORKING | Excludes read announcements |
-| Frontend | mark-as-read calls | ✅ WORKING | Async/await properly implemented |
-| Frontend | Popup display | ✅ WORKING | Shows/hides based on read status |
-| Integration | End-to-end flow | ✅ WORKING | All layers communicate correctly |
+| Layer       | Component                     | Status     | Notes                            |
+| ----------- | ----------------------------- | ---------- | -------------------------------- |
+| Database    | read_by_users field           | ✅ WORKING | Stores UUID arrays correctly     |
+| Database    | GIN index                     | ✅ WORKING | Fast array lookups               |
+| Backend     | mark-read endpoint            | ✅ WORKING | Updates database correctly       |
+| Backend     | member announcements endpoint | ✅ WORKING | Returns correct data structure   |
+| Frontend    | Data fetching                 | ✅ WORKING | Receives and parses correctly    |
+| Frontend    | Filtering logic               | ✅ WORKING | Excludes read announcements      |
+| Frontend    | mark-as-read calls            | ✅ WORKING | Async/await properly implemented |
+| Frontend    | Popup display                 | ✅ WORKING | Shows/hides based on read status |
+| Integration | End-to-end flow               | ✅ WORKING | All layers communicate correctly |
 
 ### No Functionality Blocking:
 
@@ -364,6 +379,7 @@ New announcement        ✅ Shows in popup (only unread)
 **Lines Modified**: 195-345
 
 **Changes**:
+
 - Enhanced loadAnnouncements() with logging and type consistency
 - Improved markAnnouncementAsRead() with response validation
 - Made handleCloseAnnouncementPopup() async with Promise.all
@@ -377,6 +393,7 @@ New announcement        ✅ Shows in popup (only unread)
 **Purpose**: Automated end-to-end test script
 
 **Features**:
+
 - Simulates complete user flow
 - Tests API integration
 - Verifies database updates
@@ -396,12 +413,14 @@ New announcement        ✅ Shows in popup (only unread)
 ## 🚀 DEPLOYMENT STATUS
 
 ### Current State:
+
 - ✅ Backend: Running on port 4001 (no changes needed)
 - ✅ Frontend: Running on port 5173 with fixes applied
 - ✅ Database: Schema already correct (no migration needed)
 - ✅ Tests: All passing (6/6 scenarios)
 
 ### Ready For:
+
 - ✅ **Production Deployment**: Code is stable and tested
 - ✅ **User Acceptance Testing**: Verified with real data
 - ✅ **Live Environment**: No breaking changes
@@ -413,6 +432,7 @@ New announcement        ✅ Shows in popup (only unread)
 ### For End Users:
 
 **Normal Usage**:
+
 1. Login to Member Dashboard (http://localhost:5173)
 2. If unread announcements exist → Popup appears automatically
 3. Read the announcements
@@ -422,6 +442,7 @@ New announcement        ✅ Shows in popup (only unread)
 7. Logout and login again → Still no popup (persistent)
 
 **Expected Behavior**:
+
 - ✅ See announcements only ONCE
 - ✅ After clicking "Got it!", never see them again
 - ✅ Only NEW announcements will appear in future
@@ -429,6 +450,7 @@ New announcement        ✅ Shows in popup (only unread)
 ### For Administrators:
 
 **Creating Announcements**:
+
 1. Login to Sparta Dashboard
 2. Navigate to Announcement Manager
 3. Create announcement
@@ -437,9 +459,10 @@ New announcement        ✅ Shows in popup (only unread)
 6. Members will see it in popup (if unread)
 
 **Tracking Engagement**:
+
 ```sql
 -- See who has read an announcement
-SELECT 
+SELECT
     id,
     title,
     array_length(read_by_users, 1) as readers_count,
@@ -451,6 +474,7 @@ WHERE id = <announcement-id>;
 ### For Developers:
 
 **Debugging**:
+
 1. Open browser DevTools (F12)
 2. Go to Console tab
 3. Look for colored emoji logs:
@@ -463,6 +487,7 @@ WHERE id = <announcement-id>;
    - 🚪 = Closing popup
 
 **Testing**:
+
 ```powershell
 # Run automated test
 node test-mark-read-complete-flow.js

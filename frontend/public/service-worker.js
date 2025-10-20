@@ -39,27 +39,24 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  const promiseChain = self.registration.showNotification(
-    notificationData.title,
-    {
-      body: notificationData.body,
-      icon: notificationData.icon,
-      badge: notificationData.badge,
-      tag: notificationData.tag,
-      data: notificationData.data,
-      requireInteraction: false,
-      actions: [
-        {
-          action: 'open',
-          title: 'View',
-        },
-        {
-          action: 'close',
-          title: 'Dismiss',
-        },
-      ],
-    }
-  );
+  const promiseChain = self.registration.showNotification(notificationData.title, {
+    body: notificationData.body,
+    icon: notificationData.icon,
+    badge: notificationData.badge,
+    tag: notificationData.tag,
+    data: notificationData.data,
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'open',
+        title: 'View',
+      },
+      {
+        action: 'close',
+        title: 'Dismiss',
+      },
+    ],
+  });
 
   event.waitUntil(promiseChain);
 });
@@ -83,7 +80,7 @@ self.addEventListener('notificationclick', (event) => {
         if (clients.openWindow) {
           return clients.openWindow('/');
         }
-      })
+      }),
     );
   }
 });

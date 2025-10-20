@@ -26,8 +26,14 @@ async function applyMigration() {
   console.log('🚀 Starting Announcements Table Migration...\n');
 
   // Read the migration file
-  const migrationPath = path.join(__dirname, 'infra', 'supabase', 'migrations', '20251019_announcements_complete.sql');
-  
+  const migrationPath = path.join(
+    __dirname,
+    'infra',
+    'supabase',
+    'migrations',
+    '20251019_announcements_complete.sql',
+  );
+
   if (!fs.existsSync(migrationPath)) {
     console.error(`❌ Migration file not found: ${migrationPath}`);
     process.exit(1);
@@ -61,25 +67,25 @@ async function applyMigration() {
 
     // Step 2: Execute migration
     console.log('🔧 Step 2: Executing migration SQL...');
-    
+
     // Split SQL into individual statements
     const statements = sqlContent
       .split(';')
-      .map(s => s.trim())
-      .filter(s => s.length > 0 && !s.startsWith('--'));
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0 && !s.startsWith('--'));
 
     console.log(`📊 Found ${statements.length} SQL statements to execute\n`);
 
     for (let i = 0; i < statements.length; i++) {
       const statement = statements[i] + ';';
-      
+
       // Skip comments
       if (statement.trim().startsWith('--')) continue;
-      
+
       console.log(`  [${i + 1}/${statements.length}] Executing statement...`);
-      
+
       const { error } = await supabase.rpc('exec_sql', {
-        sql: statement
+        sql: statement,
       });
 
       if (error) {
@@ -88,7 +94,7 @@ async function applyMigration() {
         console.error(`  Statement: ${statement.substring(0, 100)}...`);
         throw error;
       }
-      
+
       console.log(`  ✅ Statement ${i + 1} executed successfully`);
     }
 
@@ -96,7 +102,7 @@ async function applyMigration() {
 
     // Step 3: Verify new table structure
     console.log('🔍 Step 3: Verifying new table structure...');
-    
+
     const { data: tableInfo, error: infoError } = await supabase
       .from('announcements')
       .select('*')
@@ -114,11 +120,12 @@ async function applyMigration() {
     console.log('  2. Login as member and verify popup modal appears');
     console.log('  3. Test "Enable Push Notifications" button');
     console.log('\n');
-
   } catch (error) {
     console.error('\n❌ Migration failed:', error.message);
     console.error('\n💡 Alternative Method:');
-    console.error('Copy the SQL from infra/supabase/migrations/20251019_announcements_complete.sql');
+    console.error(
+      'Copy the SQL from infra/supabase/migrations/20251019_announcements_complete.sql',
+    );
     console.error('and paste it directly into Supabase Dashboard > SQL Editor\n');
     process.exit(1);
   }
