@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User ID Checker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .info-box {
+            background: #e8f4f8;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+        }
+        .error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .code {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #e83e8c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 User ID Mismatch Diagnostic Tool</h1>
+        
+        <div class="info-box">
+            <strong>📋 Purpose:</strong> This tool checks if your logged-in user ID matches the database.
+        </div>
+
+        <div class="info-box warning">
+            <strong>⚠️ Known User in Database:</strong><br>
+            <code class="code">22a9215c-c72b-4aa9-964a-189363da5453</code><br>
+            <small>This user has marked all announcements as read.</small>
+        </div>
+
+        <h2>Step 1: Check Your User ID</h2>
+        <p>Open your app and check the browser console (F12) for this log:</p>
+        <pre>👤 Current user ID: YOUR-UUID-HERE</pre>
+        
+        <h2>Step 2: Test Filtering Logic</h2>
+        <button onclick="testFiltering()">🧪 Run Filtering Test</button>
+        
+        <div id="results"></div>
+
+        <h2>Step 3: Instructions</h2>
+        <div class="info-box">
+            <ol>
+                <li>Open <strong>http://localhost:5173</strong> in your browser</li>
+                <li>Press <strong>F12</strong> to open DevTools Console</li>
+                <li>Login as a Member user</li>
+                <li>Look for the log: <code class="code">👤 Current user ID: XXXX</code></li>
+                <li>Copy that UUID and paste it here:</li>
+            </ol>
+            <input type="text" id="userIdInput" placeholder="Paste your UUID here" style="width: 100%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
+            <button onclick="checkUserId()">✅ Check Match</button>
+        </div>
+
+        <div id="checkResult"></div>
+    </div>
+
+    <script>
+        const KNOWN_USER_ID = "22a9215c-c72b-4aa9-964a-189363da5453";
+        const API_URL = "http://localhost:4001/api/announcements/member";
+
+        async function testFiltering() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>⏳ Testing...</p>';
+
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+
+                if (!result.success || !result.data) {
+                    resultsDiv.innerHTML = '<div class="info-box error">❌ Failed to fetch announcements</div>';
+                    return;
+                }
+
+                const announcements = result.data;
+                
+                // Test with known user
+                const unreadForKnown = announcements.filter(ann => {
+                    const readBy = ann.read_by_users || [];
+                    return !readBy.includes(KNOWN_USER_ID);
+                });
+
+                // Test with a different user
+                const differentUserId = "00000000-0000-0000-0000-000000000099";
+                const unreadForDifferent = announcements.filter(ann => {
+                    const readBy = ann.read_by_users || [];
+                    return !readBy.includes(differentUserId);
+                });
+
+                let html = '<h3>🧪 Test Results</h3>';
+                
+                html += `<div class="info-box success">
+                    <strong>✅ Known User (${KNOWN_USER_ID.substring(0, 8)}...):</strong><br>
+                    Unread announcements: ${unreadForKnown.length}<br>
+                    Expected behavior: ${unreadForKnown.length === 0 ? 'NO popup ✅' : 'POPUP shown ⚠️'}
+                </div>`;
+
+                html += `<div class="info-box error">
+                    <strong>⚠️ Different User (${differentUserId.substring(0, 8)}...):</strong><br>
+                    Unread announcements: ${unreadForDifferent.length}<br>
+                    Expected behavior: ${unreadForDifferent.length > 0 ? 'POPUP shown ⚠️' : 'NO popup ✅'}
+                </div>`;
+
+                html += '<h4>📊 Announcement Details:</h4><ul>';
+                announcements.forEach(ann => {
+                    const hasKnownUser = (ann.read_by_users || []).includes(KNOWN_USER_ID);
+                    html += `<li><strong>ID ${ann.id}:</strong> ${ann.title}<br>
+                             Known user status: ${hasKnownUser ? '✅ READ' : '⚠️ UNREAD'}<br>
+                             read_by_users count: ${(ann.read_by_users || []).length}</li>`;
+                });
+                html += '</ul>';
+
+                html += `<div class="info-box warning">
+                    <strong>🎯 Conclusion:</strong><br>
+                    If you see the popup when logged in, it means your user ID is <strong>NOT</strong> 
+                    ${KNOWN_USER_ID.substring(0, 8)}...<br>
+                    You're logged in with a DIFFERENT account that hasn't marked these announcements as read.
+                </div>`;
+
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="info-box error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        function checkUserId() {
+            const input = document.getElementById('userIdInput').value.trim();
+            const resultDiv = document.getElementById('checkResult');
+
+            if (!input) {
+                resultDiv.innerHTML = '<div class="info-box error">❌ Please paste a user ID</div>';
+                return;
+            }
+
+            const isMatch = input === KNOWN_USER_ID;
+
+            if (isMatch) {
+                resultDiv.innerHTML = `<div class="info-box success">
+                    <h3>✅ MATCH CONFIRMED!</h3>
+                    <p>Your user ID <strong>MATCHES</strong> the database user.</p>
+                    <p><strong>Expected behavior:</strong> You should NOT see the announcement popup.</p>
+                    <p><strong>If you still see it:</strong></p>
+                    <ul>
+                        <li>Clear browser cache (Ctrl+Shift+Delete)</li>
+                        <li>Hard refresh (Ctrl+Shift+R)</li>
+                        <li>Check if database was updated (run mark-as-read again)</li>
+                    </ul>
+                </div>`;
+            } else {
+                resultDiv.innerHTML = `<div class="info-box error">
+                    <h3>⚠️ MISMATCH FOUND!</h3>
+                    <p><strong>Your user ID:</strong><br><code class="code">${input}</code></p>
+                    <p><strong>Database user ID:</strong><br><code class="code">${KNOWN_USER_ID}</code></p>
+                    <p><strong>🎯 THIS IS THE PROBLEM!</strong></p>
+                    <p>You're logged in with a <strong>different account</strong> than the one used in previous tests.</p>
+                    <p><strong>Solution:</strong></p>
+                    <ul>
+                        <li>Click "Got it!" on the popup to mark announcements as read for YOUR account</li>
+                        <li>OR login with the account: <code class="code">${KNOWN_USER_ID.substring(0, 16)}...</code></li>
+                    </ul>
+                </div>`;
+            }
+        }
+
+        // Auto-run test on page load
+        window.onload = () => {
+            testFiltering();
+        };
+    </script>
+</body>
+</html>

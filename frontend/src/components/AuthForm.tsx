@@ -357,12 +357,27 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
     return digits;
   };
 
-  const renderLoginForm = () => (
-    <div className="auth-form-content">
-      <div className="auth-header">
-        <h2>Welcome Back, Viking!</h2>
-        <p>Ready to unleash your inner warrior?</p>
-      </div>
+  const handleClearDemoData = () => {
+    if (confirm('⚠️ This will clear ALL demo users and logout. Continue?')) {
+      localStorage.removeItem('viking_demo_users');
+      localStorage.removeItem('viking_current_user');
+      localStorage.removeItem('viking_remembered_user');
+      console.log('🧹 Demo data cleared successfully!');
+      alert('✅ Demo data cleared! Please sign up as a new demo user.');
+      window.location.reload();
+    }
+  };
+
+  const renderLoginForm = () => {
+    const isDemoMode =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    return (
+      <div className="auth-form-content">
+        <div className="auth-header">
+          <h2>Welcome Back, Viking!</h2>
+          <p>Ready to unleash your inner warrior?</p>
+        </div>
 
       <div className="form-group">
         <label htmlFor="email">Email *</label>
@@ -415,8 +430,32 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           Join the Viking Army
         </button>
       </p>
+
+      {isDemoMode && (
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <button
+            type="button"
+            onClick={handleClearDemoData}
+            style={{
+              padding: '8px 16px',
+              background: '#ff4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontSize: '12px',
+            }}
+          >
+            🧹 Clear Demo Data & Start Fresh
+          </button>
+          <p style={{ fontSize: '11px', color: '#666', marginTop: '8px' }}>
+            Having login issues? Click above to reset demo users.
+          </p>
+        </div>
+      )}
     </div>
-  );
+    );
+  };
 
   const renderSignupStep1 = () => (
     <div className="auth-form-content">

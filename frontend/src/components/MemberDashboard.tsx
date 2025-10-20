@@ -12,6 +12,8 @@ import {
   QRCodeData,
 } from '../services/qrCodeService';
 import { pushNotificationService } from '../services/pushNotificationService';
+import AnnouncementPopup from './AnnouncementPopup';
+import { useAnnouncements } from '../hooks/useAnnouncements';
 
 interface UserProfile {
   name: string;
@@ -185,68 +187,20 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     })
     .slice(0, 5); // Show only next 5 upcoming classes
 
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [isLoadingAnnouncements, setIsLoadingAnnouncements] = useState(true);
-  const [unreadAnnouncements, setUnreadAnnouncements] = useState<Announcement[]>([]);
-  const [showAnnouncementPopup, setShowAnnouncementPopup] = useState(false);
+  // Use announcements hook
+  const {
+    announcements: announcementsList,
+    unreadAnnouncements,
+    showPopup: showAnnouncementPopup,
+    isMarking: isMarkingAnnouncements,
+    handleClosePopup: handleCloseAnnouncementPopup,
+  } = useAnnouncements({
+    userId: user?.id,
+    role: 'member',
+    enabled: true,
+  });
+
   const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
-
-  // Load announcements from API
-  useEffect(() => {
-    const loadAnnouncements = async () => {
-      try {
-        setIsLoadingAnnouncements(true);
-        const response = await fetch('http://localhost:4001/api/announcements/member');
-        const result = await response.json();
-
-        if (result.success && result.data) {
-          // Transform API data to match our interface
-          const transformedAnnouncements: Announcement[] = result.data.map((ann: any) => ({
-            id: ann.id,
-            title: ann.title,
-            message: ann.content,
-            date: ann.published_at || ann.created_at,
-            type: ann.priority === 'urgent' ? 'warning' : 
-                  ann.priority === 'high' ? 'success' : 'info',
-            readBy: ann.read_by_users || [],
-          }));
-          setAnnouncements(transformedAnnouncements);
-          
-          // Filter unread announcements for current user
-          if (user?.id) {
-            const unread = transformedAnnouncements.filter(
-              (ann: any) => !ann.readBy.includes(user.id)
-            );
-            if (unread.length > 0) {
-              setUnreadAnnouncements(unread);
-              setShowAnnouncementPopup(true);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load announcements:', error);
-        // Set default announcements as fallback
-        setAnnouncements([
-          {
-            id: '1',
-            title: 'Welcome to Viking Hammer',
-            message: 'Check out our facility and meet our amazing team!',
-            date: new Date().toISOString(),
-            type: 'info',
-          },
-        ]);
-      } finally {
-        setIsLoadingAnnouncements(false);
-      }
-    };
-
-    loadAnnouncements();
-    
-    // Refresh announcements every 5 minutes
-    const refreshInterval = setInterval(loadAnnouncements, 300000);
-    
-    return () => clearInterval(refreshInterval);
-  }, [user?.id]);
 
   // Initialize push notifications
   useEffect(() => {
@@ -293,33 +247,6 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     } catch (error) {
       console.error('Failed to enable push notifications:', error);
     }
-  };
-
-  // Mark announcement as read
-  const markAnnouncementAsRead = async (announcementId: string) => {
-    if (!user?.id) return;
-
-    try {
-      await fetch(`http://localhost:4001/api/announcements/${announcementId}/mark-read`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId: user.id }),
-      });
-    } catch (error) {
-      console.error('Failed to mark announcement as read:', error);
-    }
-  };
-
-  // Handle closing announcement popup
-  const handleCloseAnnouncementPopup = () => {
-    // Mark all unread announcements as read
-    unreadAnnouncements.forEach((ann) => {
-      markAnnouncementAsRead(ann.id);
-    });
-    setShowAnnouncementPopup(false);
-    setUnreadAnnouncements([]);
   };
 
   const [quickStats, setQuickStats] = useState({
@@ -631,7 +558,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             <h2>📢 Gym News & Announcements</h2>
           </div>
           <div className="announcements-list">
-            {announcements.map((announcement) => (
+            {announcementsList.map((announcement: Announcement) => (
               <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
                 <div className="announcement-header">
                   <h4>{announcement.title}</h4>
@@ -724,52 +651,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         </div>
       )}
 
-      {/* Announcement Popup Modal */}
-      {showAnnouncementPopup && unreadAnnouncements.length > 0 && (
-        <div className="announcement-popup-overlay" onClick={handleCloseAnnouncementPopup}>
-          <div className="announcement-popup-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="announcement-popup-header">
-              <h2>📢 New Announcements</h2>
-              <button className="close-btn" onClick={handleCloseAnnouncementPopup}>
-                ✕
-              </button>
-            </div>
-            <div className="announcement-popup-content">
-              {unreadAnnouncements.map((announcement) => (
-                <div key={announcement.id} className={`announcement-popup-item ${announcement.type}`}>
-                  <div className="announcement-popup-icon">
-                    {announcement.type === 'warning' && '⚠️'}
-                    {announcement.type === 'success' && '✅'}
-                    {announcement.type === 'info' && 'ℹ️'}
-                  </div>
-                  <div className="announcement-popup-details">
-                    <h3>{announcement.title}</h3>
-                    <p>{announcement.message}</p>
-                    <span className="announcement-popup-date">
-                      {new Date(announcement.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="announcement-popup-footer">
-              {!pushNotificationsEnabled && (
-                <button className="btn-enable-notifications" onClick={handleEnablePushNotifications}>
-                  🔔 Enable Push Notifications
-                </button>
-              )}
-              <button className="btn-acknowledge" onClick={handleCloseAnnouncementPopup}>
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* Announcement Popup */}
+      {showAnnouncementPopup && (
+        <AnnouncementPopup
+          announcements={unreadAnnouncements}
+          onClose={handleCloseAnnouncementPopup}
+          isLoading={isMarkingAnnouncements}
+        />
       )}
     </div>
   );

@@ -142,7 +142,7 @@ export const signUpUser = async (
       const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
       
       const mockUser: UserProfile = {
-        id: 'demo-' + Date.now(),
+        id: crypto.randomUUID(),
         email: userData.email,
         firstName: userData.firstName,
         lastName: userData.lastName,
@@ -283,7 +283,14 @@ export const signInUser = async (
       if (!storedUser) {
         console.error('❌ User not found in demo storage');
         console.log('📋 Available emails:', Object.keys(demoUsers));
-        return { user: null, error: 'Invalid email or password' };
+        
+        // User-friendly error for demo mode
+        const hasAnyUsers = Object.keys(demoUsers).length > 0;
+        const errorMsg = hasAnyUsers 
+          ? '❌ Account not found.\n\nPlease check your email or sign up as a new user.'
+          : '❌ No demo accounts found.\n\nPlease sign up to create your first demo account.';
+        
+        return { user: null, error: errorMsg };
       }
 
       console.log('✅ User found! Checking password...');
@@ -299,7 +306,10 @@ export const signInUser = async (
         console.error('❌ Password mismatch!');
         console.log('Expected:', `"${storedUser.password}"`);
         console.log('Received:', `"${loginData.password}"`);
-        return { user: null, error: 'Invalid email or password' };
+        return { 
+          user: null, 
+          error: '❌ Incorrect password.\n\nPlease try again or use the "Clear Demo Data" button to reset your account.' 
+        };
       }
 
       // Simulate network delay

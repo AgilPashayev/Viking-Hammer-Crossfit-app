@@ -7,7 +7,7 @@ interface Announcement {
   title: string;
   content: string;
   type: 'general' | 'class' | 'maintenance' | 'event' | 'promotion';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
   recipients: 'all' | 'members' | 'instructors' | 'staff' | 'custom';
   customRecipients?: string[];
   status: 'draft' | 'published' | 'scheduled' | 'expired';
@@ -24,9 +24,10 @@ interface Announcement {
 
 interface AnnouncementManagerProps {
   onBack: () => void;
+  user?: any;
 }
 
-const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => {
+const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user }) => {
   const { logActivity } = useData();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -45,7 +46,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
     title: '',
     content: '',
     type: 'general',
-    priority: 'medium',
+    priority: 'normal',
     recipients: 'all',
     customRecipients: [],
     status: 'draft',
@@ -54,9 +55,42 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
   });
 
   useEffect(() => {
-    // Load mock data
-    loadMockData();
+    // Load announcements from API
+    loadAnnouncements();
   }, []);
+
+  const loadAnnouncements = async () => {
+    try {
+      const response = await fetch('http://localhost:4001/api/announcements/member');
+      const result = await response.json();
+      
+      if (result.success && result.data) {
+        // Transform backend data to component format
+        const transformedAnnouncements: Announcement[] = result.data.map((ann: any) => ({
+          id: String(ann.id),
+          title: ann.title,
+          content: ann.content,
+          type: 'general' as const,
+          priority: (ann.priority as any) || 'medium',
+          recipients: ann.target_audience || 'all',
+          status: ann.status || 'published',
+          createdBy: ann.created_by || 'System',
+          createdAt: ann.created_at,
+          publishedAt: ann.published_at,
+          viewCount: ann.views_count || 0,
+          readByCount: (ann.read_by_users || []).length,
+          tags: [],
+          attachments: []
+        }));
+        
+        setAnnouncements(transformedAnnouncements);
+      }
+    } catch (error) {
+      console.error('Failed to load announcements:', error);
+      // Fallback to empty array instead of mock data
+      setAnnouncements([]);
+    }
+  };
 
   const loadMockData = () => {
     const mockAnnouncements: Announcement[] = [
@@ -97,7 +131,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
         title: 'January Membership Promotion - 20% Off!',
         content: 'Special New Year promotion! Get 20% off all annual membership plans when you sign up before January 31st. This offer includes access to all classes, pool, sauna, and personal training consultations.',
         type: 'promotion',
-        priority: 'medium',
+        priority: 'normal',
         recipients: 'all',
         status: 'published',
         createdBy: 'Marketing Team',
@@ -130,7 +164,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
         title: 'Valentine\'s Day Couples Workout Event',
         content: 'Join us for a special Valentine\'s Day couples workout event on February 14th at 7:00 PM. Fun partner exercises, healthy refreshments, and prizes for participating couples. Registration required.',
         type: 'event',
-        priority: 'medium',
+        priority: 'normal',
         recipients: 'members',
         status: 'scheduled',
         scheduledDate: '2024-02-01T10:00:00',
@@ -176,10 +210,10 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
     });
   };
 
-  const handleCreateAnnouncement = () => {
+  const handleCreateAnnouncement = async () => {
     if (newAnnouncement.title && newAnnouncement.content) {
       if (editingAnnouncement) {
-        // Edit existing announcement
+        // Edit existing announcement (not implemented in backend yet)
         const updatedAnnouncement: Announcement = {
           ...editingAnnouncement,
           ...newAnnouncement,
@@ -200,29 +234,89 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
         });
         setEditingAnnouncement(null);
       } else {
-        // Create new announcement
-        const announcementToAdd: Announcement = {
-          ...newAnnouncement,
-          id: `ann${Date.now()}`,
-          createdBy: 'Current User',
-          createdAt: new Date().toISOString(),
-          viewCount: 0,
-          readByCount: 0,
-          publishedAt: newAnnouncement.status === 'published' ? new Date().toISOString() : undefined,
-        } as Announcement;
-        
-        setAnnouncements([announcementToAdd, ...announcements]);
-        logActivity({
-          type: 'announcement_created',
-          message: `Announcement created: ${announcementToAdd.title}`,
-        });
+        // Create new announcement via API
+        try {
+          const response = await fetch('http://localhost:4001/api/announcements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: newAnnouncement.title,
+              content: newAnnouncement.content,
+              targetAudience: newAnnouncement.recipients,
+              priority: newAnnouncement.priority,
+              createdBy: user?.id || '00000000-0000-0000-0000-000000000000',
+            }),
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            // Reload announcements from database
+            await loadAnnouncements();
+            
+            logActivity({
+              type: 'announcement_created',
+              message: `Announcement created: ${result.data.title}`,
+            });
+            
+            // Show success message
+            alert(`✅ Success!\n\nYour announcement "${result.data.title}" has been published and is now visible to members.`);
+          } else {
+            console.error('Failed to create announcement:', result.error);
+            
+            // User-friendly error messages
+            let friendlyMessage = '❌ Unable to create announcement.\n\n';
+            
+            if (result.error && result.error.includes('uuid')) {
+              friendlyMessage += '🔧 Your account needs to be refreshed.\n\n';
+              friendlyMessage += 'Please:\n';
+              friendlyMessage += '1. Logout\n';
+              friendlyMessage += '2. Clear demo data (red button on login)\n';
+              friendlyMessage += '3. Sign up as a new demo user\n\n';
+              friendlyMessage += 'This will fix the account format issue.';
+            } else if (result.error && result.error.includes('priority_check')) {
+              friendlyMessage += '⚠️ Invalid priority value.\n\n';
+              friendlyMessage += 'Please select a valid priority:\n';
+              friendlyMessage += '• Low\n';
+              friendlyMessage += '• Normal\n';
+              friendlyMessage += '• High\n';
+              friendlyMessage += '• Urgent\n\n';
+              friendlyMessage += 'If this error persists, please refresh the page.';
+            } else if (result.error && result.error.includes('target_audience_check')) {
+              friendlyMessage += '⚠️ Invalid target audience value.\n\n';
+              friendlyMessage += 'Please select a valid recipient type:\n';
+              friendlyMessage += '• All Members\n';
+              friendlyMessage += '• Members Only\n';
+              friendlyMessage += '• Instructors\n';
+              friendlyMessage += '• Staff\n\n';
+              friendlyMessage += 'If this error persists, please refresh the page.';
+            } else if (result.error && result.error.includes('foreign key')) {
+              friendlyMessage += '🔧 Your account is not properly set up.\n\n';
+              friendlyMessage += 'Please:\n';
+              friendlyMessage += '1. Logout and login again\n';
+              friendlyMessage += '2. If issue persists, clear demo data and create a new account\n\n';
+              friendlyMessage += 'This will ensure your account is properly registered.';
+            } else {
+              friendlyMessage += '💡 Something went wrong.\n\n';
+              friendlyMessage += 'Technical details:\n' + result.error + '\n\n';
+              friendlyMessage += 'Please try again. If the issue persists, contact support.';
+            }
+            
+            alert(friendlyMessage);
+          }
+        } catch (error) {
+          console.error('Failed to create announcement:', error);
+          alert('❌ Unable to create announcement.\n\n' +
+                '🌐 Please check your internet connection.\n' +
+                '🔄 If the issue persists, try refreshing the page.');
+        }
       }
       
       setNewAnnouncement({
         title: '',
         content: '',
         type: 'general',
-        priority: 'medium',
+        priority: 'normal',
         recipients: 'all',
         customRecipients: [],
         status: 'draft',
@@ -442,7 +536,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
           >
             <option value="all">All Priorities</option>
             <option value="low">Low</option>
-            <option value="medium">Medium</option>
+            <option value="normal">Normal</option>
             <option value="high">High</option>
             <option value="urgent">Urgent</option>
           </select>
@@ -581,7 +675,7 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
                   title: '',
                   content: '',
                   type: 'general',
-                  priority: 'medium',
+                  priority: 'normal',
                   recipients: 'all',
                   customRecipients: [],
                   status: 'draft',
@@ -632,11 +726,11 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack }) => 
                 <div className="form-group">
                   <label>Priority:</label>
                   <select
-                    value={newAnnouncement.priority || 'medium'}
+                    value={newAnnouncement.priority || 'normal'}
                     onChange={(e) => setNewAnnouncement({...newAnnouncement, priority: e.target.value as any})}
                   >
                     <option value="low">Low</option>
-                    <option value="medium">Medium</option>
+                    <option value="normal">Normal</option>
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
                   </select>

@@ -966,10 +966,15 @@ app.get(
 
 /**
  * GET /api/announcements/member - Get announcements for members (filtered by target_audience)
+ * Query params:
+ *   - userId: Filter to show only unread announcements for this user
+ *   - unreadOnly: If 'true', filters to unread announcements for userId
  */
 app.get(
   '/api/announcements/member',
   asyncHandler(async (req, res) => {
+    const { userId, unreadOnly } = req.query;
+
     const { data, error } = await supabase
       .from('announcements')
       .select('*')
@@ -982,7 +987,82 @@ app.get(
       return res.status(500).json({ error: error.message });
     }
 
-    res.json({ success: true, data });
+    // Filter unread announcements if requested
+    let filteredData = data;
+    if (userId && unreadOnly === 'true') {
+      filteredData = data.filter((announcement) => {
+        const readByUsers = announcement.read_by_users || [];
+        return !readByUsers.includes(userId);
+      });
+    }
+
+    res.json({ success: true, data: filteredData });
+  }),
+);
+
+/**
+ * GET /api/announcements/instructor - Get announcements for instructors (filtered by target_audience)
+ */
+app.get(
+  '/api/announcements/instructor',
+  asyncHandler(async (req, res) => {
+    const { userId, unreadOnly } = req.query;
+
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('status', 'published')
+      .or('target_audience.eq.all,target_audience.eq.instructors')
+      .order('published_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Filter unread announcements if requested
+    let filteredData = data;
+    if (userId && unreadOnly === 'true') {
+      filteredData = data.filter((announcement) => {
+        const readByUsers = announcement.read_by_users || [];
+        return !readByUsers.includes(userId);
+      });
+    }
+
+    res.json({ success: true, data: filteredData });
+  }),
+);
+
+/**
+ * GET /api/announcements/staff - Get announcements for staff/reception (filtered by target_audience)
+ */
+app.get(
+  '/api/announcements/staff',
+  asyncHandler(async (req, res) => {
+    const { userId, unreadOnly } = req.query;
+
+    const { data, error } = await supabase
+      .from('announcements')
+      .select('*')
+      .eq('status', 'published')
+      .or('target_audience.eq.all,target_audience.eq.staff')
+      .order('published_at', { ascending: false })
+      .limit(20);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    // Filter unread announcements if requested
+    let filteredData = data;
+    if (userId && unreadOnly === 'true') {
+      filteredData = data.filter((announcement) => {
+        const readByUsers = announcement.read_by_users || [];
+        return !readByUsers.includes(userId);
+      });
+    }
+
+    res.json({ success: true, data: filteredData });
   }),
 );
 
@@ -994,8 +1074,28 @@ app.post(
   asyncHandler(async (req, res) => {
     const { title, content, targetAudience, priority, createdBy } = req.body;
 
-    if (!title || !content || !createdBy) {
-      return res.status(400).json({ error: 'title, content, and createdBy are required' });
+    if (!title || !content) {
+      return res.status(400).json({ error: 'title and content are required' });
+    }
+
+    // For demo mode: Set created_by to NULL if user doesn't exist in database
+    // This allows announcements to be created without foreign key constraints
+    let finalCreatedBy = null;
+    
+    if (createdBy) {
+      // Check if user exists in database
+      const { data: userExists } = await supabase
+        .from('users_profile')
+        .select('id')
+        .eq('id', createdBy)
+        .single();
+      
+      // Only set created_by if user exists in database
+      if (userExists) {
+        finalCreatedBy = createdBy;
+      } else {
+        console.log(`⚠️ User ${createdBy} not in database - setting created_by to NULL for demo mode`);
+      }
     }
 
     const { data, error } = await supabase
@@ -1006,14 +1106,18 @@ app.post(
         target_audience: targetAudience || 'all',
         priority: priority || 'normal',
         status: 'published',
-        created_by: createdBy,
+        created_by: finalCreatedBy,  // NULL if demo user, UUID if real user
         published_at: new Date().toISOString(),
       })
       .select()
       .single();
 
     if (error) {
-      return res.status(500).json({ error: error.message });
+      console.error('❌ Database error:', error);
+      return res.status(500).json({ 
+        error: error.message,
+        details: 'Database constraint violation. Please check your account setup.'
+      });
     }
 
     res.status(201).json({ success: true, data });

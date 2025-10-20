@@ -11,9 +11,10 @@ import './Sparta.css';
 
 interface SpartaProps {
   onNavigate?: (page: string) => void;
+  user?: any;
 }
 
-const Sparta: React.FC<SpartaProps> = ({ onNavigate }) => {
+const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   const { stats, members, checkInMember, activities, getUpcomingBirthdays } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -403,7 +404,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate }) => {
         <CheckInHistory onBack={handleBackToDashboard} />
       )}
       {activeSection === 'announcements' && (
-        <AnnouncementManager onBack={handleBackToDashboard} />
+        <AnnouncementManager onBack={handleBackToDashboard} user={user} />
       )}
       {activeSection === 'memberships' && (
         <MembershipManager onBack={handleBackToDashboard} />

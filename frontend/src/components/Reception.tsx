@@ -11,9 +11,10 @@ import './Reception.css';
 
 interface ReceptionProps {
   onNavigate?: (page: string) => void;
+  user?: any;
 }
 
-const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
+const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
   const { stats, members, checkInMember, activities, getUpcomingBirthdays } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -212,7 +213,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate }) => {
       case 'classes':
         return <ClassManagement onBack={() => setActiveSection('dashboard')} />;
       case 'announcements':
-        return <AnnouncementManager onBack={() => setActiveSection('dashboard')} />;
+        return <AnnouncementManager onBack={() => setActiveSection('dashboard')} user={user} />;
       case 'memberships':
         return <MembershipManager onBack={() => setActiveSection('dashboard')} />;
       case 'birthdays':

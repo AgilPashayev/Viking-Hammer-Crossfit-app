@@ -232,7 +232,7 @@
             users[email] = {
                 password: password,
                 profile: {
-                    id: 'demo-' + Date.now(),
+                    id: crypto.randomUUID(),
                     email: email,
                     firstName: email.split('@')[0],
                     lastName: 'User',

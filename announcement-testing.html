@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Announcement Functionality Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; background: #f5f5f5; }
+        .test-section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .test-section h2 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #28a745; color: white; }
+        .btn-warning { background: #ffc107; color: #212529; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 4px; overflow-x: auto; }
+        .test-row { display: flex; gap: 10px; align-items: center; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1> Announcement Functionality - Complete Testing</h1>
+    
+    <div class='test-section'>
+        <h2>1. System Initialization</h2>
+        <button class='btn-primary' onclick='initializeTestUsers()'>Initialize Test Users</button>
+        <button class='btn-warning' onclick='checkCurrentUser()'>Check Current User</button>
+        <div id='init-result'></div>
+    </div>
+    
+    <div class='test-section'>
+        <h2>2. Test User Login</h2>
+        <div class='test-row'>
+            <button class='btn-success' onclick='loginAs(\"sparta@test.com\", \"sparta123\")'>Login as Sparta</button>
+            <button class='btn-success' onclick='loginAs(\"reception@test.com\", \"reception123\")'>Login as Reception</button>
+            <button class='btn-success' onclick='loginAs(\"agil83p@yahoo.com\", \"password123\")'>Login as Admin</button>
+        </div>
+        <div id='login-result'></div>
+    </div>
+    
+    <div class='test-section'>
+        <h2>3. Create Announcement Test</h2>
+        <div>
+            <input type='text' id='ann-title' placeholder='Title' style='width: 100%; padding: 8px; margin: 5px 0;' value='TEST - Announcement'>
+            <textarea id='ann-content' placeholder='Content' style='width: 100%; padding: 8px; margin: 5px 0; min-height: 100px;'>This is a test announcement created to verify UUID integration across all layers.</textarea>
+            <select id='ann-audience' style='width: 100%; padding: 8px; margin: 5px 0;'>
+                <option value='all'>All Members</option>
+                <option value='members'>Members Only</option>
+                <option value='instructors'>Instructors Only</option>
+                <option value='staff'>Staff Only</option>
+            </select>
+            <select id='ann-priority' style='width: 100%; padding: 8px; margin: 5px 0;'>
+                <option value='normal'>Normal</option>
+                <option value='high'>High</option>
+                <option value='urgent'>Urgent</option>
+                <option value='low'>Low</option>
+            </select>
+        </div>
+        <button class='btn-success' onclick='createAnnouncement()'>Create Announcement</button>
+        <div id='create-result'></div>
+    </div>
+    
+    <div class='test-section'>
+        <h2>4. Fetch Announcements Test</h2>
+        <button class='btn-primary' onclick='fetchAnnouncements()'>GET All Announcements</button>
+        <button class='btn-primary' onclick='fetchMemberAnnouncements()'>GET Member Announcements</button>
+        <div id='fetch-result'></div>
+    </div>
+    
+    <div class='test-section'>
+        <h2>5. Mark as Read Test</h2>
+        <input type='number' id='ann-id' placeholder='Announcement ID' style='padding: 8px; margin: 5px;'>
+        <button class='btn-success' onclick='markAsRead()'>Mark as Read</button>
+        <div id='mark-result'></div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:4001/api';
+        
+        function initializeTestUsers() {
+            const users = {};
+            const testUsers = [
+                {
+                    email: 'agil83p@yahoo.com',
+                    password: 'password123',
+                    profile: {
+                        id: crypto.randomUUID(),
+                        email: 'agil83p@yahoo.com',
+                        firstName: 'Agil',
+                        lastName: 'Pashayev',
+                        role: 'admin'
+                    }
+                },
+                {
+                    email: 'reception@test.com',
+                    password: 'reception123',
+                    profile: {
+                        id: crypto.randomUUID(),
+                        email: 'reception@test.com',
+                        firstName: 'Reception',
+                        lastName: 'Staff',
+                        role: 'reception'
+                    }
+                },
+                {
+                    email: 'sparta@test.com',
+                    password: 'sparta123',
+                    profile: {
+                        id: crypto.randomUUID(),
+                        email: 'sparta@test.com',
+                        firstName: 'Sparta',
+                        lastName: 'Coach',
+                        role: 'sparta'
+                    }
+                }
+            ];
+            
+            testUsers.forEach(user => {
+                users[user.email] = { password: user.password, profile: user.profile };
+            });
+            
+            localStorage.setItem('viking_demo_users', JSON.stringify(users));
+            
+            document.getElementById('init-result').innerHTML = 
+                '<div class=\"success\"> Test users initialized with UUID format</div>' +
+                '<pre>' + JSON.stringify(users, null, 2) + '</pre>';
+        }
+        
+        function checkCurrentUser() {
+            const current = localStorage.getItem('viking_current_user');
+            const users = localStorage.getItem('viking_demo_users');
+            
+            let html = '';
+            if (current) {
+                const user = JSON.parse(current);
+                html += '<div class=\"info\">Current User: ' + user.profile.email + ' (ID: ' + user.profile.id + ')</div>';
+            } else {
+                html += '<div class=\"error\">No user logged in</div>';
+            }
+            
+            if (users) {
+                html += '<div class=\"info\">Available users in localStorage:</div>';
+                html += '<pre>' + JSON.stringify(JSON.parse(users), null, 2) + '</pre>';
+            }
+            
+            document.getElementById('init-result').innerHTML = html;
+        }
+        
+        function loginAs(email, password) {
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                document.getElementById('login-result').innerHTML = 
+                    '<div class=\"error\"> No users found. Initialize first!</div>';
+                return;
+            }
+            
+            const users = JSON.parse(stored);
+            const user = users[email];
+            
+            if (!user || user.password !== password) {
+                document.getElementById('login-result').innerHTML = 
+                    '<div class=\"error\"> Invalid credentials</div>';
+                return;
+            }
+            
+            localStorage.setItem('viking_current_user', JSON.stringify(user));
+            document.getElementById('login-result').innerHTML = 
+                '<div class=\"success\"> Logged in as ' + user.profile.email + '</div>' +
+                '<div class=\"info\">User ID (UUID): ' + user.profile.id + '</div>' +
+                '<div class=\"info\">Role: ' + user.profile.role + '</div>';
+        }
+        
+        async function createAnnouncement() {
+            const currentUser = localStorage.getItem('viking_current_user');
+            if (!currentUser) {
+                document.getElementById('create-result').innerHTML = 
+                    '<div class=\"error\"> Please login first!</div>';
+                return;
+            }
+            
+            const user = JSON.parse(currentUser);
+            const title = document.getElementById('ann-title').value;
+            const content = document.getElementById('ann-content').value;
+            const audience = document.getElementById('ann-audience').value;
+            const priority = document.getElementById('ann-priority').value;
+            
+            const payload = {
+                title,
+                content,
+                targetAudience: audience,
+                priority,
+                createdBy: user.profile.id
+            };
+            
+            document.getElementById('create-result').innerHTML = 
+                '<div class=\"info\"> Sending request...</div>' +
+                '<pre>POST ' + API_BASE + '/announcements\n' + JSON.stringify(payload, null, 2) + '</pre>';
+            
+            try {
+                const response = await fetch(API_BASE + '/announcements', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('create-result').innerHTML = 
+                        '<div class=\"success\"> Announcement created successfully!</div>' +
+                        '<div class=\"info\">Announcement ID: ' + result.data.id + '</div>' +
+                        '<pre>' + JSON.stringify(result.data, null, 2) + '</pre>';
+                } else {
+                    document.getElementById('create-result').innerHTML = 
+                        '<div class=\"error\"> Failed: ' + result.error + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('create-result').innerHTML = 
+                    '<div class=\"error\"> Request failed: ' + error.message + '</div>';
+            }
+        }
+        
+        async function fetchAnnouncements() {
+            try {
+                const response = await fetch(API_BASE + '/announcements');
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('fetch-result').innerHTML = 
+                        '<div class=\"success\"> Found ' + result.data.length + ' announcements</div>' +
+                        '<pre>' + JSON.stringify(result.data, null, 2) + '</pre>';
+                } else {
+                    document.getElementById('fetch-result').innerHTML = 
+                        '<div class=\"error\"> Failed: ' + result.error + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('fetch-result').innerHTML = 
+                    '<div class=\"error\"> Request failed: ' + error.message + '</div>';
+            }
+        }
+        
+        async function fetchMemberAnnouncements() {
+            const currentUser = localStorage.getItem('viking_current_user');
+            const userId = currentUser ? JSON.parse(currentUser).profile.id : '';
+            
+            try {
+                const response = await fetch(API_BASE + '/announcements/member?userId=' + userId);
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('fetch-result').innerHTML = 
+                        '<div class=\"success\"> Found ' + result.data.length + ' member announcements</div>' +
+                        '<pre>' + JSON.stringify(result.data, null, 2) + '</pre>';
+                } else {
+                    document.getElementById('fetch-result').innerHTML = 
+                        '<div class=\"error\"> Failed: ' + result.error + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('fetch-result').innerHTML = 
+                    '<div class=\"error\"> Request failed: ' + error.message + '</div>';
+            }
+        }
+        
+        async function markAsRead() {
+            const currentUser = localStorage.getItem('viking_current_user');
+            if (!currentUser) {
+                document.getElementById('mark-result').innerHTML = 
+                    '<div class=\"error\"> Please login first!</div>';
+                return;
+            }
+            
+            const user = JSON.parse(currentUser);
+            const annId = document.getElementById('ann-id').value;
+            
+            if (!annId) {
+                document.getElementById('mark-result').innerHTML = 
+                    '<div class=\"error\"> Please enter announcement ID!</div>';
+                return;
+            }
+            
+            try {
+                const response = await fetch(API_BASE + '/announcements/' + annId + '/mark-read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: user.profile.id })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('mark-result').innerHTML = 
+                        '<div class=\"success\"> Marked as read successfully!</div>';
+                } else {
+                    document.getElementById('mark-result').innerHTML = 
+                        '<div class=\"error\"> Failed: ' + result.error + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('mark-result').innerHTML = 
+                    '<div class=\"error\"> Request failed: ' + error.message + '</div>';
+            }
+        }
+    </script>
+</body>
+</html>

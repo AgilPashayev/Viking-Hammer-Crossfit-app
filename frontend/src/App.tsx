@@ -41,6 +41,52 @@ export default function App() {
   // Load remembered session, if any
   React.useEffect(() => {
     try {
+      // Clean up old demo users with string IDs (pre-UUID fix)
+      const demoUsers = localStorage.getItem('viking_demo_users');
+      if (demoUsers) {
+        try {
+          const users = JSON.parse(demoUsers);
+          let cleaned = false;
+          
+          // Remove only users with old string ID format
+          Object.keys(users).forEach(email => {
+            const user = users[email];
+            if (user?.profile?.id && typeof user.profile.id === 'string' && user.profile.id.startsWith('demo-')) {
+              console.log('🧹 Removing old demo user:', email, 'ID:', user.profile.id);
+              delete users[email];
+              cleaned = true;
+            }
+          });
+          
+          // Save cleaned users back or clear if empty
+          if (cleaned) {
+            if (Object.keys(users).length > 0) {
+              localStorage.setItem('viking_demo_users', JSON.stringify(users));
+              console.log('✅ Cleaned demo users, kept', Object.keys(users).length, 'valid users');
+            } else {
+              localStorage.removeItem('viking_demo_users');
+              console.log('🧹 All demo users were old format, cleared storage');
+            }
+            
+            // Also check if current user needs to be logged out
+            const currentUser = localStorage.getItem('viking_current_user');
+            if (currentUser) {
+              try {
+                const current = JSON.parse(currentUser);
+                if (current?.id && current.id.startsWith('demo-')) {
+                  localStorage.removeItem('viking_current_user');
+                  localStorage.removeItem('viking_remembered_user');
+                  console.log('🔓 Logged out old demo user');
+                }
+              } catch {}
+            }
+          }
+        } catch {
+          // Invalid format, clear it
+          localStorage.removeItem('viking_demo_users');
+        }
+      }
+      
       // Check if user is on invitation registration page
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('invitation');
@@ -270,7 +316,7 @@ export default function App() {
                 🚪 Logout
               </button>
             </div>
-            <Reception onNavigate={handleNavigate} />
+            <Reception onNavigate={handleNavigate} user={user} />
           </div>
         ) : currentPage === 'sparta' ? (
           <div>
@@ -292,7 +338,7 @@ export default function App() {
                 🚪 Logout
               </button>
             </div>
-            <Sparta onNavigate={handleNavigate} />
+            <Sparta onNavigate={handleNavigate} user={user} />
           </div>
         ) : (
           <div>
