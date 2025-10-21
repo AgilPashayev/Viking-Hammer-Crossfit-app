@@ -11,6 +11,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   const { setActiveClassesCount, logActivity } = useData();
   const [activeTab, setActiveTab] = useState<'classes' | 'instructors' | 'schedule'>('classes');
   const [classes, setClasses] = useState<GymClass[]>([]);
+  
+  // Debug logging
+  console.log('ClassManagement rendering, classes:', classes.length);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -919,7 +922,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="specialization-section">
               <span className="detail-label">Specializations:</span>
               <div className="specialization-list">
-                {instructor.specialization.map((spec, index) => (
+                {(Array.isArray(instructor.specialization) ? instructor.specialization : []).map((spec, index) => (
                   <span key={index} className="specialization-tag">
                     {spec}
                   </span>
@@ -930,7 +933,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="availability-section">
               <span className="detail-label">Availability:</span>
               <div className="availability-list">
-                {instructor.availability.map((day, index) => (
+                {(Array.isArray(instructor.availability) ? instructor.availability : []).map((day, index) => (
                   <span key={index} className="availability-tag">
                     {day}
                   </span>
@@ -1448,7 +1451,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       <h4>{instructor.name}</h4>
                       <p>⭐ {instructor.rating} | {instructor.experience} years</p>
                       <div className="specializations">
-                        {instructor.specialization.map((spec, index) => (
+                        {(Array.isArray(instructor.specialization) ? instructor.specialization : []).map((spec, index) => (
                           <span key={index} className="spec-tag">{spec}</span>
                         ))}
                       </div>

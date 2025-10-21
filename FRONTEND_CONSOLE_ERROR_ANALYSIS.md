@@ -8,13 +8,13 @@
 ## CONSOLE ERRORS
 
 ```
-Warning: Maximum update depth exceeded. This can happen when a component 
-calls setState inside useEffect, but useEffect either doesn't have a 
+Warning: Maximum update depth exceeded. This can happen when a component
+calls setState inside useEffect, but useEffect either doesn't have a
 dependency array, or one of the dependencies changes on every render.
 
 Component Stack:
   at ClassManagement (ClassManagement.tsx:10:60)
-  
+
 ClassManagement.tsx:117 Loaded 0 classes, 0 instructors, 0 schedule slots
 ```
 
@@ -25,12 +25,13 @@ ClassManagement.tsx:117 Loaded 0 classes, 0 instructors, 0 schedule slots
 **Location:** `frontend/src/components/ClassManagement.tsx` Lines 74-78
 
 **Problematic Code:**
+
 ```typescript
 useEffect(() => {
   // Update active classes count when classes change
-  const activeCount = classes.filter(c => c.status === 'active').length;
-  setActiveClassesCount(activeCount);  // ⚠️ Updates DataContext stats
-}, [classes, setActiveClassesCount]);  // ⚠️ setActiveClassesCount in dependencies
+  const activeCount = classes.filter((c) => c.status === 'active').length;
+  setActiveClassesCount(activeCount); // ⚠️ Updates DataContext stats
+}, [classes, setActiveClassesCount]); // ⚠️ setActiveClassesCount in dependencies
 ```
 
 **Why it causes infinite loop:**
@@ -43,8 +44,9 @@ useEffect(() => {
 6. **GOTO Step 2** → Infinite loop!
 
 **The Loop:**
+
 ```
-useEffect → setActiveClassesCount → DataContext updates → 
+useEffect → setActiveClassesCount → DataContext updates →
 Component re-renders → useEffect runs again → LOOP
 ```
 
@@ -57,6 +59,7 @@ Component re-renders → useEffect runs again → LOOP
 **Location:** `frontend/src/services/classManagementService.ts` Line 60
 
 **Problematic Code:**
+
 ```typescript
 async getAll(): Promise<GymClass[]> {
   try {
@@ -70,6 +73,7 @@ async getAll(): Promise<GymClass[]> {
 **Why it returns empty array:**
 
 Backend API returns:
+
 ```json
 [
   {id: "...", name: "Test class", ...},
@@ -78,6 +82,7 @@ Backend API returns:
 ```
 
 Frontend expects:
+
 ```json
 {
   "success": true,
@@ -86,6 +91,7 @@ Frontend expects:
 ```
 
 **What happens:**
+
 1. `data` = `[{...}, {...}]` (array, not object)
 2. `data.success` = `undefined` (arrays don't have 'success' property)
 3. `data.data` = `undefined` (arrays don't have 'data' property)
@@ -97,12 +103,12 @@ Frontend expects:
 
 ## DATABASE vs UI STATUS
 
-| Layer | Status | Count |
-|-------|--------|-------|
-| Database | ✅ Has data | 11 classes |
-| Backend API | ✅ Returns data | 11 classes |
-| Frontend Service | ❌ Returns empty | 0 classes |
-| UI Display | ❌ Shows nothing | 0 classes |
+| Layer            | Status           | Count      |
+| ---------------- | ---------------- | ---------- |
+| Database         | ✅ Has data      | 11 classes |
+| Backend API      | ✅ Returns data  | 11 classes |
+| Frontend Service | ❌ Returns empty | 0 classes  |
+| UI Display       | ❌ Shows nothing | 0 classes  |
 
 ---
 
@@ -125,14 +131,16 @@ Frontend expects:
 ### Priority 1: Fix Infinite Loop (URGENT - causing browser freeze)
 
 **Fix A: Remove dependency** (Quick - 2 minutes)
+
 ```typescript
 useEffect(() => {
-  const activeCount = classes.filter(c => c.status === 'active').length;
+  const activeCount = classes.filter((c) => c.status === 'active').length;
   setActiveClassesCount(activeCount);
-}, [classes]);  // Remove setActiveClassesCount
+}, [classes]); // Remove setActiveClassesCount
 ```
 
 **Fix B: Use useCallback in DataContext** (Better - 5 minutes)
+
 ```typescript
 // In DataContext.tsx
 const setActiveClassesCount = useCallback((count: number) => {
@@ -143,13 +151,14 @@ const setActiveClassesCount = useCallback((count: number) => {
 ### Priority 2: Fix Response Format (HIGH - no data displays)
 
 **Fix: Backend response wrapper** (5 minutes)
+
 ```javascript
 // backend-server.js Line 232
 // Change from:
 res.json(result.data);
 
 // Change to:
-res.json(result);  // Returns {success: true, data: [...]}
+res.json(result); // Returns {success: true, data: [...]}
 ```
 
 ### Priority 3: Add Field Transformer (MEDIUM - field name mismatch)

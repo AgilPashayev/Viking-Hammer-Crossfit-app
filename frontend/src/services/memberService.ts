@@ -1,5 +1,8 @@
 // frontend/src/services/memberService.ts
 // Member management API service - connects MemberManagement component to backend
+// WITH JWT AUTHENTICATION
+
+import { getAuthHeaders, handle401Error } from './authService';
 
 const API_BASE_URL = 'http://localhost:4001/api';
 
@@ -39,7 +42,14 @@ export interface UpdateMemberData {
  */
 export async function getAllMembers(): Promise<Member[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/members`);
+    const response = await fetch(`${API_BASE_URL}/members`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (response.status === 401) {
+      handle401Error();
+      return [];
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to fetch members: ${response.statusText}`);
@@ -58,7 +68,14 @@ export async function getAllMembers(): Promise<Member[]> {
  */
 export async function getMemberById(id: string): Promise<Member> {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/${id}`);
+    const response = await fetch(`${API_BASE_URL}/users/${id}`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (response.status === 401) {
+      handle401Error();
+      throw new Error('Session expired');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to fetch member: ${response.statusText}`);
@@ -79,15 +96,18 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
   try {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         ...memberData,
         role: 'member',
         status: 'active'
       }),
     });
+    
+    if (response.status === 401) {
+      handle401Error();
+      throw new Error('Session expired');
+    }
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -109,11 +129,14 @@ export async function updateMember(id: string, updates: UpdateMemberData): Promi
   try {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(updates),
     });
+    
+    if (response.status === 401) {
+      handle401Error();
+      throw new Error('Session expired');
+    }
     
     if (!response.ok) {
       const errorData = await response.json();
@@ -135,7 +158,13 @@ export async function deleteMember(id: string): Promise<void> {
   try {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     });
+    
+    if (response.status === 401) {
+      handle401Error();
+      throw new Error('Session expired');
+    }
     
     if (!response.ok) {
       const errorData = await response.json();

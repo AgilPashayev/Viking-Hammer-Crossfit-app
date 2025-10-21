@@ -64,12 +64,44 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
     return `${firstName} ${lastName}`.trim() || 'Unknown';
   };
 
+  // Ensure availability is an array
+  const getAvailability = () => {
+    const avail = apiInstructor.availability;
+    if (!avail) return [];
+    if (Array.isArray(avail)) return avail;
+    if (typeof avail === 'string') {
+      try {
+        const parsed = JSON.parse(avail);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
+  // Ensure specialization is an array
+  const getSpecialization = () => {
+    const spec = apiInstructor.specialties || apiInstructor.specialization;
+    if (!spec) return [];
+    if (Array.isArray(spec)) return spec;
+    if (typeof spec === 'string') {
+      try {
+        const parsed = JSON.parse(spec);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   return {
     id: apiInstructor.id,
     name: getName(),
     email: apiInstructor.email || '',
-    specialization: apiInstructor.specialties || apiInstructor.specialization || [],
-    availability: apiInstructor.availability || [],
+    specialization: getSpecialization(),
+    availability: getAvailability(),
     rating: apiInstructor.rating || 0,
     experience: apiInstructor.years_experience || apiInstructor.experience || 0,
     phone: apiInstructor.phone || '',
@@ -95,7 +127,9 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
       'Saturday': 6,
     };
     
-    return dayMap[day] || 1;
+    // Case-insensitive lookup
+    const normalizedDay = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
+    return dayMap[normalizedDay] || 1;
   };
 
   return {
@@ -115,9 +149,15 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
  * Transform class data from frontend format to API format (for POST/PUT)
  */
 export function transformClassToAPI(gymClass: Partial<GymClass>): any {
+  // Map day number to day name for API
+  const mapDayOfWeek = (day: number): string => {
+    const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return dayMap[day] || 'Monday';
+  };
+
   // Transform schedule array to API format
   const schedule_slots = (gymClass.schedule || []).map(slot => ({
-    day_of_week: slot.dayOfWeek,
+    day_of_week: mapDayOfWeek(slot.dayOfWeek),  // Convert number to day name
     start_time: slot.startTime,
     end_time: slot.endTime,
     status: 'active'
@@ -164,7 +204,7 @@ export function transformScheduleToAPI(slot: Partial<ScheduleSlot>): any {
   // Map day number to day name
   const mapDayOfWeek = (day: number | undefined): string => {
     const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayMap[day || 1];
+    return dayMap[day ?? 1];  // Use nullish coalescing to handle 0 (Sunday)
   };
 
   return {
@@ -174,6 +214,6 @@ export function transformScheduleToAPI(slot: Partial<ScheduleSlot>): any {
     start_time: slot.startTime,
     end_time: slot.endTime,
     specific_date: slot.date,
-    status: slot.status || 'scheduled',
+    status: slot.status || 'active',  // Use 'active' instead of 'scheduled'
   };
 }

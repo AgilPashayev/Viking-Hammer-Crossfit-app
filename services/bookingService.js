@@ -181,7 +181,7 @@ async function getUserBookings(userId, filters = {}) {
       )
       .eq('user_id', userId)
       .order('booking_date', { ascending: false })
-      .order('created_at', { ascending: false });
+      .order('booked_at', { ascending: false });
 
     if (filters.status) {
       query = query.eq('status', filters.status);

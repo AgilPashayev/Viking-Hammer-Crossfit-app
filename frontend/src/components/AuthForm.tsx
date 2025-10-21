@@ -3,7 +3,6 @@ import { useData } from '../contexts/DataContext';
 import './AuthForm.css';
 import {
   signUpUser,
-  signInUser,
   countryCodes,
   validateDateFormat,
   formatDateForStorage,
@@ -13,6 +12,7 @@ import {
   createVerificationToken, 
   sendVerificationEmail 
 } from '../services/emailVerificationService';
+import * as authService from '../services/authService';
 
 interface AuthFormProps {
   onLogin: (userData: any) => void;
@@ -99,37 +99,33 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
       setIsLoading(true);
 
       try {
-        console.log('🎯 === AUTHFORM: Initiating Login ===');
+        console.log('🎯 === AUTHFORM: Initiating Login (Backend JWT) ===');
         console.log('📧 Form Email:', formData.email);
-        console.log('🔑 Form Password:', formData.password);
-        console.log('🔑 Form Password Length:', formData.password?.length);
         
-        const loginPayload = {
-          email: formData.email,
-          password: formData.password,
-        };
-        console.log('📦 Sending to signInUser:', loginPayload);
-        
-        const { user, error } = await signInUser(loginPayload);
+        // Use backend JWT authentication
+        const result = await authService.signIn(formData.email, formData.password);
 
-        console.log('📨 Response from signInUser:');
-        console.log('  - User:', user ? 'RECEIVED' : 'NULL');
-        console.log('  - Error:', error ? error : 'NONE');
+        console.log('📨 Response from backend authService:');
+        console.log('  - Success:', result.success);
+        console.log('  - Error:', result.error || 'NONE');
 
-        if (error) {
-          console.error('❌ Login failed with error:', error);
-          setErrors({ general: error });
+        if (!result.success || result.error) {
+          console.error('❌ Login failed with error:', result.error);
+          setErrors({ general: result.error || 'Login failed' });
           setIsLoading(false);
           return;
         }
 
-        if (user) {
-          console.log('✅ User data received, preparing userData object...');
+        if (result.data) {
+          const { user, token } = result.data;
+          console.log('✅ User data and JWT token received');
+          console.log('🔑 Token stored in localStorage');
+          
           const userData = {
             id: user.id,
             email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
+            firstName: user.name?.split(' ')[0] || '',
+            lastName: user.name?.split(' ').slice(1).join(' ') || '',
             phone: user.phone || '',
             countryCode: user.countryCode || '',
             dateOfBirth: user.dateOfBirth || '',
@@ -137,21 +133,26 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
             emergencyContactName: user.emergencyContactName || '',
             emergencyContactPhone: user.emergencyContactPhone || '',
             emergencyContactCountryCode: user.emergencyContactCountryCode || '',
-            membershipType: user.membershipType,
-            joinDate: user.joinDate,
+            membershipType: user.membershipType || 'Viking Warrior Basic',
+            joinDate: user.created_at || new Date().toISOString(),
+            role: user.role || 'member',
             isAuthenticated: true,
           };
 
           console.log('👤 Prepared userData:', userData);
           setIsLoading(false);
           
-          // Persist session if Remember Me is checked
+          // Always store userData for session (JWT token is already stored by authService)
           try {
+            localStorage.setItem('userData', JSON.stringify(userData));
+            console.log('💾 User data stored in localStorage');
+            
+            // Additionally persist in viking_remembered_user if Remember Me is checked
             if (rememberMe) {
-              console.log('💾 Saving to localStorage (Remember Me)');
+              console.log('💾 Saving to viking_remembered_user (Remember Me)');
               localStorage.setItem('viking_remembered_user', JSON.stringify(userData));
             } else {
-              console.log('🗑️ Removing from localStorage (Remember Me off)');
+              console.log('🗑️ Not saving to viking_remembered_user (Remember Me off)');
               localStorage.removeItem('viking_remembered_user');
             }
           } catch (err) {

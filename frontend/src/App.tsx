@@ -7,6 +7,7 @@ import AuthForm from './components/AuthForm';
 import EmailVerification from './components/EmailVerification';
 import InvitationRegistration from './components/InvitationRegistration';
 import { DataProvider } from './contexts/DataContext';
+import { isAuthenticated, logout as authLogout } from './services/authService';
 import './styles.css';
 // Import debug utilities for development
 import './debug-utils';
@@ -41,6 +42,45 @@ export default function App() {
   // Load remembered session, if any
   React.useEffect(() => {
     try {
+      // Check if user is on invitation registration page
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('invitation');
+      if (token) {
+        setInvitationToken(token);
+        setCurrentPage('invite-register');
+        return;
+      }
+      
+      // Check if user is on email verification page
+      if (window.location.pathname === '/verify-email' || window.location.search.includes('token=')) {
+        setCurrentPage('verify-email');
+        return;
+      }
+      
+      // ========== JWT TOKEN VALIDATION ==========
+      // Check if user has valid JWT token
+      if (isAuthenticated()) {
+        console.log('✅ Valid JWT token found');
+        // Try to get user data from either userData or viking_remembered_user
+        const userData = localStorage.getItem('userData');
+        const rememberedUser = localStorage.getItem('viking_remembered_user');
+        const stored = userData || rememberedUser;
+        
+        if (stored) {
+          const parsed: UserData = JSON.parse(stored);
+          if (parsed?.isAuthenticated || parsed?.id) {
+            setUser(parsed);
+            setCurrentPage('dashboard');
+          }
+        }
+      } else {
+        console.log('⚠️ No valid JWT token found or token expired');
+        // Clear any stale session data
+        authLogout();
+        setUser(null);
+        setCurrentPage('home');
+      }
+      
       // Clean up old demo users with string IDs (pre-UUID fix)
       const demoUsers = localStorage.getItem('viking_demo_users');
       if (demoUsers) {
@@ -86,30 +126,6 @@ export default function App() {
           localStorage.removeItem('viking_demo_users');
         }
       }
-      
-      // Check if user is on invitation registration page
-      const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('invitation');
-      if (token) {
-        setInvitationToken(token);
-        setCurrentPage('invite-register');
-        return;
-      }
-      
-      // Check if user is on email verification page
-      if (window.location.pathname === '/verify-email' || window.location.search.includes('token=')) {
-        setCurrentPage('verify-email');
-        return;
-      }
-      
-      const stored = localStorage.getItem('viking_remembered_user');
-      if (stored) {
-        const parsed: UserData = JSON.parse(stored);
-        if (parsed?.isAuthenticated) {
-          setUser(parsed);
-          setCurrentPage('dashboard');
-        }
-      }
     } catch {
       // ignore
     }
@@ -122,7 +138,7 @@ export default function App() {
 
   const handleLogout = () => {
     setUser(null);
-    try { localStorage.removeItem('viking_remembered_user'); } catch {}
+    authLogout(); // Clear JWT token and all auth data
     setCurrentPage('home');
   };
   

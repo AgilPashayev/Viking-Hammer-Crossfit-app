@@ -5,6 +5,15 @@ const express = require('express');
 const cors = require('cors');
 const { supabase, testConnection } = require('./supabaseClient');
 
+// Import middleware
+const { authenticate, optionalAuth } = require('./middleware/authMiddleware');
+const {
+  authorize,
+  isAdmin,
+  isSpartaOnly,
+  canAccessUserResource,
+} = require('./middleware/authorizationMiddleware');
+
 // Import services
 const authService = require('./services/authService');
 const userService = require('./services/userService');
@@ -15,6 +24,8 @@ const bookingService = require('./services/bookingService');
 const subscriptionService = require('./services/subscriptionService');
 const notificationService = require('./services/notificationService');
 const invitationService = require('./services/invitationService');
+const qrService = require('./services/qrService');
+const checkInService = require('./services/checkInService');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -110,10 +121,29 @@ app.post(
 // ==================== USERS/MEMBERS ====================
 
 /**
- * GET /api/users - Get all users with optional filters
+ * GET /api/users/me - Get current user profile
+ */
+app.get(
+  '/api/users/me',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const result = await userService.getUserById(req.user.userId);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json(result.data);
+  }),
+);
+
+/**
+ * GET /api/users - Get all users with optional filters (Admin only)
  */
 app.get(
   '/api/users',
+  authenticate,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const filters = {
       role: req.query.role,
@@ -131,10 +161,12 @@ app.get(
 );
 
 /**
- * GET /api/users/:id - Get user by ID
+ * GET /api/users/:id - Get user by ID (Admin or self)
  */
 app.get(
   '/api/users/:id',
+  authenticate,
+  canAccessUserResource('id'),
   asyncHandler(async (req, res) => {
     const result = await userService.getUserById(req.params.id);
 
@@ -147,10 +179,12 @@ app.get(
 );
 
 /**
- * POST /api/users - Create new user/member
+ * POST /api/users - Create new user/member (Admin only)
  */
 app.post(
   '/api/users',
+  authenticate,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const result = await userService.createUser(req.body);
 
@@ -163,10 +197,12 @@ app.post(
 );
 
 /**
- * PUT /api/users/:id - Update user
+ * PUT /api/users/:id - Update user (Admin or self)
  */
 app.put(
   '/api/users/:id',
+  authenticate,
+  canAccessUserResource('id'),
   asyncHandler(async (req, res) => {
     const result = await userService.updateUser(req.params.id, req.body);
 
@@ -179,10 +215,12 @@ app.put(
 );
 
 /**
- * DELETE /api/users/:id - Delete user
+ * DELETE /api/users/:id - Delete user (Sparta only)
  */
 app.delete(
   '/api/users/:id',
+  authenticate,
+  isSpartaOnly,
   asyncHandler(async (req, res) => {
     const result = await userService.deleteUser(req.params.id);
 
@@ -195,10 +233,12 @@ app.delete(
 );
 
 /**
- * GET /api/members - Get all members (alias for users with role=member)
+ * GET /api/members - Get all members (Admin only)
  */
 app.get(
   '/api/members',
+  authenticate,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const result = await userService.getUsersByRole('member');
 
@@ -213,10 +253,11 @@ app.get(
 // ==================== CLASSES ====================
 
 /**
- * GET /api/classes - Get all classes
+ * GET /api/classes - Get all classes (authenticated users)
  */
 app.get(
   '/api/classes',
+  authenticate,
   asyncHandler(async (req, res) => {
     const filters = {
       status: req.query.status,
@@ -234,10 +275,11 @@ app.get(
 );
 
 /**
- * GET /api/classes/:id - Get class by ID
+ * GET /api/classes/:id - Get class by ID (authenticated users)
  */
 app.get(
   '/api/classes/:id',
+  authenticate,
   asyncHandler(async (req, res) => {
     const result = await classService.getClassById(req.params.id);
 
@@ -250,10 +292,12 @@ app.get(
 );
 
 /**
- * POST /api/classes - Create new class
+ * POST /api/classes - Create new class (Admin only)
  */
 app.post(
   '/api/classes',
+  authenticate,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const result = await classService.createClass(req.body);
 
@@ -266,10 +310,12 @@ app.post(
 );
 
 /**
- * PUT /api/classes/:id - Update class
+ * PUT /api/classes/:id - Update class (Admin only)
  */
 app.put(
   '/api/classes/:id',
+  authenticate,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const result = await classService.updateClass(req.params.id, req.body);
 
@@ -282,10 +328,12 @@ app.put(
 );
 
 /**
- * DELETE /api/classes/:id - Delete class
+ * DELETE /api/classes/:id - Delete class (Sparta only)
  */
 app.delete(
   '/api/classes/:id',
+  authenticate,
+  isSpartaOnly,
   asyncHandler(async (req, res) => {
     const result = await classService.deleteClass(req.params.id);
 
@@ -1438,35 +1486,359 @@ app.put(
 // Legacy booking routes that map to new booking system
 app.post(
   '/api/classes/:classId/book',
+  authenticate,
+  authorize('member', 'sparta', 'reception'),
   asyncHandler(async (req, res) => {
     const { memberId, date, time } = req.body;
 
-    // Find schedule slot matching the class, day, and time
-    const result = await bookingService.bookClassSlot(memberId, req.params.classId, date);
+    // Use authenticated user if memberId not provided
+    const actualMemberId = memberId || req.user.userId;
+
+    console.log(
+      `📅 Booking request: Class ${req.params.classId}, Date ${date}, Time ${time}, Member ${actualMemberId}`,
+    );
+
+    // Calculate day of week from date - IMPORTANT: Parse the date string properly
+    const bookingDate = new Date(date + 'T00:00:00'); // Add time to ensure correct date parsing
+    const dayOfWeek = bookingDate.getUTCDay(); // Use UTC to avoid timezone issues
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const dayName = dayNames[dayOfWeek];
+
+    console.log(
+      `🔍 Looking for schedule slot: Day=${dayName}, Time=${time}, Date=${date}, dayOfWeek=${dayOfWeek}`,
+    );
+
+    // Find the schedule slot matching class, day, and time
+    const { data: slot, error: slotError } = await supabase
+      .from('schedule_slots')
+      .select('id, class_id, day_of_week, start_time, end_time, status')
+      .eq('class_id', req.params.classId)
+      .eq('day_of_week', dayName)
+      .eq('start_time', time)
+      .eq('status', 'active')
+      .single();
+
+    if (slotError || !slot) {
+      console.error('❌ Schedule slot not found:', slotError);
+      return res.status(404).json({
+        error: 'No class scheduled for this day/time',
+        details: { classId: req.params.classId, day: dayName, time },
+      });
+    }
+
+    console.log(`✅ Found schedule slot: ${slot.id}`);
+
+    // Now book using the schedule slot ID
+    const result = await bookingService.bookClassSlot(actualMemberId, slot.id, date);
 
     if (result.error) {
+      console.error('❌ Booking failed:', result.error);
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json({ success: true, message: 'Class booked successfully', data: result.data });
+    console.log(`✅ Booking successful for member ${actualMemberId}`);
+
+    // Get user and class details for notification
+    const { data: user } = await supabase
+      .from('users_profile')
+      .select('id, first_name, last_name, email')
+      .eq('id', memberId)
+      .single();
+
+    const { data: classInfo } = await supabase
+      .from('classes')
+      .select('id, name, description')
+      .eq('id', req.params.classId)
+      .single();
+
+    // Send notification to admin team (reception, sparta, instructors)
+    try {
+      const userName = user ? `${user.first_name} ${user.last_name}` : 'A member';
+      const className = classInfo ? classInfo.name : 'a class';
+
+      // Get all users with admin roles
+      const { data: adminUsers } = await supabase
+        .from('users_profile')
+        .select('id')
+        .in('role', ['reception', 'sparta', 'instructor']);
+
+      // Create notifications for each admin
+      if (adminUsers && adminUsers.length > 0) {
+        const notificationService = require('./services/notificationService');
+
+        for (const admin of adminUsers) {
+          await notificationService.createNotification({
+            recipient_user_id: admin.id,
+            payload: {
+              type: 'class_booking',
+              title: 'New Class Booking',
+              message: `${userName} has joined ${className} on ${date} at ${time}`,
+              class_id: req.params.classId,
+              member_id: memberId,
+              booking_date: date,
+              booking_time: time,
+            },
+            channel: 'in_app',
+            status: 'pending',
+          });
+        }
+
+        console.log(`📢 Sent notifications to ${adminUsers.length} admin users`);
+      }
+    } catch (notifyError) {
+      console.warn('⚠️ Failed to send notifications:', notifyError);
+      // Don't fail the booking if notification fails
+    }
+
+    res.json({
+      success: true,
+      message: 'Class booked successfully',
+      data: result.data,
+    });
   }),
 );
 
 app.post(
   '/api/classes/:classId/cancel',
   asyncHandler(async (req, res) => {
-    const { memberId } = req.body;
+    const { memberId, date, time } = req.body;
 
-    // This would need to find the booking and cancel it
-    // For now, return success
+    console.log(`❌ Cancel booking request: Class ${req.params.classId}, Member ${memberId}`);
+
+    // Find the booking to cancel
+    const { data: bookings } = await supabase
+      .from('class_bookings')
+      .select('id, schedule_slot_id, status')
+      .eq('user_id', memberId)
+      .eq('booking_date', date);
+
+    if (!bookings || bookings.length === 0) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Cancel the first matching booking
+    const result = await bookingService.cancelBooking(bookings[0].id);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
     res.json({ success: true, message: 'Booking cancelled successfully' });
   }),
 );
 
 app.get(
   '/api/members/:memberId/bookings',
+  authenticate,
+  canAccessUserResource('memberId'),
   asyncHandler(async (req, res) => {
     const result = await bookingService.getUserBookings(req.params.memberId, { upcoming: true });
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({ success: true, data: result.data });
+  }),
+);
+
+// ==================== QR CODES ====================
+
+/**
+ * POST /api/qr/mint - Generate QR code for member check-in
+ */
+app.post(
+  '/api/qr/mint',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const userId = req.body.userId || req.user.userId;
+
+    const result = await qrService.mintQRCode(userId);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({ success: true, data: result.data });
+  }),
+);
+
+/**
+ * POST /api/qr/verify - Verify QR code
+ */
+app.post(
+  '/api/qr/verify',
+  authenticate,
+  authorize('sparta', 'reception'),
+  asyncHandler(async (req, res) => {
+    const { qrCode } = req.body;
+
+    if (!qrCode) {
+      return res.status(400).json({ error: 'qrCode is required' });
+    }
+
+    const result = await qrService.verifyQRCode(qrCode);
+
+    if (result.error) {
+      return res.status(result.status || 400).json({
+        error: result.error,
+        valid: result.valid,
+      });
+    }
+
+    res.json({ success: true, valid: result.valid, data: result.data });
+  }),
+);
+
+// ==================== CHECK-INS ====================
+
+/**
+ * POST /api/check-ins - Create check-in (Reception/Sparta)
+ */
+app.post(
+  '/api/check-ins',
+  authenticate,
+  authorize('sparta', 'reception'),
+  asyncHandler(async (req, res) => {
+    const result = await checkInService.createCheckIn(req.body);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.status(201).json({ success: true, data: result.data });
+  }),
+);
+
+/**
+ * GET /api/check-ins - Get all check-ins (Admin)
+ */
+app.get(
+  '/api/check-ins',
+  authenticate,
+  isAdmin,
+  asyncHandler(async (req, res) => {
+    const filters = {
+      userId: req.query.userId,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+      locationId: req.query.locationId,
+    };
+
+    const result = await checkInService.getAllCheckIns(filters);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({ success: true, data: result.data });
+  }),
+);
+
+/**
+ * GET /api/check-ins/user/:userId - Get user check-ins
+ */
+app.get(
+  '/api/check-ins/user/:userId',
+  authenticate,
+  canAccessUserResource('userId'),
+  asyncHandler(async (req, res) => {
+    const options = {
+      limit: parseInt(req.query.limit) || 50,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+    };
+
+    const result = await checkInService.getUserCheckIns(req.params.userId, options);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({ success: true, data: result.data });
+  }),
+);
+
+// ==================== BIRTHDAYS ====================
+
+/**
+ * GET /api/birthdays - Get upcoming birthdays
+ */
+app.get(
+  '/api/birthdays',
+  authenticate,
+  authorize('sparta', 'reception'),
+  asyncHandler(async (req, res) => {
+    const daysAhead = parseInt(req.query.days) || 30;
+
+    const { data, error } = await supabase
+      .from('users_profile')
+      .select(
+        'id, first_name, last_name, email, phone, date_of_birth, membership_type, profile_image, created_at',
+      )
+      .eq('role', 'member')
+      .not('date_of_birth', 'is', null)
+      .order('date_of_birth', { ascending: true });
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const today = new Date();
+    const upcomingBirthdays = data
+      .map((user) => {
+        const dob = new Date(user.date_of_birth);
+        const thisYearBirthday = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+
+        // If birthday already passed this year, check next year
+        if (thisYearBirthday < today) {
+          thisYearBirthday.setFullYear(today.getFullYear() + 1);
+        }
+
+        const daysUntil = Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
+        const age = today.getFullYear() - dob.getFullYear();
+
+        return {
+          id: user.id,
+          firstName: user.first_name,
+          lastName: user.last_name,
+          email: user.email,
+          phone: user.phone,
+          dateOfBirth: user.date_of_birth,
+          membershipType: user.membership_type,
+          profileImage: user.profile_image,
+          joinDate: user.created_at,
+          age: age,
+          daysUntilBirthday: daysUntil,
+          isToday: daysUntil === 0,
+          thisWeek: daysUntil <= 7,
+          thisMonth: daysUntil <= 30,
+        };
+      })
+      .filter((user) => user.daysUntilBirthday <= daysAhead)
+      .sort((a, b) => a.daysUntilBirthday - b.daysUntilBirthday);
+
+    res.json({ success: true, data: upcomingBirthdays });
+  }),
+);
+
+// ==================== STATISTICS ====================
+
+/**
+ * GET /api/statistics - Get check-in statistics
+ */
+app.get(
+  '/api/statistics',
+  authenticate,
+  isAdmin,
+  asyncHandler(async (req, res) => {
+    const filters = {
+      userId: req.query.userId,
+      startDate: req.query.startDate,
+      endDate: req.query.endDate,
+    };
+
+    const result = await checkInService.getCheckInStatistics(filters);
 
     if (result.error) {
       return res.status(result.status || 500).json({ error: result.error });

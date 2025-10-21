@@ -65,6 +65,9 @@ interface MemberDashboardProps {
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
   const { getMemberVisitsThisMonth, getMemberTotalVisits, classes } = useData();
   
+  // Debug logging
+  console.log('MemberDashboard rendering, user:', user);
+  
   // Calculate real-time visit statistics
   const visitsThisMonth = user?.id ? getMemberVisitsThisMonth(user.id) : 0;
   const totalVisits = user?.id ? getMemberTotalVisits(user.id) : 0;
@@ -142,43 +145,61 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const upcomingClasses: ClassBooking[] = localClasses
     .filter(cls => cls.status === 'active' && cls.schedule && cls.schedule.length > 0)
     .map(cls => {
-      // Find next scheduled class
-      const now = new Date();
-      const currentDay = now.getDay();
-      const currentTime = now.toTimeString().slice(0, 5);
-      
-      // Find the next upcoming schedule slot
-      let nextSchedule = cls.schedule.find(sch => {
-        if (sch.dayOfWeek === currentDay) {
-          return sch.startTime > currentTime;
+      try {
+        // Find next scheduled class
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentTime = now.toTimeString().slice(0, 5);
+        
+        // Find the next upcoming schedule slot
+        let nextSchedule = cls.schedule.find(sch => {
+          if (sch.dayOfWeek === currentDay) {
+            return sch.startTime > currentTime;
+          }
+          return sch.dayOfWeek > currentDay;
+        });
+
+        // If no schedule found this week, get first schedule slot (next week)
+        if (!nextSchedule && cls.schedule.length > 0) {
+          nextSchedule = [...cls.schedule].sort((a, b) => a.dayOfWeek - b.dayOfWeek)[0];
         }
-        return sch.dayOfWeek > currentDay;
-      });
 
-      // If no schedule found this week, get first schedule slot (next week)
-      if (!nextSchedule) {
-        nextSchedule = cls.schedule.sort((a, b) => a.dayOfWeek - b.dayOfWeek)[0];
+        // Safety check: if still no schedule, return null to filter out
+        if (!nextSchedule || nextSchedule.dayOfWeek == null || !nextSchedule.startTime) {
+          return null;
+        }
+
+        // Calculate next date for this class
+        const targetDay = nextSchedule.dayOfWeek;
+        let daysUntilClass = targetDay - currentDay;
+        if (daysUntilClass <= 0 || (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)) {
+          daysUntilClass += 7;
+        }
+        
+        const nextDate = new Date();
+        nextDate.setDate(now.getDate() + daysUntilClass);
+
+        // Validate the date before converting to ISO string
+        if (isNaN(nextDate.getTime())) {
+          console.error('Invalid date calculated for class:', cls.name);
+          return null;
+        }
+
+        const booking: ClassBooking = {
+          id: cls.id,
+          className: cls.name,
+          instructor: cls.instructors && cls.instructors.length > 0 ? cls.instructors[0] : 'TBA',
+          date: nextDate.toISOString().split('T')[0],
+          time: nextSchedule.startTime,
+          status: 'upcoming',
+        };
+        return booking;
+      } catch (error) {
+        console.error('Error processing class:', cls.name, error);
+        return null;
       }
-
-      // Calculate next date for this class
-      const targetDay = nextSchedule.dayOfWeek;
-      let daysUntilClass = targetDay - currentDay;
-      if (daysUntilClass <= 0 || (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)) {
-        daysUntilClass += 7;
-      }
-      
-      const nextDate = new Date();
-      nextDate.setDate(now.getDate() + daysUntilClass);
-
-      return {
-        id: cls.id,
-        className: cls.name,
-        instructor: cls.instructors && cls.instructors.length > 0 ? cls.instructors[0] : 'TBA',
-        date: nextDate.toISOString().split('T')[0],
-        time: nextSchedule.startTime,
-        status: 'upcoming' as const,
-      };
     })
+    .filter((cls): cls is ClassBooking => cls !== null)
     .sort((a, b) => {
       // Sort by date and time
       const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();

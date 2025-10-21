@@ -1,7 +1,10 @@
 /**
  * Class Booking Service
  * Handles all API calls for class bookings
+ * WITH JWT AUTHENTICATION
  */
+
+import { getAuthHeaders, handle401Error } from './authService';
 
 const API_BASE_URL = 'http://localhost:4001/api';
 
@@ -36,11 +39,18 @@ export const bookingService = {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${classId}/book`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ memberId, date, time }),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return {
+          success: false,
+          message: 'Session expired. Please login again.',
+        };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -59,11 +69,18 @@ export const bookingService = {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${classId}/cancel`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ memberId, date, time }),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return {
+          success: false,
+          message: 'Session expired. Please login again.',
+        };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -80,7 +97,15 @@ export const bookingService = {
    */
   async getMemberBookings(memberId: string): Promise<MemberBooking[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/members/${memberId}/bookings`);
+      const response = await fetch(`${API_BASE_URL}/members/${memberId}/bookings`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return [];
+      }
+      
       const data = await response.json();
       return data.success ? data.data : [];
     } catch (error) {
@@ -96,11 +121,18 @@ export const bookingService = {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${slotId}/enroll`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ memberId }),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return {
+          success: false,
+          message: 'Session expired. Please login again.',
+        };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {

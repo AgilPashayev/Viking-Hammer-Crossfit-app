@@ -1,6 +1,7 @@
 /**
  * Class Management Service
  * Handles all API calls for classes, instructors, and schedules
+ * WITH JWT AUTHENTICATION
  */
 
 import {
@@ -11,6 +12,7 @@ import {
   transformScheduleFromAPI,
   transformScheduleToAPI,
 } from './classTransformer';
+import { getAuthHeaders, handle401Error } from './authService';
 
 const API_BASE_URL = 'http://localhost:4001/api';
 
@@ -66,7 +68,16 @@ export const classService = {
   // Get all classes
   async getAll(): Promise<GymClass[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/classes`);
+      const response = await fetch(`${API_BASE_URL}/classes`, {
+        headers: getAuthHeaders(),
+      });
+      
+      // Handle 401 Unauthorized
+      if (response.status === 401) {
+        handle401Error();
+        return [];
+      }
+      
       const result = await response.json();
       
       // Handle both response formats for backward compatibility
@@ -83,7 +94,15 @@ export const classService = {
   // Get single class
   async getById(id: string): Promise<GymClass | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/classes/${id}`);
+      const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return null;
+      }
+      
       const result = await response.json();
       const data = result.success ? result.data : result;
       return data ? transformClassFromAPI(data) : null;
@@ -99,11 +118,15 @@ export const classService = {
       const apiData = transformClassToAPI(gymClass);
       const response = await fetch(`${API_BASE_URL}/classes`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const result = await response.json();
       
       if (result.success || result.id) {
@@ -126,11 +149,15 @@ export const classService = {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(gymClass),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -144,7 +171,14 @@ export const classService = {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -160,7 +194,15 @@ export const instructorService = {
   // Get all instructors
   async getAll(): Promise<Instructor[]> {
     try {
-      const response = await fetch(`${API_BASE_URL}/instructors`);
+      const response = await fetch(`${API_BASE_URL}/instructors`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return [];
+      }
+      
       const result = await response.json();
       const data = result.success ? result.data : (Array.isArray(result) ? result : []);
       return data.map(transformInstructorFromAPI);
@@ -173,7 +215,15 @@ export const instructorService = {
   // Get single instructor
   async getById(id: string): Promise<Instructor | null> {
     try {
-      const response = await fetch(`${API_BASE_URL}/instructors/${id}`);
+      const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return null;
+      }
+      
       const data = await response.json();
       return data.success ? data.data : null;
     } catch (error) {
@@ -188,11 +238,15 @@ export const instructorService = {
       const apiData = transformInstructorToAPI(instructor);
       const response = await fetch(`${API_BASE_URL}/instructors`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const result = await response.json();
       
       if (result.success || result.id) {
@@ -215,11 +269,15 @@ export const instructorService = {
     try {
       const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(instructor),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -233,7 +291,14 @@ export const instructorService = {
     try {
       const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -254,7 +319,15 @@ export const scheduleService = {
       if (filters?.classId) params.append('classId', filters.classId);
       if (filters?.instructorId) params.append('instructorId', filters.instructorId);
       
-      const response = await fetch(`${API_BASE_URL}/schedule?${params.toString()}`);
+      const response = await fetch(`${API_BASE_URL}/schedule?${params.toString()}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return [];
+      }
+      
       const result = await response.json();
       const data = result.success ? result.data : (Array.isArray(result) ? result : []);
       return data.map(transformScheduleFromAPI);
@@ -268,7 +341,15 @@ export const scheduleService = {
   async getWeekly(startDate?: string): Promise<Record<number, ScheduleSlot[]>> {
     try {
       const params = startDate ? `?startDate=${startDate}` : '';
-      const response = await fetch(`${API_BASE_URL}/schedule/weekly${params}`);
+      const response = await fetch(`${API_BASE_URL}/schedule/weekly${params}`, {
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return {};
+      }
+      
       const data = await response.json();
       return data.success ? data.data : {};
     } catch (error) {
@@ -283,11 +364,15 @@ export const scheduleService = {
       const apiData = transformScheduleToAPI(slot);
       const response = await fetch(`${API_BASE_URL}/schedule`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const result = await response.json();
       
       if (result.success || result.id) {
@@ -310,11 +395,15 @@ export const scheduleService = {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(slot),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -328,7 +417,14 @@ export const scheduleService = {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
@@ -342,11 +438,15 @@ export const scheduleService = {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${slotId}/enroll`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ memberId }),
       });
+      
+      if (response.status === 401) {
+        handle401Error();
+        return { success: false, message: 'Session expired. Please login again.' };
+      }
+      
       const data = await response.json();
       return data;
     } catch (error) {
