@@ -17,14 +17,33 @@ export function transformClassFromAPI(apiClass: any): GymClass {
       .filter(Boolean);
   };
 
+  // Map day_of_week string to number for class schedules
+  const mapDayOfWeek = (day: string | number | undefined): number => {
+    if (typeof day === 'number') return day;
+    if (!day) return 1;
+
+    const dayMap: Record<string, number> = {
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
+    };
+
+    const normalized = String(day).trim().toLowerCase();
+    return dayMap[normalized] ?? 1;
+  };
+
   // Transform schedule slots if they exist
   const transformSchedule = (scheduleSlots: any[] | undefined) => {
     if (!scheduleSlots || !Array.isArray(scheduleSlots)) return [];
     
     return scheduleSlots.map((slot: any) => ({
-      dayOfWeek: slot.day_of_week || 0,
-      startTime: slot.start_time || '09:00',
-      endTime: slot.end_time || '10:00',
+      dayOfWeek: mapDayOfWeek(slot.day_of_week ?? slot.dayOfWeek),
+      startTime: slot.start_time || slot.startTime || '09:00',
+      endTime: slot.end_time || slot.endTime || '10:00',
     }));
   };
 
