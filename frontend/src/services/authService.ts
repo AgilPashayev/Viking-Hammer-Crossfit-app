@@ -221,11 +221,11 @@ export function getUserRole(): string | null {
 }
 
 /**
- * Check if current user has admin role (reception, instructor, or sparta)
+ * Check if current user has admin role (reception or sparta)
  */
 export function isAdmin(): boolean {
   const role = getUserRole();
-  return role === 'sparta' || role === 'reception' || role === 'instructor';
+  return role === 'sparta' || role === 'reception';
 }
 
 /**

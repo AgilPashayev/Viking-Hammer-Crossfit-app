@@ -6,6 +6,9 @@ import Sparta from './components/Sparta';
 import AuthForm from './components/AuthForm';
 import EmailVerification from './components/EmailVerification';
 import InvitationRegistration from './components/InvitationRegistration';
+import Register from './components/Register';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
 import { DataProvider } from './contexts/DataContext';
 import { isAuthenticated, logout as authLogout } from './services/authService';
 import './styles.css';
@@ -34,25 +37,49 @@ interface UserData {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'auth' | 'verify-email' | 'invite-register'
+    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'auth' | 'verify-email' | 'invite-register' | 'register' | 'forgot-password' | 'reset-password'
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
+  const [resetToken, setResetToken] = useState<string | null>(null);
 
   // Load remembered session, if any
   React.useEffect(() => {
     try {
-      // Check if user is on invitation registration page
+      // Check URL for special routes
       const urlParams = new URLSearchParams(window.location.search);
-      const token = urlParams.get('invitation');
-      if (token) {
-        setInvitationToken(token);
+      const path = window.location.pathname;
+      
+      // Check for registration token in URL (/register/TOKEN)
+      if (path.startsWith('/register/')) {
+        const token = path.split('/register/')[1];
+        if (token) {
+          setInvitationToken(token);
+          setCurrentPage('register');
+          return;
+        }
+      }
+      
+      // Check for reset password token in URL (/reset-password/TOKEN)
+      if (path.startsWith('/reset-password/')) {
+        const token = path.split('/reset-password/')[1];
+        if (token) {
+          setResetToken(token);
+          setCurrentPage('reset-password');
+          return;
+        }
+      }
+      
+      // Check if user is on invitation registration page (old format)
+      const invToken = urlParams.get('invitation');
+      if (invToken) {
+        setInvitationToken(invToken);
         setCurrentPage('invite-register');
         return;
       }
       
       // Check if user is on email verification page
-      if (window.location.pathname === '/verify-email' || window.location.search.includes('token=')) {
+      if (path === '/verify-email' || urlParams.get('token')) {
         setCurrentPage('verify-email');
         return;
       }
@@ -174,6 +201,8 @@ export default function App() {
       setCurrentPage('reception');
     } else if (page === 'sparta') {
       setCurrentPage('sparta');
+    } else if (page === 'forgot-password') {
+      setCurrentPage('forgot-password');
     } else if (page === 'logout') {
       handleLogout();
     }
@@ -188,7 +217,64 @@ export default function App() {
     );
   }
 
-  // Show invitation registration page
+  // Show registration page (new invitation flow)
+  if (currentPage === 'register') {
+    return (
+      <DataProvider>
+        <Register
+          token={invitationToken || ''}
+          onSuccess={(userData, token) => {
+            // Auto-login after successful registration
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(userData));
+            setUser({
+              ...userData,
+              isAuthenticated: true,
+            });
+            setCurrentPage('dashboard');
+          }}
+          onCancel={() => {
+            setCurrentPage('home');
+            window.history.pushState({}, '', '/');
+          }}
+        />
+      </DataProvider>
+    );
+  }
+
+  // Show forgot password page
+  if (currentPage === 'forgot-password') {
+    return (
+      <DataProvider>
+        <ForgotPassword
+          onBack={() => setCurrentPage('auth')}
+        />
+      </DataProvider>
+    );
+  }
+
+  // Show reset password page
+  if (currentPage === 'reset-password') {
+    return (
+      <DataProvider>
+        <ResetPassword
+          token={resetToken || ''}
+          onSuccess={() => {
+            // Redirect to login after successful password reset
+            alert('Password reset successful! Please sign in with your new password.');
+            setCurrentPage('auth');
+            window.history.pushState({}, '', '/');
+          }}
+          onCancel={() => {
+            setCurrentPage('forgot-password');
+            window.history.pushState({}, '', '/');
+          }}
+        />
+      </DataProvider>
+    );
+  }
+
+  // Show invitation registration page (old flow - keeping for compatibility)
   if (currentPage === 'invite-register') {
     return (
       <DataProvider>

@@ -5,6 +5,7 @@
  */
 
 import { getAuthHeaders, handle401Error } from './authService';
+import type { ScheduleEnrollment } from './classManagementService';
 
 const API_BASE_URL = 'http://localhost:4001/api';
 
@@ -25,7 +26,7 @@ export interface MemberBooking {
   startTime: string;
   endTime: string;
   date: string;
-  enrolledMembers: string[];
+  enrolledMembers?: ScheduleEnrollment[];
   maxCapacity: number;
   currentEnrollment: number;
   status: 'scheduled' | 'completed' | 'cancelled';

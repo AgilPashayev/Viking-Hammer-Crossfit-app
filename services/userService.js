@@ -68,7 +68,30 @@ async function getUserById(userId) {
  */
 async function createUser(userData) {
   try {
-    const { name, email, phone, role = 'member', dob, status = 'active' } = userData;
+    const {
+      name,
+      firstName,
+      lastName,
+      email,
+      phone,
+      role = 'member',
+      dob,
+      status = 'active',
+      membershipType,
+      company,
+      joinDate,
+    } = userData;
+
+    const normalizedFirstName = firstName || (name ? name.split(' ')[0] : '');
+    const normalizedLastName = lastName || (name ? name.split(' ').slice(1).join(' ') : '');
+    const normalizedName = [normalizedFirstName, normalizedLastName]
+      .filter((part) => part && part.trim().length > 0)
+      .join(' ')
+      .trim();
+
+    if (!normalizedName) {
+      return { error: 'First name or last name is required', status: 400 };
+    }
 
     // Check if email already exists
     const { data: existingUser } = await supabase
@@ -81,15 +104,27 @@ async function createUser(userData) {
       return { error: 'User with this email already exists', status: 400 };
     }
 
+    const joinDateValue = (() => {
+      if (!joinDate) return new Date().toISOString().split('T')[0];
+      const parsed = joinDate instanceof Date ? joinDate : new Date(joinDate);
+      if (Number.isNaN(parsed.getTime())) {
+        return new Date().toISOString().split('T')[0];
+      }
+      return parsed.toISOString().split('T')[0];
+    })();
+
     const { data: newUser, error } = await supabase
       .from('users_profile')
       .insert({
-        name,
+        name: normalizedName,
         email,
         phone,
         role,
         dob,
         status,
+        membership_type: membershipType || 'Monthly Unlimited',
+        company: company || null,
+        join_date: joinDateValue,
       })
       .select()
       .single();
@@ -97,6 +132,26 @@ async function createUser(userData) {
     if (error) {
       console.error('Error creating user:', error);
       return { error: 'Failed to create user', status: 500 };
+    }
+
+    // Auto-create invitation for new members
+    if (role === 'member') {
+      const invitationService = require('./invitationService');
+      const invitationResult = await invitationService.createInvitation({
+        userId: newUser.id,
+        email: newUser.email,
+        phone: newUser.phone,
+        userName: newUser.name,
+        deliveryMethod: 'email',
+        sentBy: 'system',
+      });
+
+      if (invitationResult.error) {
+        console.warn('Failed to create invitation for new member:', invitationResult.error);
+        // Don't fail user creation if invitation fails
+      } else {
+        console.log(`✅ Invitation created and email sent to ${newUser.email}`);
+      }
     }
 
     return { success: true, data: newUser };
@@ -114,9 +169,59 @@ async function updateUser(userId, updates) {
     // Don't allow updating password_hash directly (use authService.updatePassword)
     const { password_hash, id, created_at, ...allowedUpdates } = updates;
 
+    const { data: existingUser, error: fetchError } = await supabase
+      .from('users_profile')
+      .select('name, membership_type, company, join_date, last_check_in')
+      .eq('id', userId)
+      .single();
+
+    if (fetchError || !existingUser) {
+      return { error: 'User not found', status: 404 };
+    }
+
+    const nameParts = existingUser.name ? existingUser.name.split(' ') : [''];
+    const existingFirstName = nameParts[0] || '';
+    const existingLastName = nameParts.slice(1).join(' ');
+
+    const dbUpdates = {};
+
+    // Handle first/last name updates
+    if (allowedUpdates.name) {
+      dbUpdates.name = allowedUpdates.name;
+    } else if (allowedUpdates.firstName !== undefined || allowedUpdates.lastName !== undefined) {
+      const newFirst =
+        allowedUpdates.firstName !== undefined ? allowedUpdates.firstName : existingFirstName;
+      const newLast =
+        allowedUpdates.lastName !== undefined ? allowedUpdates.lastName : existingLastName;
+      dbUpdates.name = `${newFirst} ${newLast}`.trim();
+    }
+
+    // Direct field mappings
+    if (allowedUpdates.email !== undefined) dbUpdates.email = allowedUpdates.email;
+    if (allowedUpdates.phone !== undefined) dbUpdates.phone = allowedUpdates.phone;
+    if (allowedUpdates.role !== undefined) dbUpdates.role = allowedUpdates.role;
+    if (allowedUpdates.status !== undefined) dbUpdates.status = allowedUpdates.status;
+    if (allowedUpdates.dob !== undefined) dbUpdates.dob = allowedUpdates.dob;
+
+    if (allowedUpdates.membershipType !== undefined) {
+      dbUpdates.membership_type = allowedUpdates.membershipType;
+    }
+
+    if (allowedUpdates.company !== undefined) {
+      dbUpdates.company = allowedUpdates.company;
+    }
+
+    if (allowedUpdates.joinDate !== undefined) {
+      dbUpdates.join_date = allowedUpdates.joinDate;
+    }
+
+    if (allowedUpdates.lastCheckIn !== undefined) {
+      dbUpdates.last_check_in = allowedUpdates.lastCheckIn;
+    }
+
     const { data, error } = await supabase
       .from('users_profile')
-      .update({ ...allowedUpdates, updated_at: new Date() })
+      .update({ ...dbUpdates, updated_at: new Date() })
       .eq('id', userId)
       .select()
       .single();

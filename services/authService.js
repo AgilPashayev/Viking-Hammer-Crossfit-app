@@ -175,9 +175,51 @@ async function updatePassword(userId, oldPassword, newPassword) {
   }
 }
 
+/**
+ * Reset user password without old password (for password reset flow)
+ * @param {string} userId - User ID
+ * @param {string} newPassword - New password
+ * @returns {Promise<Object>} Reset result
+ */
+async function resetUserPassword(userId, newPassword) {
+  try {
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
+
+    // Update password
+    const { data, error: updateError } = await supabase
+      .from('users_profile')
+      .update({ password_hash: newPasswordHash, updated_at: new Date() })
+      .eq('id', userId)
+      .select('id, email, name, role')
+      .single();
+
+    if (updateError) {
+      console.error('❌ Failed to reset password:', updateError);
+      return { error: 'Failed to reset password', status: 500 };
+    }
+
+    console.log(`✅ Password reset for user ${userId}`);
+
+    return {
+      success: true,
+      message: 'Password reset successfully',
+      data: {
+        userId: data.id,
+        email: data.email,
+        name: data.name,
+      },
+    };
+  } catch (error) {
+    console.error('❌ Reset password error:', error);
+    return { error: 'Internal server error', status: 500 };
+  }
+}
+
 module.exports = {
   signUp,
   signIn,
   verifyToken,
   updatePassword,
+  resetUserPassword,
 };

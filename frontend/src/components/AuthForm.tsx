@@ -417,6 +417,13 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           />
           <span>Remember me</span>
         </label>
+        <button
+          type="button"
+          className="forgot-password-link"
+          onClick={() => onNavigate && onNavigate('forgot-password')}
+        >
+          Forgot password?
+        </button>
       </div>
 
       {errors.general && <div className="general-error">{errors.general}</div>}

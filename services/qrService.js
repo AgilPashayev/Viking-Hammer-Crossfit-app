@@ -12,7 +12,7 @@ async function mintQRCode(userId) {
     // Verify user exists
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, first_name, last_name, membership_status')
+      .select('id, name, membership_status')
       .eq('id', userId)
       .single();
 
@@ -38,7 +38,7 @@ async function mintQRCode(userId) {
       data: {
         qrCode: qrData,
         userId: userId,
-        userName: `${user.first_name} ${user.last_name}`,
+        userName: user.name || 'Member',
         generatedAt: new Date(timestamp).toISOString(),
         expiresAt: new Date(timestamp + 5 * 60 * 1000).toISOString(), // 5 minutes
       },
@@ -87,7 +87,7 @@ async function verifyQRCode(qrCode) {
     // Verify user exists and has active membership
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, first_name, last_name, email, membership_status, membership_type')
+      .select('id, name, email, membership_status, membership_type')
       .eq('id', userId)
       .single();
 
@@ -109,11 +109,14 @@ async function verifyQRCode(qrCode) {
       };
     }
 
+    const [firstName, ...lastParts] = (user.name || '').trim().split(' ');
+    const lastName = lastParts.join(' ');
+
     return {
       data: {
         userId: user.id,
-        firstName: user.first_name,
-        lastName: user.last_name,
+        firstName: firstName || user.name || 'Member',
+        lastName: lastName || '',
         email: user.email,
         membershipStatus: user.membership_status,
         membershipType: user.membership_type,

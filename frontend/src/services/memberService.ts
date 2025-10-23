@@ -6,35 +6,67 @@ import { getAuthHeaders, handle401Error } from './authService';
 
 const API_BASE_URL = 'http://localhost:4001/api';
 
+function toDateString(value?: string | Date): string | undefined {
+  if (!value) return undefined;
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+  return parsed.toISOString().split('T')[0];
+}
+
+function toIsoString(value?: string | Date): string | undefined {
+  if (!value) return undefined;
+  const parsed = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return undefined;
+  }
+  return parsed.toISOString();
+}
+
 export interface Member {
   id: string;
   name: string;
   email: string;
   phone?: string;
   dob?: string;
-  role: 'member' | 'instructor' | 'admin';
-  status: 'active' | 'inactive';
+  role: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
+  status: 'active' | 'inactive' | 'pending';
   avatar_url?: string;
   created_at: string;
   updated_at?: string;
+  membership_type?: string;
+  company?: string;
+  join_date?: string;
+  last_check_in?: string;
 }
 
 export interface CreateMemberData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   phone?: string;
   dob?: string;
-  role?: 'member';
-  status?: 'active';
+  role?: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
+  status?: 'active' | 'inactive' | 'pending';
+  membershipType?: string;
+  company?: string;
+  joinDate?: string | Date;
 }
 
 export interface UpdateMemberData {
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   dob?: string;
-  status?: string;
+  role?: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
+  status?: 'active' | 'inactive' | 'pending';
   avatar_url?: string;
+  membershipType?: string;
+  company?: string;
+  joinDate?: string | Date;
+  lastCheckIn?: string | Date;
 }
 
 /**
@@ -94,14 +126,30 @@ export async function getMemberById(id: string): Promise<Member> {
  */
 export async function createMember(memberData: CreateMemberData): Promise<Member> {
   try {
+    if (!memberData.firstName?.trim() || !memberData.lastName?.trim()) {
+      throw new Error('First and last name are required');
+    }
+
+    const payload: Record<string, unknown> = {
+      ...memberData,
+      role: memberData.role || 'member',
+      status: memberData.status || 'active',
+      joinDate: toDateString(memberData.joinDate),
+    };
+
+    payload.firstName = memberData.firstName.trim();
+    payload.lastName = memberData.lastName.trim();
+
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined || payload[key] === null || payload[key] === '') {
+        delete payload[key];
+      }
+    });
+
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify({
-        ...memberData,
-        role: 'member',
-        status: 'active'
-      }),
+      body: JSON.stringify(payload),
     });
     
     if (response.status === 401) {
@@ -127,10 +175,29 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
  */
 export async function updateMember(id: string, updates: UpdateMemberData): Promise<Member> {
   try {
+    const payload: Record<string, unknown> = {
+      ...updates,
+      joinDate: toDateString(updates.joinDate),
+      lastCheckIn: toIsoString(updates.lastCheckIn),
+    };
+
+    if (updates.firstName) {
+      payload.firstName = updates.firstName.trim();
+    }
+    if (updates.lastName) {
+      payload.lastName = updates.lastName.trim();
+    }
+
+    Object.keys(payload).forEach((key) => {
+      if (payload[key] === undefined || payload[key] === null || payload[key] === '') {
+        delete payload[key];
+      }
+    });
+
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
-      body: JSON.stringify(updates),
+      body: JSON.stringify(payload),
     });
     
     if (response.status === 401) {
@@ -181,9 +248,7 @@ export async function deleteMember(id: string): Promise<void> {
  */
 export async function registerMember(memberData: CreateMemberData & { password: string }): Promise<{ user: Member; token: string }> {
   try {
-    const { name, email, password, phone } = memberData;
-    const [firstName, ...lastNameParts] = name.split(' ');
-    const lastName = lastNameParts.join(' ');
+    const { firstName, lastName, email, password, phone } = memberData;
     
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
@@ -193,8 +258,8 @@ export async function registerMember(memberData: CreateMemberData & { password: 
       body: JSON.stringify({
         email,
         password,
-        firstName,
-        lastName,
+        firstName: firstName?.trim(),
+        lastName: lastName?.trim(),
         phone,
         role: 'member'
       }),

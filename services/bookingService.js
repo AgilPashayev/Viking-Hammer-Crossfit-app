@@ -30,7 +30,14 @@ async function bookClassSlot(userId, scheduleSlotId, bookingDate) {
         `
         *,
         class:classes (id, name, max_capacity),
-        bookings:class_bookings!schedule_slot_id (id, status, booking_date)
+        bookings:class_bookings!schedule_slot_id (
+          id,
+          user_id,
+          status,
+          booking_date,
+          booked_at,
+          user:users_profile (id, name, email, status)
+        )
       `,
       )
       .eq('id', scheduleSlotId)
@@ -58,7 +65,9 @@ async function bookClassSlot(userId, scheduleSlotId, bookingDate) {
       (b) => b.booking_date === bookingDate && b.status === 'confirmed',
     ).length;
 
-    if (confirmedBookings >= slot.capacity) {
+    const maxCapacity = slot.capacity || slot.class?.max_capacity || 0;
+
+    if (maxCapacity && confirmedBookings >= maxCapacity) {
       return { error: 'This class is full', status: 400 };
     }
 
@@ -79,7 +88,7 @@ async function bookClassSlot(userId, scheduleSlotId, bookingDate) {
           class:classes (name, duration_minutes),
           instructor:instructors (first_name, last_name)
         ),
-        user:users_profile (name, email)
+  user:users_profile (id, name, email)
       `,
       )
       .single();
@@ -89,7 +98,16 @@ async function bookClassSlot(userId, scheduleSlotId, bookingDate) {
       return { error: 'Failed to create booking', status: 500 };
     }
 
-    return { success: true, data: newBooking };
+    const rosterResult = await getScheduleSlotRoster(scheduleSlotId);
+
+    return {
+      success: true,
+      data: {
+        booking: newBooking,
+        roster: rosterResult.success ? rosterResult.data : [],
+        capacity: maxCapacity,
+      },
+    };
   } catch (error) {
     console.error('Book class slot error:', error);
     return { error: 'Internal server error', status: 500 };
@@ -104,7 +122,18 @@ async function cancelBooking(bookingId, userId) {
     // Get booking
     const { data: booking, error: fetchError } = await supabase
       .from('class_bookings')
-      .select('*, slot:schedule_slots(start_time, day_of_week, booking_date)')
+      .select(
+        `
+        *,
+        slot:schedule_slots (
+          id,
+          start_time,
+          day_of_week,
+          booking_date,
+          class:classes (name, max_capacity)
+        )
+      `,
+      )
       .eq('id', bookingId)
       .single();
 
@@ -113,7 +142,7 @@ async function cancelBooking(bookingId, userId) {
     }
 
     // Verify booking belongs to user (or allow admin/reception/sparta to cancel)
-    if (booking.user_id !== userId) {
+    if (userId && booking.user_id !== userId) {
       // Check if requester is admin, reception, or sparta
       const { data: requester } = await supabase
         .from('users_profile')
@@ -144,7 +173,19 @@ async function cancelBooking(bookingId, userId) {
       return { error: 'Failed to cancel booking', status: 500 };
     }
 
-    return { success: true, message: 'Booking cancelled successfully' };
+    const rosterResult = booking.schedule_slot_id
+      ? await getScheduleSlotRoster(booking.schedule_slot_id)
+      : { success: true, data: [] };
+
+    return {
+      success: true,
+      message: 'Booking cancelled successfully',
+      data: {
+        bookingId,
+        roster: rosterResult.success ? rosterResult.data : [],
+        capacity: booking.slot?.class?.max_capacity || null,
+      },
+    };
   } catch (error) {
     console.error('Cancel booking error:', error);
     return { error: 'Internal server error', status: 500 };
@@ -282,6 +323,62 @@ async function markAttended(bookingId) {
 }
 
 /**
+ * Get roster for a specific schedule slot, including member details
+ */
+async function getScheduleSlotRoster(scheduleSlotId) {
+  try {
+    const { data, error } = await supabase
+      .from('class_bookings')
+      .select(
+        `
+        id,
+        user_id,
+        booking_date,
+        booked_at,
+        status,
+        user:users_profile (
+          id,
+          name,
+          email,
+          status,
+          phone
+        )
+      `,
+      )
+      .eq('schedule_slot_id', scheduleSlotId)
+      .order('booking_date', { ascending: true })
+      .order('booked_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching schedule slot roster:', error);
+      return { error: 'Failed to fetch roster', status: 500 };
+    }
+
+    const roster = (data || []).map((booking) => {
+      const userRecord = booking.user || {};
+      const derivedName = `${userRecord.first_name || ''} ${userRecord.last_name || ''}`.trim();
+      const displayName = userRecord.name || derivedName || userRecord.email || 'Unknown Member';
+
+      return {
+        bookingId: booking.id,
+        memberId: booking.user_id,
+        name: displayName,
+        email: userRecord.email || '',
+        status: booking.status,
+        bookingDate: booking.booking_date,
+        bookedAt: booking.booked_at,
+        phone: userRecord.phone || '',
+      };
+    });
+
+    return { success: true, data: roster };
+  } catch (error) {
+    console.error('Get schedule slot roster error:', error);
+    return { error: 'Internal server error', status: 500 };
+  }
+}
+
+/**
  * Mark booking as no-show
  */
 async function markNoShow(bookingId) {
@@ -312,4 +409,5 @@ module.exports = {
   getAllBookings,
   markAttended,
   markNoShow,
+  getScheduleSlotRoster,
 };

@@ -18,6 +18,17 @@ const API_BASE_URL = 'http://localhost:4001/api';
 
 // ========== INTERFACES ==========
 
+export interface ScheduleEnrollment {
+  bookingId: string;
+  memberId: string;
+  name: string;
+  email: string;
+  phone?: string;
+  status: 'confirmed' | 'cancelled' | 'attended' | 'no_show';
+  bookingDate: string;
+  bookedAt?: string | null;
+}
+
 export interface GymClass {
   id: string;
   name: string;
@@ -30,6 +41,7 @@ export interface GymClass {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
+    enrolledMembers?: ScheduleEnrollment[];
   }[];
   equipment: string[];
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
@@ -58,7 +70,7 @@ export interface ScheduleSlot {
   startTime: string;
   endTime: string;
   date: string;
-  enrolledMembers: string[];
+  enrolledMembers: ScheduleEnrollment[];
   status: 'scheduled' | 'completed' | 'cancelled';
 }
 
@@ -452,6 +464,26 @@ export const scheduleService = {
     } catch (error) {
       console.error('Error enrolling member:', error);
       return { success: false, message: 'Failed to enroll member' };
+    }
+  },
+
+  // Get enrolled members for a schedule slot
+  async getRoster(slotId: string): Promise<ScheduleEnrollment[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/schedule/${slotId}/bookings`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (response.status === 401) {
+        handle401Error();
+        return [];
+      }
+
+      const data = await response.json();
+      return data.success ? data.data : [];
+    } catch (error) {
+      console.error('Error fetching roster:', error);
+      return [];
     }
   },
 };

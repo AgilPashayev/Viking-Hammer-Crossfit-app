@@ -1,0 +1,8 @@
+(node:39868) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+Error fetching classes: {
+  code: '42703',
+  details: null,
+  hint: null,
+  message: 'column users_profile_3.first_name does not exist'
+}

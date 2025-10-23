@@ -24,6 +24,7 @@ const bookingService = require('./services/bookingService');
 const subscriptionService = require('./services/subscriptionService');
 const notificationService = require('./services/notificationService');
 const invitationService = require('./services/invitationService');
+const resetService = require('./services/resetService');
 const qrService = require('./services/qrService');
 const checkInService = require('./services/checkInService');
 
@@ -115,6 +116,79 @@ app.post(
     }
 
     res.json(result);
+  }),
+);
+
+/**
+ * POST /api/auth/forgot-password - Request password reset
+ */
+app.post(
+  '/api/auth/forgot-password',
+  asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const result = await resetService.createPasswordResetToken(email);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    // Always return success message (don't reveal if email exists)
+    res.json({
+      success: true,
+      message: 'If that email exists, a reset link has been sent',
+    });
+  }),
+);
+
+/**
+ * GET /api/auth/reset-password/:token - Validate reset token
+ */
+app.get(
+  '/api/auth/reset-password/:token',
+  asyncHandler(async (req, res) => {
+    const { token } = req.params;
+
+    const result = await resetService.validateResetToken(token);
+
+    if (!result.valid) {
+      return res.status(400).json({ error: result.error || 'Invalid reset token' });
+    }
+
+    res.json({ success: true, valid: true, data: result.data });
+  }),
+);
+
+/**
+ * POST /api/auth/reset-password - Reset password with token
+ */
+app.post(
+  '/api/auth/reset-password',
+  asyncHandler(async (req, res) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const result = await resetService.resetPassword(token, newPassword);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now log in with your new password.',
+    });
   }),
 );
 
@@ -215,12 +289,12 @@ app.put(
 );
 
 /**
- * DELETE /api/users/:id - Delete user (Sparta only)
+ * DELETE /api/users/:id - Delete user (Admin only)
  */
 app.delete(
   '/api/users/:id',
   authenticate,
-  isSpartaOnly,
+  isAdmin,
   asyncHandler(async (req, res) => {
     const result = await userService.deleteUser(req.params.id);
 
@@ -553,6 +627,24 @@ app.post(
   }),
 );
 
+/**
+ * GET /api/schedule/:id/bookings - Get roster for a schedule slot
+ */
+app.get(
+  '/api/schedule/:id/bookings',
+  authenticate,
+  authorize('sparta', 'reception', 'instructor'),
+  asyncHandler(async (req, res) => {
+    const result = await bookingService.getScheduleSlotRoster(req.params.id);
+
+    if (result.error) {
+      return res.status(result.status || 500).json({ error: result.error });
+    }
+
+    res.json({ success: true, data: result.data });
+  }),
+);
+
 // ==================== BOOKINGS ====================
 
 /**
@@ -575,7 +667,7 @@ app.post(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.status(201).json(result.data);
+    res.status(201).json({ success: true, data: result.data });
   }),
 );
 
@@ -1541,8 +1633,8 @@ app.post(
     // Get user and class details for notification
     const { data: user } = await supabase
       .from('users_profile')
-      .select('id, first_name, last_name, email')
-      .eq('id', memberId)
+      .select('id, name, email')
+      .eq('id', actualMemberId)
       .single();
 
     const { data: classInfo } = await supabase
@@ -1553,7 +1645,7 @@ app.post(
 
     // Send notification to admin team (reception, sparta, instructors)
     try {
-      const userName = user ? `${user.first_name} ${user.last_name}` : 'A member';
+      const userName = user?.name || user?.email || 'A member';
       const className = classInfo ? classInfo.name : 'a class';
 
       // Get all users with admin roles
@@ -1574,7 +1666,7 @@ app.post(
               title: 'New Class Booking',
               message: `${userName} has joined ${className} on ${date} at ${time}`,
               class_id: req.params.classId,
-              member_id: memberId,
+              member_id: actualMemberId,
               booking_date: date,
               booking_time: time,
             },
@@ -1773,9 +1865,7 @@ app.get(
 
     const { data, error } = await supabase
       .from('users_profile')
-      .select(
-        'id, first_name, last_name, email, phone, date_of_birth, membership_type, profile_image, created_at',
-      )
+      .select('id, name, email, phone, date_of_birth, membership_type, profile_image, created_at')
       .eq('role', 'member')
       .not('date_of_birth', 'is', null)
       .order('date_of_birth', { ascending: true });
@@ -1798,10 +1888,14 @@ app.get(
         const daysUntil = Math.ceil((thisYearBirthday - today) / (1000 * 60 * 60 * 24));
         const age = today.getFullYear() - dob.getFullYear();
 
+        const fullName = user.name || '';
+        const [firstName, ...lastParts] = fullName.trim().split(' ');
+        const lastName = lastParts.join(' ');
+
         return {
           id: user.id,
-          firstName: user.first_name,
-          lastName: user.last_name,
+          firstName: firstName || fullName || 'Member',
+          lastName: lastName || '',
           email: user.email,
           phone: user.phone,
           dateOfBirth: user.date_of_birth,

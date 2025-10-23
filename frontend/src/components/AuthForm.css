@@ -136,6 +136,23 @@
   accent-color: var(--viking-primary);
 }
 
+.forgot-password-link {
+  background: none;
+  border: none;
+  color: var(--viking-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: var(--viking-dark);
+  text-decoration: underline;
+}
+
 /* General Error Display */
 .general-error {
   background: rgba(244, 67, 54, 0.1);

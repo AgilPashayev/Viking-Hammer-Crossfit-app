@@ -17,7 +17,7 @@ async function createCheckIn(checkInData) {
     // Verify user exists and has active membership
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, first_name, last_name, membership_status')
+      .select('id, name, membership_status')
       .eq('id', userId)
       .single();
 
@@ -56,7 +56,7 @@ async function createCheckIn(checkInData) {
     return {
       data: {
         ...checkIn,
-        userName: `${user.first_name} ${user.last_name}`,
+        userName: user.name || 'Member',
       },
       error: null,
     };
@@ -77,8 +77,8 @@ async function getAllCheckIns(filters = {}) {
       .from('check_ins')
       .select(
         `
-        *,
-        users_profile!inner(id, first_name, last_name, email)
+  *,
+  users_profile!inner(id, name, email)
       `,
       )
       .order('check_in_time', { ascending: false });

@@ -1,4 +1,16 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import {
+  getAllMembers as fetchAllMembers,
+  createMember as apiCreateMember,
+  updateMember as apiUpdateMember,
+  deleteMember as apiDeleteMember,
+  Member as ApiMember,
+  CreateMemberData as ApiCreateMemberData,
+  UpdateMemberData as ApiUpdateMemberData,
+} from '../services/memberService';
+import { isAuthenticated, isAdmin } from '../services/authService';
+
+const DEFAULT_MEMBERSHIP_TYPES = ['Single', 'Monthly', 'Monthly Unlimited', 'Company'];
 
 export interface Member {
   id: string;
@@ -10,7 +22,7 @@ export interface Member {
   status: 'active' | 'inactive' | 'pending';
   joinDate: string;
   lastCheckIn?: string;
-  role: 'member' | 'instructor' | 'admin';
+  role: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
   company?: string;
   dateOfBirth?: string;
   gender?: string;
@@ -28,7 +40,7 @@ export interface CheckIn {
   checkInTime: string;
   checkOutTime?: string;
   duration?: number;
-  role?: 'member' | 'instructor' | 'admin';
+  role?: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
 }
 
 export interface Stats {
@@ -95,17 +107,44 @@ export interface Activity {
   metadata?: Record<string, any>;
 }
 
+type CreateMemberInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  membershipType: string;
+  status?: Member['status'];
+  role?: Member['role'];
+  company?: string;
+  dateOfBirth?: string;
+  joinDate?: string | Date;
+};
+
+type UpdateMemberInput = Partial<Member> & {
+  firstName?: string;
+  lastName?: string;
+  membershipType?: string;
+  company?: string;
+  joinDate?: string | Date;
+  lastCheckIn?: string | Date;
+  dateOfBirth?: string;
+};
+
 interface DataContextType {
   members: Member[];
+  membersLoading: boolean;
+  membersSaving: boolean;
+  membersError: string | null;
   stats: Stats;
   checkIns: CheckIn[];
   activities: Activity[];
   membershipTypes: string[];
   roles: Array<{ value: 'member' | 'instructor' | 'admin'; label: string }>;
   classes: GymClass[];
-  addMember: (member: Omit<Member, 'id'>) => void;
-  updateMember: (id: string, updates: Partial<Member>) => void;
-  deleteMember: (id: string) => void;
+  refreshMembers: () => Promise<void>;
+  addMember: (member: CreateMemberInput) => Promise<Member>;
+  updateMember: (id: string, updates: UpdateMemberInput) => Promise<Member>;
+  deleteMember: (id: string) => Promise<void>;
   checkInMember: (id: string) => void;
   refreshStats: () => void;
   getWeeklyCheckIns: () => number;
@@ -227,6 +266,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       role: 'admin',
     },
   ]);
+  const [membersLoading, setMembersLoading] = useState<boolean>(false);
+  const [membersSaving, setMembersSaving] = useState<boolean>(false);
+  const [membersError, setMembersError] = useState<string | null>(null);
 
   const [checkIns, setCheckIns] = useState<CheckIn[]>([
     {
@@ -271,18 +313,75 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   const [activities, setActivities] = useState<Activity[]>([]);
 
   // Centralized membership types and roles
-  const [membershipTypes, setMembershipTypes] = useState<string[]>([
-    'Single',
-    'Monthly',
-    'Monthly Unlimited',
-    'Company',
-  ]);
+  const [membershipTypes, setMembershipTypes] = useState<string[]>(DEFAULT_MEMBERSHIP_TYPES);
 
   const roles: Array<{ value: 'member' | 'instructor' | 'admin'; label: string }> = [
     { value: 'member', label: '🛡️ Viking (Member)' },
     { value: 'instructor', label: '⚔️ Warrior (Instructor)' },
     { value: 'admin', label: '👑 Commander (Admin)' },
   ];
+
+  const transformApiMember = useCallback(
+    (apiMember: ApiMember): Member => {
+      const rawName = (apiMember.name || '').trim();
+      const nameParts = rawName ? rawName.split(' ') : [];
+      const fallbackName = apiMember.email?.split('@')[0] || 'Member';
+      const firstName = nameParts[0] || fallbackName;
+      const lastName = nameParts.slice(1).join(' ');
+
+      const membershipType = apiMember.membership_type || membershipTypes[0] || 'Monthly Unlimited';
+      const joinDateSource = apiMember.join_date || apiMember.created_at;
+      const joinDate = joinDateSource
+        ? new Date(joinDateSource).toISOString().split('T')[0]
+        : new Date().toISOString().split('T')[0];
+
+      const lastCheckIn = apiMember.last_check_in ? new Date(apiMember.last_check_in).toISOString() : undefined;
+
+      const normalizedStatus = (apiMember.status as Member['status']) || 'active';
+      const normalizedRole = (apiMember.role as Member['role']) || 'member';
+
+      return {
+        id: apiMember.id,
+        firstName,
+        lastName,
+        email: apiMember.email,
+        phone: apiMember.phone || '',
+        membershipType,
+        status: normalizedStatus,
+        joinDate,
+        lastCheckIn,
+        role: normalizedRole,
+        company: apiMember.company || undefined,
+        dateOfBirth: apiMember.dob || undefined,
+      };
+    },
+    [membershipTypes],
+  );
+
+  const loadMembers = useCallback(async () => {
+    if (!isAuthenticated() || !isAdmin()) {
+      return;
+    }
+
+    try {
+      setMembersLoading(true);
+      setMembersError(null);
+      const apiMembers = await fetchAllMembers();
+      const normalized = Array.isArray(apiMembers)
+        ? apiMembers.map(transformApiMember)
+        : [];
+      setMembers(normalized);
+    } catch (error) {
+      console.error('Failed to load members:', error);
+      setMembersError(error instanceof Error ? error.message : 'Failed to load members');
+    } finally {
+      setMembersLoading(false);
+    }
+  }, [transformApiMember]);
+
+  useEffect(() => {
+    loadMembers();
+  }, [loadMembers]);
 
   // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
@@ -523,45 +622,133 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }
   }, []);
 
-  const addMember = (memberData: Omit<Member, 'id'>) => {
-    const newMember: Member = {
-      ...memberData,
-      id: Date.now().toString(),
-      joinDate: new Date().toISOString().split('T')[0],
-      status: 'active',
-    };
-    setMembers((prev) => [...prev, newMember]);
+  const refreshMembers = useCallback(async () => {
+    await loadMembers();
+  }, [loadMembers]);
 
-    // Log activity
-    logActivity({
-      type: 'member_added',
-      message: `New member ${newMember.firstName} ${newMember.lastName} registered`,
-      memberId: newMember.id,
-    });
-  };
+  const addMember = useCallback(
+    async (memberData: CreateMemberInput): Promise<Member> => {
+      if (!isAuthenticated() || !isAdmin()) {
+        throw new Error('You are not authorized to add members');
+      }
 
-  const updateMember = (id: string, updates: Partial<Member>) => {
-    const before = members.find((m) => m.id === id);
-    setMembers((prev) => prev.map((member) => (member.id === id ? { ...member, ...updates } : member)));
+      setMembersSaving(true);
+      setMembersError(null);
 
-    // Log generic update
-    const memberName = before ? `${before.firstName} ${before.lastName}` : `Member ${id}`;
-    logActivity({ type: 'member_updated', message: `${memberName} profile updated`, memberId: id });
+      try {
+        const payload: ApiCreateMemberData = {
+          firstName: memberData.firstName.trim(),
+          lastName: memberData.lastName.trim(),
+          email: memberData.email.trim(),
+          phone: memberData.phone?.trim(),
+          role: memberData.role || 'member',
+          status: memberData.status || 'active',
+          dob: memberData.dateOfBirth,
+          membershipType: memberData.membershipType,
+          company: memberData.company,
+          joinDate: memberData.joinDate,
+        };
 
-    // Special case: membership type changed
-    if (before && updates.membershipType && updates.membershipType !== before.membershipType) {
-      logActivity({
-        type: 'membership_changed',
-        message: `${memberName} membership changed to ${updates.membershipType}`,
-        memberId: id,
-        metadata: { from: before.membershipType, to: updates.membershipType },
-      });
-    }
-  };
+        const created = await apiCreateMember(payload);
+        const transformed = transformApiMember(created);
+        setMembers((prev) => [...prev, transformed]);
 
-  const deleteMember = (id: string) => {
-    setMembers((prev) => prev.filter((member) => member.id !== id));
-  };
+        logActivity({
+          type: 'member_added',
+          message: `New member ${transformed.firstName} ${transformed.lastName} registered`,
+          memberId: transformed.id,
+        });
+
+        return transformed;
+      } catch (error) {
+        console.error('Failed to add member:', error);
+        const message = error instanceof Error ? error.message : 'Failed to add member';
+        setMembersError(message);
+        throw error;
+      } finally {
+        setMembersSaving(false);
+      }
+    },
+    [transformApiMember],
+  );
+
+  const updateMember = useCallback(
+    async (id: string, updates: UpdateMemberInput): Promise<Member> => {
+      if (!isAuthenticated() || !isAdmin()) {
+        throw new Error('You are not authorized to update members');
+      }
+
+      setMembersSaving(true);
+      setMembersError(null);
+
+      try {
+        const payload: ApiUpdateMemberData = {
+          firstName: updates.firstName?.trim(),
+          lastName: updates.lastName?.trim(),
+          email: updates.email?.trim(),
+          phone: updates.phone?.trim(),
+          status: updates.status,
+          dob: updates.dateOfBirth,
+          membershipType: updates.membershipType,
+          company: updates.company,
+          joinDate: updates.joinDate,
+          lastCheckIn: updates.lastCheckIn,
+          role: updates.role,
+        };
+
+        const before = members.find((member) => member.id === id);
+        const updated = await apiUpdateMember(id, payload);
+        const transformed = transformApiMember(updated);
+        setMembers((prev) => prev.map((member) => (member.id === id ? transformed : member)));
+
+        const memberName = `${transformed.firstName} ${transformed.lastName}`.trim();
+        logActivity({ type: 'member_updated', message: `${memberName} profile updated`, memberId: id });
+
+        if (before && transformed.membershipType !== before.membershipType) {
+          logActivity({
+            type: 'membership_changed',
+            message: `${memberName} membership changed to ${transformed.membershipType}`,
+            memberId: id,
+            metadata: { from: before.membershipType, to: transformed.membershipType },
+          });
+        }
+
+        return transformed;
+      } catch (error) {
+        console.error('Failed to update member:', error);
+        const message = error instanceof Error ? error.message : 'Failed to update member';
+        setMembersError(message);
+        throw error;
+      } finally {
+        setMembersSaving(false);
+      }
+    },
+    [members, transformApiMember],
+  );
+
+  const deleteMember = useCallback(
+    async (id: string): Promise<void> => {
+      if (!isAuthenticated() || !isAdmin()) {
+        throw new Error('You are not authorized to delete members');
+      }
+
+      setMembersSaving(true);
+      setMembersError(null);
+
+      try {
+        await apiDeleteMember(id);
+        setMembers((prev) => prev.filter((member) => member.id !== id));
+      } catch (error) {
+        console.error('Failed to delete member:', error);
+        const message = error instanceof Error ? error.message : 'Failed to delete member';
+        setMembersError(message);
+        throw error;
+      } finally {
+        setMembersSaving(false);
+      }
+    },
+    [],
+  );
 
   const checkInMember = (id: string) => {
     const today = new Date().toISOString().split('T')[0];
@@ -674,12 +861,16 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const value: DataContextType = {
     members,
+    membersLoading,
+    membersSaving,
+    membersError,
     stats,
     checkIns,
     activities,
     membershipTypes,
     roles,
     classes,
+    refreshMembers,
     addMember,
     updateMember,
     deleteMember,

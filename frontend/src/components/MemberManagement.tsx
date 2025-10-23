@@ -7,7 +7,18 @@ interface MemberManagementProps {
 }
 
 const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
-  const { members, addMember, updateMember, deleteMember, membershipTypes, roles } = useData();
+  const {
+    members,
+    membersLoading,
+    membersSaving,
+    membersError,
+    addMember,
+    updateMember,
+    deleteMember,
+    refreshMembers,
+    membershipTypes,
+    roles,
+  } = useData();
 
   const [filteredMembers, setFilteredMembers] = useState<Member[]>(members);
   const [filterRole, setFilterRole] = useState<string>('all');
@@ -20,6 +31,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   const [expandedMembers, setExpandedMembers] = useState<Set<string>>(new Set());
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string>('');
+  const [formError, setFormError] = useState<string | null>(null);
 
   const [newMember, setNewMember] = useState({
     firstName: '',
@@ -27,7 +39,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     email: '',
     phone: '',
     membershipType: membershipTypes[0] || 'Single',
-    role: 'member' as 'member' | 'instructor' | 'admin',
+    role: 'member' as 'member' | 'instructor' | 'admin' | 'reception' | 'sparta',
     company: '',
   });
 
@@ -53,6 +65,10 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   ];
 
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
+
+  React.useEffect(() => {
+    refreshMembers().catch((error) => console.error('Failed to refresh members:', error));
+  }, [refreshMembers]);
 
   React.useEffect(() => {
     let filtered = members;
@@ -88,84 +104,98 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     setFilteredMembers(filtered);
   }, [filterRole, filterMembershipType, filterStatus, searchTerm, members]);
 
-  const handleAddMember = () => {
+  const showToast = (message: string) => {
+    setConfirmationMessage(message);
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 3000);
+  };
+
+  const handleAddMember = async () => {
     const isEditing = selectedMember !== null;
+    setFormError(null);
 
     // Check for duplicates (exclude current member when editing)
     const isDuplicateEmail = members.some(
       (member) =>
         member.email.toLowerCase() === newMember.email.toLowerCase() &&
-        (!isEditing || member.id !== selectedMember.id),
+        (!isEditing || member.id !== selectedMember?.id),
     );
     const formattedPhoneForCheck = `${selectedCountry.flag} ${selectedCountry.code} ${newMember.phone}`;
     const isDuplicatePhone = members.some(
       (member) =>
-        member.phone === formattedPhoneForCheck && (!isEditing || member.id !== selectedMember.id),
+        member.phone === formattedPhoneForCheck && (!isEditing || member.id !== selectedMember?.id),
     );
     const isDuplicateName = members.some(
       (member) =>
         member.firstName.toLowerCase() === newMember.firstName.toLowerCase() &&
         member.lastName.toLowerCase() === newMember.lastName.toLowerCase() &&
-        (!isEditing || member.id !== selectedMember.id),
+        (!isEditing || member.id !== selectedMember?.id),
     );
 
     if (isDuplicateEmail) {
-      setConfirmationMessage('❌ Email address already exists!');
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 3000);
+      showToast('❌ Email address already exists!');
       return;
     }
 
     if (isDuplicatePhone) {
-      setConfirmationMessage('❌ Phone number already exists!');
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 3000);
+      showToast('❌ Phone number already exists!');
       return;
     }
 
     if (isDuplicateName) {
-      setConfirmationMessage('❌ Member with same name already exists!');
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 3000);
+      showToast('❌ Member with same name already exists!');
       return;
     }
 
     // Format phone number with flag and country code
     const formattedPhone = `${selectedCountry.flag} ${selectedCountry.code} ${newMember.phone}`;
-    
-    if (isEditing) {
-      // Update existing member
-      updateMember(selectedMember.id, { ...newMember, phone: formattedPhone });
-      setConfirmationMessage('✅ Member updated successfully!');
-    } else {
-      // Add new member
-      const memberData = {
-        ...newMember,
-        phone: formattedPhone,
-        status: 'active' as 'active',
-        joinDate: new Date().toISOString().split('T')[0],
-      };
-      addMember(memberData);
-      setConfirmationMessage('✅ Member added successfully!');
+
+    try {
+      if (isEditing && selectedMember) {
+        await updateMember(selectedMember.id, {
+          firstName: newMember.firstName,
+          lastName: newMember.lastName,
+          email: newMember.email,
+          phone: formattedPhone,
+          role: newMember.role,
+          membershipType: newMember.membershipType,
+          company: newMember.company || undefined,
+        });
+        showToast('✅ Member updated successfully!');
+      } else {
+        await addMember({
+          firstName: newMember.firstName,
+          lastName: newMember.lastName,
+          email: newMember.email,
+          phone: formattedPhone,
+          membershipType: newMember.membershipType,
+          status: 'active',
+          role: newMember.role,
+          company: newMember.company || undefined,
+        });
+        showToast('✅ Member added successfully!');
+      }
+
+      await refreshMembers();
+
+      setNewMember({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        membershipType: membershipTypes[0] || 'Single',
+        role: 'member',
+        company: '',
+      });
+      setSelectedCountry(countries[0]);
+      setSelectedMember(null);
+      setShowAddForm(false);
+    } catch (error) {
+      console.error('Failed to save member:', error);
+      const message = error instanceof Error ? error.message : 'Failed to save member';
+      setFormError(message);
+      showToast(`❌ ${message}`);
     }
-
-    // Show success message
-    setShowConfirmation(true);
-    setTimeout(() => setShowConfirmation(false), 3000);
-
-    // Reset form
-    setNewMember({
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      membershipType: membershipTypes[0] || 'Single',
-      role: 'member',
-      company: '',
-    });
-    setSelectedCountry(countries[0]);
-    setSelectedMember(null);
-    setShowAddForm(false);
   };
 
   const toggleMemberExpansion = (memberId: string) => {
@@ -179,15 +209,16 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   };
 
   const handleEditMember = (member: Member) => {
+    setFormError(null);
     setSelectedMember(member);
-    
+
     // Extract country code and phone number from formatted phone
     const phoneMatch = member.phone.match(/(\+\d+)\s+(.+)/);
     const countryCode = phoneMatch ? phoneMatch[1] : '+994';
     const phoneNumber = phoneMatch ? phoneMatch[2] : '';
-    const country = countries.find(c => c.code === countryCode) || countries[0];
+    const country = countries.find((c) => c.code === countryCode) || countries[0];
     setSelectedCountry(country);
-    
+
     setNewMember({
       firstName: member.firstName,
       lastName: member.lastName,
@@ -200,12 +231,20 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     setShowAddForm(true);
   };
 
-  const handleDeleteMember = (member: Member) => {
-    if (window.confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)) {
-      deleteMember(member.id);
-      setConfirmationMessage('✅ Member deleted successfully!');
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 3000);
+  const handleDeleteMember = async (member: Member) => {
+    if (!window.confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)) {
+      return;
+    }
+
+    try {
+      await deleteMember(member.id);
+      await refreshMembers();
+      showToast('✅ Member deleted successfully!');
+    } catch (error) {
+      console.error('Failed to delete member:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete member';
+      setFormError(message);
+      showToast(`❌ ${message}`);
     }
   };
 
@@ -240,7 +279,6 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       <div className="page-header">
         <div className="page-title">
           <h2>🛡️ Viking Hammer Member Management</h2>
-         
         </div>
         <div className="header-actions">
           <button
@@ -252,13 +290,30 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           </button>
           <button
             className="btn btn-primary"
-            onClick={() => setShowAddForm(true)}
+            onClick={() => {
+              setFormError(null);
+              setSelectedMember(null);
+              setNewMember({
+                firstName: '',
+                lastName: '',
+                email: '',
+                phone: '',
+                membershipType: membershipTypes[0] || 'Single',
+                role: 'member',
+                company: '',
+              });
+              setSelectedCountry(countries[0]);
+              setShowAddForm(true);
+            }}
             title="Add a new member"
           >
             ➕ Add Member
           </button>
         </div>
       </div>
+
+      {membersError && <div className="confirmation-message">❌ {membersError}</div>}
+      {membersLoading && <div className="confirmation-message">🔄 Loading members...</div>}
 
       <div className="management-controls">
         <div className="top-controls">
@@ -605,10 +660,18 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           <div className="modal-content">
             <div className="modal-header">
               <h3>{selectedMember ? '⚔️ Edit Member' : '🛡️ Add Member'}</h3>
-              <button className="close-btn" onClick={() => setShowAddForm(false)}>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setFormError(null);
+                  setShowAddForm(false);
+                }}
+              >
                 ×
               </button>
             </div>
+
+            {formError && <div className="confirmation-message">❌ {formError}</div>}
 
             <div className="form-grid">
               <div className="form-group">
@@ -691,11 +754,11 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   onChange={(e) => setNewMember({ ...newMember, role: e.target.value as any })}
                   className="form-select"
                 >
-                  {roles.map((role) => (
-                    <option key={role.value} value={role.value}>
-                      {role.label}
-                    </option>
-                  ))}
+                  <option value="member">🛡️ Viking (Member)</option>
+                  <option value="instructor">⚔️ Warrior (Instructor)</option>
+                  <option value="reception">🏛️ Guardian (Reception)</option>
+                  <option value="sparta">👑 Commander (Sparta)</option>
+                  <option value="admin">👑 Admin</option>
                 </select>
               </div>
               {newMember.role === 'member' && (
@@ -737,8 +800,16 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
               >
                 ❌ Cancel
               </button>
-              <button className="btn btn-primary" onClick={handleAddMember}>
-                {selectedMember ? '⚡ Update Member' : '🛡️ Add Member'}
+              <button
+                className="btn btn-primary"
+                onClick={handleAddMember}
+                disabled={membersSaving}
+              >
+                {membersSaving
+                  ? '🔄 Working...'
+                  : selectedMember
+                  ? '⚡ Update Member'
+                  : '🛡️ Add Member'}
               </button>
             </div>
           </div>

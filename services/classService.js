@@ -26,7 +26,21 @@ async function getAllClasses(filters = {}) {
           day_of_week,
           start_time,
           end_time,
-          status
+          status,
+          class_bookings (
+            id,
+            user_id,
+            booking_date,
+            booked_at,
+            status,
+            user:users_profile (
+              id,
+              name,
+              email,
+              status,
+              phone
+            )
+          )
         )
       `,
       )
@@ -77,7 +91,21 @@ async function getClassById(classId) {
           day_of_week,
           start_time,
           end_time,
-          status
+          status,
+          class_bookings (
+            id,
+            user_id,
+            booking_date,
+            booked_at,
+            status,
+            user:users_profile (
+              id,
+              name,
+              email,
+              status,
+              phone
+            )
+          )
         )
       `,
       )

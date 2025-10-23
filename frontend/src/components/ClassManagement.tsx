@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { classService, instructorService, scheduleService, type GymClass, type Instructor, type ScheduleSlot } from '../services/classManagementService';
+import { classService, instructorService, scheduleService, type GymClass, type Instructor, type ScheduleSlot, type ScheduleEnrollment } from '../services/classManagementService';
 import './ClassManagement.css';
 
 interface ClassManagementProps {
@@ -68,6 +68,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   });
 
   const [editingScheduleSlot, setEditingScheduleSlot] = useState<ScheduleSlot | null>(null);
+  const [rosterModalSlot, setRosterModalSlot] = useState<ScheduleSlot | null>(null);
+  const [rosterModalOpen, setRosterModalOpen] = useState(false);
+  const [rosterEntries, setRosterEntries] = useState<ScheduleEnrollment[]>([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState<string | null>(null);
 
   useEffect(() => {
     // Load all data from API
@@ -124,6 +129,46 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewRoster = async (slot: ScheduleSlot) => {
+    setRosterModalSlot(slot);
+    setRosterModalOpen(true);
+    setRosterLoading(true);
+    setRosterError(null);
+
+    try {
+      const roster = await scheduleService.getRoster(slot.id);
+      setRosterEntries(roster);
+
+      // Sync schedule state so counts stay accurate across tabs
+      setScheduleSlots((prev) =>
+        prev.map((existing) =>
+          existing.id === slot.id ? { ...existing, enrolledMembers: roster } : existing,
+        ),
+      );
+
+      setRosterModalSlot((prev) =>
+        prev && prev.id === slot.id ? { ...prev, enrolledMembers: roster } : { ...slot, enrolledMembers: roster },
+      );
+    } catch (error) {
+      console.error('Error loading roster:', error);
+      setRosterError('Failed to load enrolled members. Please try again.');
+    } finally {
+      setRosterLoading(false);
+    }
+  };
+
+  const handleRefreshRoster = async () => {
+    if (!rosterModalSlot) return;
+    await handleViewRoster(rosterModalSlot);
+  };
+
+  const handleCloseRosterModal = () => {
+    setRosterModalOpen(false);
+    setRosterModalSlot(null);
+    setRosterEntries([]);
+    setRosterError(null);
   };
 
   const loadMockData_DEPRECATED = () => {
@@ -1053,6 +1098,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         </div>
                         <div className="slot-actions">
                           <button 
+                            className="roster-btn-small" 
+                            onClick={() => handleViewRoster(slot)}
+                            title="View Members"
+                          >
+                            👥
+                          </button>
+                          <button 
                             className="edit-btn-small" 
                             onClick={() => handleEditScheduleSlot(slot)}
                             title="Edit"
@@ -1100,6 +1152,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       }
     }
   };
+
+  const rosterClassDetails = rosterModalSlot
+    ? classes.find((c) => c.id === rosterModalSlot.classId)
+    : null;
+  const rosterInstructor = rosterModalSlot
+    ? instructors.find((i) => i.id === rosterModalSlot.instructorId)
+    : null;
+  const rosterCapacity = rosterClassDetails?.maxCapacity ?? null;
+  const rosterCount = rosterEntries.length;
 
   return (
     <div className="class-management">
@@ -1618,6 +1679,80 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </button>
               <button className="confirm-btn" onClick={handleAddScheduleSlot}>
                 {editingScheduleSlot ? 'Update Schedule Slot' : 'Add Schedule Slot'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Roster Modal */}
+      {rosterModalOpen && rosterModalSlot && (
+        <div className="modal-overlay">
+          <div className="modal-content roster-modal">
+            <div className="modal-header">
+              <div>
+                <h3>Enrolled Members</h3>
+                <p className="roster-subtitle">
+                  {rosterClassDetails?.name || 'Unknown Class'} • {rosterModalSlot.startTime} - {rosterModalSlot.endTime}
+                </p>
+                <p className="roster-subtitle">
+                  Instructor: {rosterInstructor?.name || 'Unassigned'}
+                </p>
+              </div>
+              <button className="close-btn" onClick={handleCloseRosterModal}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="roster-summary">
+                <span>📅 {new Date(rosterModalSlot.date).toLocaleDateString()}</span>
+                <span>
+                  👥 {rosterCount}
+                  {typeof rosterCapacity === 'number' && rosterCapacity > 0
+                    ? ` / ${rosterCapacity} seats`
+                    : ' enrolled'}
+                </span>
+                <button className="refresh-btn" onClick={handleRefreshRoster} disabled={rosterLoading}>
+                  {rosterLoading ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
+              </div>
+
+              {rosterError && <div className="roster-error">{rosterError}</div>}
+
+              {rosterLoading ? (
+                <div className="roster-loading">Loading roster...</div>
+              ) : rosterEntries.length === 0 ? (
+                <div className="roster-empty">No members have booked this slot yet.</div>
+              ) : (
+                <div className="roster-table-wrapper">
+                  <table className="roster-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Booked On</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rosterEntries.map((entry) => (
+                        <tr key={entry.bookingId}>
+                          <td>{entry.name}</td>
+                          <td>{entry.email || '—'}</td>
+                          <td className={`status-pill status-${entry.status}`}>{entry.status.replace('_', ' ')}</td>
+                          <td>{entry.bookedAt ? new Date(entry.bookedAt).toLocaleString() : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleCloseRosterModal}>
+                Close
               </button>
             </div>
           </div>

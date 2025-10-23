@@ -3,7 +3,7 @@
  * Converts backend API response (snake_case) to frontend interface (camelCase)
  */
 
-import { GymClass, Instructor, ScheduleSlot } from './classManagementService';
+import type { GymClass, Instructor, ScheduleSlot, ScheduleEnrollment } from './classManagementService';
 
 /**
  * Transform class data from API format to frontend format
@@ -37,6 +37,29 @@ export function transformClassFromAPI(apiClass: any): GymClass {
   };
 
   // Transform schedule slots if they exist
+  const normalizeRoster = (bookings: any[] | undefined): ScheduleEnrollment[] => {
+    if (!bookings || !Array.isArray(bookings)) return [];
+
+    return bookings
+      .filter(Boolean)
+      .map((booking: any) => {
+        const user = booking.user || {};
+        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        const resolvedName = user.name || fullName || user.email || 'Unknown Member';
+
+        return {
+          bookingId: booking.id,
+          memberId: booking.user_id,
+          name: resolvedName,
+          email: user.email || '',
+          phone: user.phone || '',
+          status: booking.status || 'confirmed',
+          bookingDate: booking.booking_date || '',
+          bookedAt: booking.booked_at || null,
+        } as ScheduleEnrollment;
+      });
+  };
+
   const transformSchedule = (scheduleSlots: any[] | undefined) => {
     if (!scheduleSlots || !Array.isArray(scheduleSlots)) return [];
     
@@ -44,6 +67,9 @@ export function transformClassFromAPI(apiClass: any): GymClass {
       dayOfWeek: mapDayOfWeek(slot.day_of_week ?? slot.dayOfWeek),
       startTime: slot.start_time || slot.startTime || '09:00',
       endTime: slot.end_time || slot.endTime || '10:00',
+      enrolledMembers: normalizeRoster(
+        slot.class_bookings || slot.enrolled_members || slot.enrolledMembers,
+      ),
     }));
   };
 
@@ -151,6 +177,29 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
     return dayMap[normalizedDay] || 1;
   };
 
+  const normalizeRoster = (bookings: any[] | undefined): ScheduleEnrollment[] => {
+    if (!bookings || !Array.isArray(bookings)) return [];
+
+    return bookings
+      .filter(Boolean)
+      .map((booking: any) => {
+        const user = booking.user || {};
+        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+        const resolvedName = user.name || fullName || user.email || 'Unknown Member';
+
+        return {
+          bookingId: booking.id,
+          memberId: booking.user_id,
+          name: resolvedName,
+          email: user.email || '',
+          phone: user.phone || '',
+          status: booking.status || 'confirmed',
+          bookingDate: booking.booking_date || '',
+          bookedAt: booking.booked_at || null,
+        } as ScheduleEnrollment;
+      });
+  };
+
   return {
     id: apiSchedule.id,
     classId: apiSchedule.class_id || apiSchedule.classId || '',
@@ -159,7 +208,9 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
     startTime: apiSchedule.start_time || apiSchedule.startTime || '09:00',
     endTime: apiSchedule.end_time || apiSchedule.endTime || '10:00',
     date: apiSchedule.specific_date || apiSchedule.date || new Date().toISOString().split('T')[0],
-    enrolledMembers: apiSchedule.enrolled_members || apiSchedule.enrolledMembers || [],
+    enrolledMembers: normalizeRoster(
+      apiSchedule.class_bookings || apiSchedule.enrolled_members || apiSchedule.enrolledMembers,
+    ),
     status: apiSchedule.status || 'scheduled',
   };
 }
