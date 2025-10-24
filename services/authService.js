@@ -8,44 +8,89 @@ const { supabase } = require('../supabaseClient');
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'viking-hammer-secret-key-change-in-production';
 
-/**
- * Sign up a new user with hashed password
- */
 async function signUp(userData) {
   try {
-    const { email, password, firstName, lastName, phone, role = 'member' } = userData;
+    const { email, password, firstName, lastName, phone, role = 'member', dateOfBirth } = userData;
 
-    // Check if user already exists
+    // Check if user already exists (might be in pending state from invitation)
     const { data: existingUser } = await supabase
       .from('users_profile')
-      .select('email')
+      .select('*')
       .eq('email', email)
       .single();
 
+    let newUser;
+
     if (existingUser) {
-      return { error: 'User with this email already exists', status: 400 };
-    }
+      // User exists (likely from invitation) - update with password and activate
+      if (existingUser.password_hash) {
+        return { error: 'User with this email already exists and is registered', status: 400 };
+      }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
 
-    // Create user in database
-    const { data: newUser, error: dbError } = await supabase
-      .from('users_profile')
-      .insert({
-        email,
+      // Build update object - ONLY update password and status for existing profiles
+      const updateData = {
         password_hash: passwordHash,
-        name: `${firstName} ${lastName}`,
-        role,
-        phone: phone || null,
-        status: 'active',
-      })
-      .select()
-      .single();
+        status: 'active', // Activate on registration
+        updated_at: new Date(),
+      };
 
-    if (dbError) {
-      console.error('Database error during signup:', dbError);
-      return { error: 'Failed to create user', status: 500 };
+      // Only update name/phone/dob if they were provided AND user doesn't have them yet
+      // This preserves admin-created member data
+      if (firstName && lastName && !existingUser.name) {
+        updateData.name = `${firstName} ${lastName}`;
+      }
+      if (phone && !existingUser.phone) {
+        updateData.phone = phone;
+      }
+      if (dateOfBirth && !existingUser.dob) {
+        updateData.dob = dateOfBirth;
+      }
+
+      // Update existing user with password and set to active
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('users_profile')
+        .update(updateData)
+        .eq('id', existingUser.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Database error during user activation:', updateError);
+        return { error: 'Failed to activate user', status: 500 };
+      }
+
+      newUser = updatedUser;
+      console.log(`✅ User activated: ${email} (was pending) - preserved existing profile data`);
+    } else {
+      // New user - create from scratch (for non-invitation flow)
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+
+      // Create user in database
+      const { data: createdUser, error: dbError } = await supabase
+        .from('users_profile')
+        .insert({
+          email,
+          password_hash: passwordHash,
+          name: `${firstName} ${lastName}`,
+          role,
+          phone: phone || null,
+          dob: dateOfBirth || null,
+          status: 'active',
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('Database error during signup:', dbError);
+        return { error: 'Failed to create user', status: 500 };
+      }
+
+      newUser = createdUser;
+      console.log(`✅ New user created: ${email}`);
     }
 
     // Generate JWT token

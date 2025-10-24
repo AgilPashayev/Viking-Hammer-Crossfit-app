@@ -16,6 +16,15 @@ interface InvitationData {
   email: string;
   userName?: string;
   phone?: string;
+  users_profile?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    dob?: string;
+    status: string;
+    membership_type?: string;
+  };
 }
 
 export default function Register({ token, onSuccess, onCancel }: RegisterProps) {
@@ -57,16 +66,31 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       // Set invitation data
       setInvitationData(result.data);
 
-      // Pre-fill name if available
-      if (result.data.userName) {
-        const nameParts = result.data.userName.split(' ');
+      // Check if user profile exists with name (member created by admin)
+      if (result.data.users_profile && result.data.users_profile.name) {
+        // User already has profile - pre-fill all data
+        const nameParts = result.data.users_profile.name.split(' ');
         setFirstName(nameParts[0] || '');
         setLastName(nameParts.slice(1).join(' ') || '');
-      }
+        
+        if (result.data.users_profile.phone) {
+          setPhone(result.data.users_profile.phone);
+        }
+        
+        if (result.data.users_profile.dob) {
+          setDateOfBirth(result.data.users_profile.dob);
+        }
+      } else {
+        // Fallback to invitation data
+        if (result.data.userName) {
+          const nameParts = result.data.userName.split(' ');
+          setFirstName(nameParts[0] || '');
+          setLastName(nameParts.slice(1).join(' ') || '');
+        }
 
-      // Pre-fill phone if available
-      if (result.data.phone) {
-        setPhone(result.data.phone);
+        if (result.data.phone) {
+          setPhone(result.data.phone);
+        }
       }
 
       setValidating(false);
@@ -83,8 +107,11 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
     e.preventDefault();
     setError('');
 
-    // Validation
-    if (!firstName.trim() || !lastName.trim()) {
+    // Check if user profile already exists (invited member with pre-filled data)
+    const hasExistingProfile = invitationData?.users_profile && invitationData.users_profile.name;
+
+    // Validation - less strict for existing profiles (only password required)
+    if (!hasExistingProfile && (!firstName.trim() || !lastName.trim())) {
       setError('Please enter your full name');
       return;
     }
@@ -107,17 +134,23 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
     try {
       setSubmitting(true);
 
+      // For existing members, only send password
+      // For new users, send all fields
+      const registrationData = hasExistingProfile 
+        ? { password }
+        : {
+            password,
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            phone: phone.trim() || undefined,
+            dateOfBirth: dateOfBirth || undefined,
+          };
+
       // Register using invitation token
       const response = await fetch(`${API_URL}/invitations/${token}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          password,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-          phone: phone.trim() || undefined,
-          dateOfBirth: dateOfBirth || undefined,
-        }),
+        body: JSON.stringify(registrationData),
       });
 
       const result = await response.json();
@@ -186,23 +219,37 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
   }
 
   // Registration form
+  const hasExistingProfile = invitationData?.users_profile && invitationData.users_profile.name;
+
   return (
     <div className="register-page">
       <div className="register-container">
         <div className="register-header">
           <h1>🔨 Viking Hammer CrossFit</h1>
-          <h2>Complete Your Registration</h2>
+          <h2>{hasExistingProfile ? 'Create Your Password' : 'Complete Your Registration'}</h2>
           <p className="register-subtitle">
-            Welcome! Create your account to join our community.
+            {hasExistingProfile 
+              ? 'Set your password to activate your account'
+              : 'Welcome! Create your account to join our community.'}
           </p>
         </div>
 
         <div className="register-body">
           {invitationData && (
             <div className="invitation-info">
-              <p>
-                <strong>Email:</strong> {invitationData.email}
-              </p>
+              {hasExistingProfile && invitationData.users_profile ? (
+                <>
+                  <p><strong>Name:</strong> {invitationData.users_profile.name}</p>
+                  <p><strong>Email:</strong> {invitationData.email}</p>
+                  {invitationData.users_profile.membership_type && (
+                    <p><strong>Membership:</strong> {invitationData.users_profile.membership_type}</p>
+                  )}
+                </>
+              ) : (
+                <p>
+                  <strong>Email:</strong> {invitationData.email}
+                </p>
+              )}
             </div>
           )}
 
@@ -214,57 +261,62 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
               </div>
             )}
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="firstName">
-                  First Name <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder="John"
-                  required
-                  autoFocus
-                />
-              </div>
+            {/* Only show name/phone/DOB fields for NEW users without existing profile */}
+            {!hasExistingProfile && (
+              <>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label htmlFor="firstName">
+                      First Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="firstName"
+                      value={firstName}
+                      onChange={(e) => setFirstName(e.target.value)}
+                      placeholder="John"
+                      required
+                      autoFocus
+                    />
+                  </div>
 
-              <div className="form-group">
-                <label htmlFor="lastName">
-                  Last Name <span className="required">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  placeholder="Doe"
-                  required
-                />
-              </div>
-            </div>
+                  <div className="form-group">
+                    <label htmlFor="lastName">
+                      Last Name <span className="required">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id="lastName"
+                      value={lastName}
+                      onChange={(e) => setLastName(e.target.value)}
+                      placeholder="Doe"
+                      required
+                    />
+                  </div>
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="phone">Phone Number (optional)</label>
-              <input
-                type="tel"
-                id="phone"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="+1234567890"
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="phone">Phone Number (optional)</label>
+                  <input
+                    type="tel"
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1234567890"
+                  />
+                </div>
 
-            <div className="form-group">
-              <label htmlFor="dateOfBirth">Date of Birth (optional)</label>
-              <input
-                type="date"
-                id="dateOfBirth"
-                value={dateOfBirth}
-                onChange={(e) => setDateOfBirth(e.target.value)}
-              />
-            </div>
+                <div className="form-group">
+                  <label htmlFor="dateOfBirth">Date of Birth (optional)</label>
+                  <input
+                    type="date"
+                    id="dateOfBirth"
+                    value={dateOfBirth}
+                    onChange={(e) => setDateOfBirth(e.target.value)}
+                  />
+                </div>
+              </>
+            )}
 
             <div className="form-group">
               <label htmlFor="password">

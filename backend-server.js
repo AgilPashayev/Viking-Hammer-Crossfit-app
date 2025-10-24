@@ -1039,14 +1039,22 @@ app.post(
 
     const invitationData = validation.data;
 
-    // 2. Create user account with invitation email
+    // 2. Check if user already has a complete profile (created by admin)
+    const hasExistingProfile = invitationData.users_profile && invitationData.users_profile.name;
+
+    // 3. Create/update user account
     const signupResult = await authService.signUp({
       email: invitationData.email,
       password,
-      firstName,
-      lastName,
-      phone: phone || invitationData.phone,
-      dateOfBirth,
+      // Only pass name/phone/dob for NEW users without existing profile
+      ...(hasExistingProfile
+        ? {}
+        : {
+            firstName,
+            lastName,
+            phone: phone || invitationData.phone,
+            dateOfBirth,
+          }),
       role: 'member',
     });
 
@@ -1054,7 +1062,7 @@ app.post(
       return res.status(signupResult.status || 500).json({ error: signupResult.error });
     }
 
-    // 3. Mark invitation as accepted
+    // 4. Mark invitation as accepted
     await invitationService.acceptInvitation(token);
 
     res.status(201).json({

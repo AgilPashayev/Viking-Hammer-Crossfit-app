@@ -76,7 +76,7 @@ async function createUser(userData) {
       phone,
       role = 'member',
       dob,
-      status = 'active',
+      status, // Don't set default here - will be set based on role
       membershipType,
       company,
       joinDate,
@@ -113,6 +113,10 @@ async function createUser(userData) {
       return parsed.toISOString().split('T')[0];
     })();
 
+    // Determine status: members start as 'pending' until they accept invitation
+    // Non-members (sparta, reception, instructor) are 'active' by default
+    const userStatus = status || (role === 'member' ? 'pending' : 'active');
+
     const { data: newUser, error } = await supabase
       .from('users_profile')
       .insert({
@@ -121,7 +125,7 @@ async function createUser(userData) {
         phone,
         role,
         dob,
-        status,
+        status: userStatus,
         membership_type: membershipType || 'Monthly Unlimited',
         company: company || null,
         join_date: joinDateValue,
