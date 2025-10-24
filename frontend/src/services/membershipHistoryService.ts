@@ -44,85 +44,9 @@ export interface ActiveMembershipResult {
  */
 export const getUserMembershipHistory = async (userId: string): Promise<MembershipHistoryResult> => {
   try {
-    // Check if demo mode (localhost detection)
-    const hostname = window.location.hostname;
-    const isDemoMode = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost');
-    
-    console.log('🔍 Membership History - Demo mode check:', { hostname, isDemoMode });
-    
-    if (isDemoMode) {
-      // Return mock data for demo mode
-      const mockHistory: MembershipRecord[] = [
-        {
-          id: '1',
-          plan_name: 'Viking Warrior Basic',
-          plan_type: 'basic',
-          start_date: '2025-01-15',
-          end_date: null,
-          duration_months: null,
-          status: 'active',
-          amount: 49.99,
-          currency: 'USD',
-          payment_method: 'credit_card',
-          payment_status: 'paid',
-          renewal_type: 'monthly',
-          auto_renew: true,
-          next_billing_date: '2025-02-15',
-          class_limit: null,
-          created_at: '2025-01-15T00:00:00Z',
-          cancelled_at: null,
-          cancellation_reason: null
-        },
-        {
-          id: '2',
-          plan_name: 'Viking Starter',
-          plan_type: 'basic',
-          start_date: '2024-06-01',
-          end_date: '2025-01-14',
-          duration_months: 6,
-          status: 'expired',
-          amount: 29.99,
-          currency: 'USD',
-          payment_method: 'credit_card',
-          payment_status: 'paid',
-          renewal_type: 'monthly',
-          auto_renew: false,
-          next_billing_date: null,
-          class_limit: 12,
-          created_at: '2024-06-01T00:00:00Z',
-          cancelled_at: null,
-          cancellation_reason: null
-        },
-        {
-          id: '3',
-          plan_name: 'Trial Membership',
-          plan_type: 'trial',
-          start_date: '2024-05-15',
-          end_date: '2024-05-31',
-          duration_months: 1,
-          status: 'completed',
-          amount: 0,
-          currency: 'USD',
-          payment_method: 'free',
-          payment_status: 'paid',
-          renewal_type: 'one-time',
-          auto_renew: false,
-          next_billing_date: null,
-          class_limit: 5,
-          created_at: '2024-05-15T00:00:00Z',
-          cancelled_at: null,
-          cancellation_reason: null
-        }
-      ];
+    console.log('Fetching membership history for user:', userId);
 
-      console.log('✅ Demo mode: Returning', mockHistory.length, 'membership records');
-      return {
-        success: true,
-        data: mockHistory
-      };
-    }
-
-    // Production mode: Call Supabase RPC
+    // Call Supabase RPC
     console.log('🔄 Production mode: Fetching membership history from Supabase for user:', userId);
     const { data, error } = await supabase
       .rpc('get_user_membership_history', { p_user_id: userId });
@@ -154,40 +78,7 @@ export const getUserMembershipHistory = async (userId: string): Promise<Membersh
  */
 export const getActiveMembership = async (userId: string): Promise<ActiveMembershipResult> => {
   try {
-    // Check if demo mode (localhost detection)
-    const hostname = window.location.hostname;
-    const isDemoMode = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost');
-    
-    if (isDemoMode) {
-      // Return mock active membership
-      const mockActive: MembershipRecord = {
-        id: '1',
-        plan_name: 'Viking Warrior Basic',
-        plan_type: 'basic',
-        start_date: '2025-01-15',
-        end_date: null,
-        duration_months: null,
-        status: 'active',
-        amount: 49.99,
-        currency: 'USD',
-        payment_method: 'credit_card',
-        payment_status: 'paid',
-        renewal_type: 'monthly',
-        auto_renew: true,
-        next_billing_date: '2025-02-15',
-        class_limit: null,
-        created_at: '2025-01-15T00:00:00Z',
-        cancelled_at: null,
-        cancellation_reason: null
-      };
-
-      return {
-        success: true,
-        data: mockActive
-      };
-    }
-
-    // Production mode
+    console.log('Fetching active membership for user:', userId);
     const { data, error } = await supabase
       .rpc('get_active_membership', { p_user_id: userId });
 

@@ -75,107 +75,12 @@ export const countryCodes = [
   { code: '+966', country: 'Saudi Arabia', flag: '🇸🇦' },
 ];
 
-// Demo mode storage - persist in localStorage for better user experience
-const getDemoUsers = (): { [email: string]: { password: string; profile: UserProfile } } => {
-  try {
-    console.log('🔍 getDemoUsers: Fetching from localStorage...');
-    const stored = localStorage.getItem('viking_demo_users');
-    console.log('🔍 getDemoUsers: Raw stored value:', stored ? `EXISTS (${stored.length} chars)` : 'NULL');
-    
-    if (!stored) {
-      console.log('🔍 getDemoUsers: No stored data, returning empty object');
-      return {};
-    }
-    
-    const parsed = JSON.parse(stored);
-    console.log('🔍 getDemoUsers: Parsed successfully');
-    console.log('🔍 getDemoUsers: Found', Object.keys(parsed).length, 'users');
-    console.log('🔍 getDemoUsers: User emails:', Object.keys(parsed));
-    return parsed;
-  } catch (error) {
-    console.error('🔍 getDemoUsers: ERROR parsing localStorage:', error);
-    return {};
-  }
-};
-
-const saveDemoUsers = (users: { [email: string]: { password: string; profile: UserProfile } }) => {
-  try {
-    localStorage.setItem('viking_demo_users', JSON.stringify(users));
-  } catch (error) {
-    console.warn('Failed to save demo users to localStorage:', error);
-  }
-};
-
-// Check if we're in demo mode (local development)
-const isInDemoMode = (): boolean => {
-  // Force demo mode for local development
-  const hostname = window.location.hostname;
-  const isDemo =
-    hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost');
-  console.log('Demo mode check:', { hostname, isDemo });
-  return isDemo;
-};
-
-// Get current demo users from localStorage
-let demoUsers = getDemoUsers();
-
 // Authentication functions
 export const signUpUser = async (
   userData: SignupData,
 ): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
     console.log('Starting signup process...', { email: userData.email });
-
-    // Check if we're in demo mode
-    const isDemoMode = isInDemoMode();
-
-    if (isDemoMode) {
-      console.log('Demo mode: Creating mock user...');
-
-      // Check if user already exists in demo storage
-      if (demoUsers[userData.email]) {
-        return { user: null, error: 'User with this email already exists' };
-      }
-
-      // Create mock user profile
-      // Use September 15, 2025 as default registration date
-      const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
-      
-      const mockUser: UserProfile = {
-        id: crypto.randomUUID(),
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        phone: userData.phone,
-        countryCode: userData.countryCode,
-        dateOfBirth: userData.dateOfBirth,
-        gender: userData.gender,
-        emergencyContactName: userData.emergencyContactName,
-        emergencyContactPhone: userData.emergencyContactPhone,
-        emergencyContactCountryCode: userData.emergencyContactCountryCode,
-        membershipType: userData.membershipType,
-        joinDate: registrationDate,
-        isActive: true,
-        createdAt: registrationDate,
-        updatedAt: new Date().toISOString(),
-      };
-
-      // Store user in demo storage with password
-      demoUsers[userData.email] = {
-        password: userData.password,
-        profile: mockUser,
-      };
-
-      // Save to localStorage
-      saveDemoUsers(demoUsers);
-
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      console.log('Demo signup successful!', mockUser);
-      console.log('Stored in demo storage:', demoUsers);
-      return { user: mockUser, error: null };
-    }
 
     // First, sign up with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -250,77 +155,7 @@ export const signInUser = async (
   loginData: LoginData,
 ): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
-    console.log('🔐 === SIGNIN PROCESS STARTED ===');
-    console.log('📧 Email:', loginData.email);
-    console.log('🔑 Password length:', loginData.password?.length);
-    console.log('🔑 Password value:', loginData.password);
-
-    // Check if we're in demo mode
-    const isDemoMode = isInDemoMode();
-    console.log('🏠 Demo mode active:', isDemoMode);
-
-    if (isDemoMode) {
-      console.log('✅ Demo mode: Checking credentials...');
-
-      // Refresh demo users from localStorage
-      demoUsers = getDemoUsers();
-      console.log('📦 Retrieved demo users from localStorage');
-      console.log('👥 Available demo users:', Object.keys(demoUsers));
-      console.log('📊 Total users count:', Object.keys(demoUsers).length);
-
-      // Log the full localStorage content for debugging
-      const rawStorage = localStorage.getItem('viking_demo_users');
-      console.log('🗄️ Raw localStorage value:', rawStorage ? 'EXISTS' : 'NULL');
-      if (rawStorage) {
-        console.log('📏 Raw storage length:', rawStorage.length);
-      }
-
-      // Check if user exists and password matches
-      const storedUser = demoUsers[loginData.email];
-      console.log('🔍 Looking for user:', loginData.email);
-      console.log('🔍 User found in storage:', storedUser ? 'YES' : 'NO');
-
-      if (!storedUser) {
-        console.error('❌ User not found in demo storage');
-        console.log('📋 Available emails:', Object.keys(demoUsers));
-        
-        // User-friendly error for demo mode
-        const hasAnyUsers = Object.keys(demoUsers).length > 0;
-        const errorMsg = hasAnyUsers 
-          ? '❌ Account not found.\n\nPlease check your email or sign up as a new user.'
-          : '❌ No demo accounts found.\n\nPlease sign up to create your first demo account.';
-        
-        return { user: null, error: errorMsg };
-      }
-
-      console.log('✅ User found! Checking password...');
-      console.log('🔐 Stored password:', storedUser.password);
-      console.log('🔐 Provided password:', loginData.password);
-      console.log('🔐 Passwords match:', storedUser.password === loginData.password);
-      console.log('🔐 Password comparison (strict):', storedUser.password === loginData.password);
-      console.log('🔐 Password comparison (loose):', storedUser.password == loginData.password);
-      console.log('🔐 Stored password type:', typeof storedUser.password);
-      console.log('🔐 Provided password type:', typeof loginData.password);
-
-      if (storedUser.password !== loginData.password) {
-        console.error('❌ Password mismatch!');
-        console.log('Expected:', `"${storedUser.password}"`);
-        console.log('Received:', `"${loginData.password}"`);
-        return { 
-          user: null, 
-          error: '❌ Incorrect password.\n\nPlease try again or use the "Clear Demo Data" button to reset your account.' 
-        };
-      }
-
-      // Simulate network delay
-      console.log('⏳ Simulating network delay...');
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      console.log('🎉 Demo signin successful!');
-      console.log('👤 Profile data:', storedUser.profile);
-      console.log('🔐 === SIGNIN PROCESS COMPLETE ===');
-      return { user: storedUser.profile, error: null };
-    }
+    console.log('Starting signin process...', { email: loginData.email });
 
     // Sign in with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -419,41 +254,6 @@ export const updateUserProfile = async (
 ): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
     console.log('Updating user profile...', { userId, updateData });
-
-    // Check if we're in demo mode
-    const isDemoMode = isInDemoMode();
-
-    if (isDemoMode) {
-      console.log('Running in demo mode - updating localStorage');
-
-      // Find user by email in demo storage
-      const userEmail = Object.keys(demoUsers).find(
-        (email) =>
-          demoUsers[email].profile.id === userId ||
-          demoUsers[email].profile.email === updateData.email,
-      );
-
-      if (!userEmail) {
-        return { user: null, error: 'User not found' };
-      }
-
-      // Update the user profile
-      const currentProfile = demoUsers[userEmail].profile;
-      const updatedProfile = {
-        ...currentProfile,
-        ...updateData,
-        avatar_url: updateData.profilePhoto || updateData.avatar_url || currentProfile.avatar_url,
-        updatedAt: new Date().toISOString(),
-      };
-
-      demoUsers[userEmail].profile = updatedProfile;
-
-      // Save to localStorage
-      saveDemoUsers(demoUsers);
-
-      console.log('Demo profile updated successfully!', updatedProfile);
-      return { user: updatedProfile, error: null };
-    }
 
     // Update profile in Supabase
     const { data: updatedData, error: updateError } = await supabase
@@ -696,41 +496,7 @@ export const uploadProfilePhoto = async (
   file: File
 ): Promise<{ url: string | null; error: string | null }> => {
   try {
-    console.log('📸 Uploading profile photo for user:', userId);
-
-    // Check if we're in demo mode
-    if (isInDemoMode()) {
-      console.log('Demo mode: Simulating photo upload...');
-      
-      // Convert file to base64 for demo mode
-      const reader = new FileReader();
-      return new Promise((resolve) => {
-        reader.onload = (e) => {
-          const base64 = e.target?.result as string;
-          
-          // Store in localStorage with user data
-          const demoUsers = getDemoUsers();
-          const userEmail = Object.keys(demoUsers).find(
-            email => demoUsers[email].profile.id === userId
-          );
-          
-          if (userEmail && demoUsers[userEmail]) {
-            demoUsers[userEmail].profile = {
-              ...demoUsers[userEmail].profile,
-              avatar_url: base64
-            };
-            saveDemoUsers(demoUsers);
-            console.log('✅ Demo mode: Photo saved to localStorage');
-          }
-          
-          resolve({ url: base64, error: null });
-        };
-        reader.onerror = () => {
-          resolve({ url: null, error: 'Failed to read file' });
-        };
-        reader.readAsDataURL(file);
-      });
-    }
+    console.log('Uploading profile photo for user:', userId);
 
     // Create unique filename
     const fileExt = file.name.split('.').pop();
@@ -779,21 +545,7 @@ export const getUserProfile = async (
   userId: string
 ): Promise<{ user: UserProfile | null; error: string | null }> => {
   try {
-    console.log('👤 Fetching user profile:', userId);
-
-    // Check if we're in demo mode
-    if (isInDemoMode()) {
-      const demoUsers = getDemoUsers();
-      const userEmail = Object.keys(demoUsers).find(
-        email => demoUsers[email].profile.id === userId
-      );
-      
-      if (userEmail && demoUsers[userEmail]) {
-        return { user: demoUsers[userEmail].profile, error: null };
-      }
-      
-      return { user: null, error: 'User not found' };
-    }
+    console.log('Fetching user profile:', userId);
 
     const { data, error } = await supabase
       .from('users_profile')
