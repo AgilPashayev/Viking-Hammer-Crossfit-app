@@ -380,23 +380,17 @@ export const createMembershipPlan = async (planData: MembershipPlanInput): Promi
     // Parse duration (e.g., "30 days" -> 30)
     const durationDays = parseInt(planData.duration.split(' ')[0]) || 30;
 
+    // NOTE: Database does NOT have metadata column - only store basic fields
     const dbPlan = {
       sku,
       name: planData.name,
       price_cents: priceCents,
       duration_days: durationDays,
       visit_quota: planData.entryLimit || null,
-      metadata: {
-        type: planData.type,
-        currency: planData.currency,
-        description: planData.description,
-        features: planData.features,
-        limitations: planData.limitations,
-        isActive: planData.isActive,
-        isPopular: planData.isPopular,
-        discountPercentage: planData.discountPercentage,
-      },
+      // metadata field removed - column doesn't exist in database
     };
+
+    console.log('Creating plan in database:', dbPlan);
 
     const { data, error } = await supabase
       .from('plans')
@@ -409,6 +403,7 @@ export const createMembershipPlan = async (planData: MembershipPlanInput): Promi
       return { plan: null, error: error.message };
     }
 
+    console.log('✅ Plan created successfully:', data);
     return { plan: data, error: null };
   } catch (error) {
     console.error('Unexpected error creating plan:', error);
@@ -426,30 +421,10 @@ export const updateMembershipPlan = async (planId: number, planData: Partial<Mem
     if (planData.duration) updates.duration_days = parseInt(planData.duration.split(' ')[0]) || 30;
     if (planData.entryLimit !== undefined) updates.visit_quota = planData.entryLimit || null;
 
-    // Update metadata
-    const metadata: any = {};
-    if (planData.type) metadata.type = planData.type;
-    if (planData.currency) metadata.currency = planData.currency;
-    if (planData.description !== undefined) metadata.description = planData.description;
-    if (planData.features) metadata.features = planData.features;
-    if (planData.limitations) metadata.limitations = planData.limitations;
-    if (planData.isActive !== undefined) metadata.isActive = planData.isActive;
-    if (planData.isPopular !== undefined) metadata.isPopular = planData.isPopular;
-    if (planData.discountPercentage !== undefined) metadata.discountPercentage = planData.discountPercentage;
-
-    if (Object.keys(metadata).length > 0) {
-      // Fetch current metadata and merge
-      const { data: currentPlan } = await supabase
-        .from('plans')
-        .select('metadata')
-        .eq('id', planId)
-        .single();
-
-      updates.metadata = {
-        ...(currentPlan?.metadata || {}),
-        ...metadata,
-      };
-    }
+    // NOTE: Database does NOT have metadata column - cannot store additional fields
+    // Frontend will regenerate metadata from basic fields on display
+    
+    console.log('Updating plan in database:', updates);
 
     const { data, error } = await supabase
       .from('plans')
@@ -463,6 +438,7 @@ export const updateMembershipPlan = async (planId: number, planData: Partial<Mem
       return { plan: null, error: error.message };
     }
 
+    console.log('✅ Plan updated successfully:', data);
     return { plan: data, error: null };
   } catch (error) {
     console.error('Unexpected error updating plan:', error);
@@ -496,47 +472,104 @@ export const uploadProfilePhoto = async (
   file: File
 ): Promise<{ url: string | null; error: string | null }> => {
   try {
-    console.log('Uploading profile photo for user:', userId);
+    console.log('📸 Starting profile photo upload for user:', userId);
+    console.log('📁 File details:', { name: file.name, size: file.size, type: file.type });
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      return { url: null, error: 'File size must be less than 5MB' };
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      return { url: null, error: 'File must be an image' };
+    }
 
     // Create unique filename
-    const fileExt = file.name.split('.').pop();
+    const fileExt = file.name.split('.').pop() || 'jpg';
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
     const filePath = `avatars/${fileName}`;
+
+    console.log('📤 Uploading to Supabase storage:', filePath);
+
+    // First, try to create bucket if it doesn't exist (will fail silently if it does)
+    try {
+      await supabase.storage.createBucket('user-avatars', {
+        public: true,
+        fileSizeLimit: 5242880, // 5MB
+        allowedMimeTypes: ['image/*']
+      });
+      console.log('✅ Storage bucket created/verified');
+    } catch (bucketError) {
+      console.log('ℹ️ Bucket already exists or cannot create:', bucketError);
+    }
 
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('user-avatars')
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: true
+        upsert: true,
+        contentType: file.type
       });
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
+      console.error('❌ Upload error:', uploadError);
+      
+      // Provide more helpful error messages
+      if (uploadError.message.includes('not found')) {
+        return { 
+          url: null, 
+          error: 'Storage bucket not configured. Please contact support or try again later.' 
+        };
+      }
+      if (uploadError.message.includes('permission')) {
+        return { 
+          url: null, 
+          error: 'Permission denied. Please check storage permissions or contact support.' 
+        };
+      }
+      
       return { url: null, error: uploadError.message };
     }
 
+    console.log('✅ File uploaded successfully:', uploadData);
+
     // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    const { data: urlData } = supabase.storage
       .from('user-avatars')
       .getPublicUrl(filePath);
 
+    const publicUrl = urlData.publicUrl;
+    console.log('🔗 Public URL generated:', publicUrl);
+
     // Update user profile with avatar URL
+    console.log('💾 Updating user profile with avatar URL...');
     const { error: updateError } = await supabase
       .from('users_profile')
-      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
+      .update({ 
+        avatar_url: publicUrl, 
+        updated_at: new Date().toISOString() 
+      })
       .eq('id', userId);
 
     if (updateError) {
-      console.error('Profile update error:', updateError);
-      return { url: null, error: updateError.message };
+      console.error('❌ Profile update error:', updateError);
+      // Photo is uploaded but profile update failed
+      return { 
+        url: publicUrl, 
+        error: `Photo uploaded but profile update failed: ${updateError.message}` 
+      };
     }
 
-    console.log('✅ Profile photo uploaded successfully:', publicUrl);
+    console.log('✅ Profile photo uploaded and saved successfully!');
     return { url: publicUrl, error: null };
   } catch (error: any) {
-    console.error('Unexpected error uploading photo:', error);
-    return { url: null, error: error.message || 'Failed to upload photo' };
+    console.error('❌ Unexpected error uploading photo:', error);
+    return { 
+      url: null, 
+      error: error.message || 'An unexpected error occurred while uploading. Please try again.' 
+    };
   }
 };
 

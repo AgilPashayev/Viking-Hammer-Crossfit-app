@@ -10,7 +10,8 @@ import {
 } from '../services/memberService';
 import { isAuthenticated, isAdmin } from '../services/authService';
 
-const DEFAULT_MEMBERSHIP_TYPES = ['Single', 'Monthly', 'Monthly Unlimited', 'Company'];
+// Default membership types - these should match the plans in database
+const DEFAULT_MEMBERSHIP_TYPES = ['Single Session', 'Monthly Limited', 'Monthly Unlimited', 'Company Basic'];
 
 export interface Member {
   id: string;
@@ -178,120 +179,14 @@ interface DataProviderProps {
 }
 
 export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
-  const [members, setMembers] = useState<Member[]>([
-    {
-      id: '1',
-      firstName: 'Thor',
-      lastName: 'Hammer',
-      email: 'thor@vikinghammer.com',
-      phone: '🇦🇿 +994 50 333 33 33',
-      membershipType: 'Monthly Unlimited',
-      status: 'active',
-      joinDate: '2024-01-15',
-      lastCheckIn: '2024-10-07',
-      role: 'member',
-    },
-    {
-      id: '2',
-      firstName: 'Freya',
-      lastName: 'Viking',
-      email: 'freya@vikinghammer.com',
-      phone: '🇺🇸 +1 555 333 3333',
-      membershipType: 'Single',
-      status: 'active',
-      joinDate: '2024-02-20',
-      lastCheckIn: '2024-10-06',
-      role: 'member',
-      company: 'TechCorp',
-    },
-    {
-      id: '3',
-      firstName: 'Odin',
-      lastName: 'Hammer',
-      email: 'odin@vikinghammer.com',
-      phone: '🇦🇿 +994 55 333 33 33',
-      membershipType: 'Monthly',
-      status: 'pending',
-      joinDate: '2024-10-01',
-      role: 'instructor',
-    },
-    {
-      id: '4',
-      firstName: 'Loki',
-      lastName: 'Viking',
-      email: 'loki@vikinghammer.com',
-      phone: '🇬🇧 +44 7700 333333',
-      membershipType: 'Company',
-      status: 'active',
-      joinDate: '2024-09-15',
-      lastCheckIn: '2024-10-07',
-      role: 'member',
-      company: 'Innovation Labs',
-    },
-    {
-      id: '5',
-      firstName: 'Ragnar',
-      lastName: 'Hammer',
-      email: 'ragnar@vikinghammer.com',
-      phone: '🇩🇪 +49 30 33333333',
-      membershipType: 'Monthly Unlimited',
-      status: 'active',
-      joinDate: '2024-08-01',
-      lastCheckIn: '2024-10-06',
-      role: 'instructor',
-    },
-    {
-      id: '6',
-      firstName: 'Astrid',
-      lastName: 'Viking',
-      email: 'astrid@vikinghammer.com',
-      phone: '🇫🇷 +33 1 33 33 33 33',
-      membershipType: 'Single',
-      status: 'active',
-      joinDate: '2024-09-10',
-      lastCheckIn: '2024-10-08',
-      role: 'member',
-      company: 'Digital Solutions',
-    },
-    {
-      id: '7',
-      firstName: 'Bjorn',
-      lastName: 'Hammer',
-      email: 'bjorn@vikinghammer.com',
-      phone: '🇦🇿 +994 70 333 33 33',
-      membershipType: 'Monthly',
-      status: 'active',
-      joinDate: '2024-07-20',
-      lastCheckIn: '2024-10-07',
-      role: 'admin',
-    },
-  ]);
+  // All members will be loaded from database - no mock data
+  const [members, setMembers] = useState<Member[]>([]);
   const [membersLoading, setMembersLoading] = useState<boolean>(false);
   const [membersSaving, setMembersSaving] = useState<boolean>(false);
   const [membersError, setMembersError] = useState<string | null>(null);
 
-  const [checkIns, setCheckIns] = useState<CheckIn[]>([
-    {
-      id: 'checkin1',
-      memberId: '1',
-      memberName: 'Thor Hammer',
-      membershipType: 'Monthly Unlimited',
-      phone: '🇦🇿 +994 50 333 33 33',
-      status: 'active',
-      checkInTime: new Date().toISOString(),
-      role: 'member',
-    },
-    {
-      id: 'checkin2',
-      memberId: '2',
-      memberName: 'Freya Viking',
-      membershipType: 'Single',
-      phone: '🇺🇸 +1 555 333 3333',
-      status: 'active',
-      checkInTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      role: 'member',
-    },
-  ]);
+  // All check-ins will be loaded from database - no mock data
+  const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
 
   // Classes state
   const [classes, setClasses] = useState<GymClass[]>([]);
@@ -352,7 +247,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         lastCheckIn,
         role: normalizedRole,
         company: apiMember.company || undefined,
-        dateOfBirth: apiMember.dob || undefined,
+        dateOfBirth: apiMember.dob ? new Date(apiMember.dob).toISOString().split('T')[0] : undefined,
+        gender: undefined, // Not available in users_profile table
+        emergencyContact: undefined, // Not available in users_profile table
+        address: undefined, // Not available in users_profile table
       };
     },
     [membershipTypes],
@@ -379,9 +277,13 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }
   }, [transformApiMember]);
 
+  // Load members only once on mount if authenticated as admin
   useEffect(() => {
-    loadMembers();
-  }, [loadMembers]);
+    if (isAuthenticated() && isAdmin()) {
+      loadMembers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
@@ -557,70 +459,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     setStats(prev => ({ ...prev, activeClasses: activeCount }));
   }, [classes]);
 
-  // Initial load: populate with some mock data
-  useEffect(() => {
-    if (classes.length === 0) {
-      // Add initial mock classes
-      setClasses([
-        {
-          id: 'class1',
-          name: 'Morning CrossFit WOD',
-          description: 'High-intensity CrossFit workout to start your day',
-          duration: 60,
-          maxCapacity: 20,
-          currentEnrollment: 15,
-          instructors: ['Thor Hansen'],
-          schedule: [
-            { dayOfWeek: 1, startTime: '06:00', endTime: '07:00' }, // Monday
-            { dayOfWeek: 3, startTime: '06:00', endTime: '07:00' }, // Wednesday
-            { dayOfWeek: 5, startTime: '06:00', endTime: '07:00' }, // Friday
-          ],
-          equipment: ['Barbell', 'Pull-up Bar', 'Kettlebell'],
-          difficulty: 'Intermediate',
-          category: 'Mixed',
-          price: 25,
-          status: 'active'
-        },
-        {
-          id: 'class2',
-          name: 'Strength Training',
-          description: 'Build muscle and increase strength with guided weightlifting',
-          duration: 75,
-          maxCapacity: 15,
-          currentEnrollment: 12,
-          instructors: ['Freya Nielsen'],
-          schedule: [
-            { dayOfWeek: 2, startTime: '18:00', endTime: '19:15' }, // Tuesday
-            { dayOfWeek: 4, startTime: '18:00', endTime: '19:15' }, // Thursday
-          ],
-          equipment: ['Barbell', 'Dumbbells', 'Bench'],
-          difficulty: 'Intermediate',
-          category: 'Strength',
-          price: 30,
-          status: 'active'
-        },
-        {
-          id: 'class3',
-          name: 'HIIT Cardio',
-          description: 'High-Intensity Interval Training for maximum calorie burn',
-          duration: 45,
-          maxCapacity: 25,
-          currentEnrollment: 20,
-          instructors: ['Erik Larsen'],
-          schedule: [
-            { dayOfWeek: 1, startTime: '07:00', endTime: '07:45' }, // Monday
-            { dayOfWeek: 3, startTime: '07:00', endTime: '07:45' }, // Wednesday
-            { dayOfWeek: 5, startTime: '07:00', endTime: '07:45' }, // Friday
-          ],
-          equipment: ['Jump Rope', 'Medicine Ball'],
-          difficulty: 'Beginner',
-          category: 'Cardio',
-          price: 20,
-          status: 'active'
-        },
-      ]);
-    }
-  }, []);
+  // Classes will be loaded from database only - no mock data
 
   const refreshMembers = useCallback(async () => {
     await loadMembers();

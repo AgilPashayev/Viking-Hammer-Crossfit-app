@@ -281,10 +281,10 @@ app.put(
     const result = await userService.updateUser(req.params.id, req.body);
 
     if (result.error) {
-      return res.status(result.status || 500).json({ error: result.error });
+      return res.status(result.status || 500).json({ success: false, error: result.error });
     }
 
-    res.json(result.data);
+    res.json({ success: true, user: result.data });
   }),
 );
 
@@ -649,19 +649,31 @@ app.get(
 
 /**
  * POST /api/bookings - Book a class slot
+ * Accepts EITHER: { userId, scheduleSlotId, bookingDate }
+ * OR: { userId, classId, dayOfWeek, startTime, bookingDate }
  */
 app.post(
   '/api/bookings',
   asyncHandler(async (req, res) => {
-    const { userId, scheduleSlotId, bookingDate } = req.body;
+    const { userId, scheduleSlotId, classId, dayOfWeek, startTime, bookingDate } = req.body;
 
-    if (!userId || !scheduleSlotId || !bookingDate) {
-      return res
-        .status(400)
-        .json({ error: 'Missing required fields: userId, scheduleSlotId, bookingDate' });
+    if (!userId || !bookingDate) {
+      return res.status(400).json({ error: 'Missing required fields: userId and bookingDate' });
     }
 
-    const result = await bookingService.bookClassSlot(userId, scheduleSlotId, bookingDate);
+    // Determine which format we received
+    let slotIdentifier;
+    if (scheduleSlotId) {
+      slotIdentifier = scheduleSlotId;
+    } else if (classId && dayOfWeek !== undefined && startTime) {
+      slotIdentifier = { classId, dayOfWeek, startTime };
+    } else {
+      return res.status(400).json({
+        error: 'Must provide either scheduleSlotId OR (classId, dayOfWeek, startTime)',
+      });
+    }
+
+    const result = await bookingService.bookClassSlot(userId, slotIdentifier, bookingDate);
 
     if (result.error) {
       return res.status(result.status || 500).json({ error: result.error });
@@ -769,6 +781,24 @@ app.post(
 );
 
 // ==================== SUBSCRIPTIONS (MEMBERSHIPS) ====================
+
+/**
+ * POST /api/subscriptions - Create a new subscription
+ */
+app.post(
+  '/api/subscriptions',
+  authenticate,
+  isAdmin,
+  asyncHandler(async (req, res) => {
+    const result = await subscriptionService.createSubscription(req.body);
+
+    if (result.error) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    res.status(201).json({ success: true, data: result.subscription });
+  }),
+);
 
 /**
  * GET /api/subscriptions - Get all subscriptions with member and plan details
@@ -1536,6 +1566,8 @@ app.get(
  */
 app.put(
   '/api/settings/user/:userId',
+  authenticate,
+  canAccessUserResource('userId'),
   asyncHandler(async (req, res) => {
     const { userId } = req.params;
     const {
@@ -2034,6 +2066,7 @@ async function startServer() {
       console.log('     POST   /api/bookings/:id/attended - Mark attended');
       console.log('     POST   /api/bookings/:id/no-show - Mark no-show');
       console.log('   SUBSCRIPTIONS:');
+      console.log('     POST   /api/subscriptions - Create new subscription');
       console.log('     GET    /api/subscriptions - Get all subscriptions');
       console.log('     GET    /api/subscriptions/:id - Get subscription');
       console.log('     GET    /api/subscriptions/user/:userId - Get user subs');

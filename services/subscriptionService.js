@@ -4,6 +4,81 @@
 const { supabase } = require('../supabaseClient');
 
 /**
+ * Create a new subscription/membership
+ * @param {Object} subscriptionData - { userId, planId, startDate, notes }
+ * @returns {Promise<{subscription: Object|null, error: string|null}>}
+ */
+async function createSubscription(subscriptionData) {
+  try {
+    const { userId, planId, startDate, notes } = subscriptionData;
+
+    // Validate required fields
+    if (!userId || !planId) {
+      return { subscription: null, error: 'User ID and Plan ID are required' };
+    }
+
+    // Get plan details to calculate end date and remaining visits
+    const { data: plan, error: planError } = await supabase
+      .from('plans')
+      .select('duration_days, visit_quota')
+      .eq('id', planId)
+      .single();
+
+    if (planError || !plan) {
+      return { subscription: null, error: 'Invalid plan ID' };
+    }
+
+    // Calculate end date
+    const start = startDate ? new Date(startDate) : new Date();
+    const end = new Date(start);
+    end.setDate(end.getDate() + plan.duration_days);
+
+    // Create membership record
+    const { data, error } = await supabase
+      .from('memberships')
+      .insert([
+        {
+          user_id: userId,
+          plan_id: planId,
+          start_date: start.toISOString().split('T')[0],
+          end_date: end.toISOString().split('T')[0],
+          remaining_visits: plan.visit_quota,
+          status: 'active',
+          notes: notes || null,
+        },
+      ])
+      .select(
+        `
+        *,
+        users_profile:user_id (id, name, email),
+        plans:plan_id (id, name, price_cents, duration_days, visit_quota)
+      `,
+      )
+      .single();
+
+    if (error) {
+      console.error('Error creating subscription:', error);
+      return { subscription: null, error: error.message };
+    }
+
+    // Update user's membership_type to match the plan name
+    const { error: updateError } = await supabase
+      .from('users_profile')
+      .update({ membership_type: data.plans.name })
+      .eq('id', userId);
+
+    if (updateError) {
+      console.warn('Failed to update user membership_type:', updateError);
+    }
+
+    return { subscription: data, error: null };
+  } catch (error) {
+    console.error('Unexpected error in createSubscription:', error);
+    return { subscription: null, error: error.message };
+  }
+}
+
+/**
  * Get all subscriptions with member and plan details
  * @returns {Promise<{subscriptions: Array, error: string|null}>}
  */
@@ -355,6 +430,7 @@ function calculateNextPaymentDate(membership) {
 }
 
 module.exports = {
+  createSubscription,
   getAllSubscriptions,
   getSubscriptionById,
   updateSubscription,

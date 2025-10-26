@@ -116,8 +116,44 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   useEffect(() => {
     loadPlansFromDatabase();
     loadSubscriptionsFromDatabase(); // Load real subscriptions from database
-    loadMockData(); // Load mock companies only
+    // Companies will be loaded from database when needed - no mock data
   }, []);
+
+  // Helper function to generate metadata from plan fields (no database metadata column needed)
+  const generatePlanMetadata = (dbPlan: any) => {
+    // Infer plan type from name and visit_quota
+    let type: 'single' | 'monthly-limited' | 'monthly-unlimited' | 'company' = 'single';
+    let description = dbPlan.name;
+    let features: string[] = [];
+    let limitations: string[] = [];
+    let isPopular = false;
+    
+    if (dbPlan.name.toLowerCase().includes('single')) {
+      type = 'single';
+      description = 'Single gym visit - pay as you go';
+      features = ['One-time gym access', 'Access to all equipment', 'Valid for 1 day'];
+      limitations = ['No class bookings', 'Single visit only'];
+    } else if (dbPlan.name.toLowerCase().includes('unlimited')) {
+      type = 'monthly-unlimited';
+      description = 'Unlimited access - best value for dedicated members';
+      features = ['Unlimited gym access', 'All classes included', `Valid for ${dbPlan.duration_days} days`, 'Best value for money'];
+      limitations = [];
+      isPopular = true;
+    } else if (dbPlan.name.toLowerCase().includes('company')) {
+      type = 'company';
+      description = 'Corporate membership plan with unlimited access';
+      features = ['Unlimited gym access', 'All classes included', 'Corporate rates', `Valid for ${dbPlan.duration_days} days`];
+      limitations = ['Requires company contract'];
+    } else if (dbPlan.visit_quota && dbPlan.visit_quota > 1) {
+      type = 'monthly-limited';
+      description = `${dbPlan.visit_quota} visits per month - perfect for regular members`;
+      features = [`${dbPlan.visit_quota} gym visits per month`, 'Class bookings included', `Valid for ${dbPlan.duration_days} days`];
+      limitations = [`Maximum ${dbPlan.visit_quota} visits per month`, 'No unused visits rollover'];
+      isPopular = true;
+    }
+
+    return { type, description, features, limitations, isPopular };
+  };
 
   // Load plans from Supabase database
   const loadPlansFromDatabase = async () => {
@@ -138,25 +174,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       return;
     }
 
-    // Convert database plans to component format
-    const convertedPlans: MembershipPlan[] = plans.map(dbPlan => ({
-      id: dbPlan.id.toString(),
-      name: dbPlan.name,
-      type: (dbPlan.metadata?.type as any) || 'single',
-      price: dbPlan.price_cents / 100,
-      currency: dbPlan.metadata?.currency || 'AZN',
-      description: dbPlan.metadata?.description || '',
-      features: dbPlan.metadata?.features || [],
-      limitations: dbPlan.metadata?.limitations || [],
-      duration: `${dbPlan.duration_days} days`,
-      entryLimit: dbPlan.visit_quota || undefined,
-      isActive: dbPlan.metadata?.isActive ?? true,
-      isPopular: dbPlan.metadata?.isPopular || false,
-      discountPercentage: dbPlan.metadata?.discountPercentage || 0,
-      createdAt: dbPlan.created_at,
-      updatedAt: dbPlan.created_at,
-    }));
+    console.log('✅ Loaded plans from database:', plans);
 
+    // Convert database plans to component format (NO METADATA COLUMN - generate from basic fields)
+    const convertedPlans: MembershipPlan[] = plans.map(dbPlan => {
+      const metadata = generatePlanMetadata(dbPlan);
+      
+      return {
+        id: dbPlan.id.toString(),
+        name: dbPlan.name,
+        type: metadata.type,
+        price: dbPlan.price_cents / 100,
+        currency: 'AZN',
+        description: metadata.description,
+        features: metadata.features,
+        limitations: metadata.limitations,
+        duration: `${dbPlan.duration_days} days`,
+        entryLimit: dbPlan.visit_quota || undefined,
+        isActive: true,
+        isPopular: metadata.isPopular,
+        discountPercentage: dbPlan.name.toLowerCase().includes('company') ? 10 : 0,
+        createdAt: dbPlan.created_at,
+        updatedAt: dbPlan.created_at,
+      };
+    });
+
+    console.log('✅ Converted plans for display:', convertedPlans);
     setMembershipPlans(convertedPlans);
   };
 
@@ -189,221 +232,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     updateMembershipTypes(planNames.length > 0 ? planNames : ['Single', 'Monthly', 'Monthly Unlimited', 'Company']);
   }, [membershipPlans, setPlansCount, updateMembershipTypes]);
 
-  const loadMockData = () => {
-    // Mock membership plans
-    const mockPlans: MembershipPlan[] = [
-      {
-        id: 'plan1',
-        name: 'Single Entry',
-        type: 'single',
-        price: 10,
-        currency: 'AZN',
-        description: 'No expiration - Pay and enter gym any time',
-        features: [
-          'Access to all gym equipment',
-          'No time restrictions',
-          'Never expires',
-          'Perfect for occasional visits'
-        ],
-        limitations: [
-          'Single use only',
-          'No class access',
-          'No personal training included'
-        ],
-        isActive: true,
-        isPopular: false,
-        createdAt: '2024-01-01T00:00:00',
-        updatedAt: '2024-01-01T00:00:00'
-      },
-      {
-        id: 'plan2',
-        name: 'Monthly - 12 Entries',
-        type: 'monthly-limited',
-        price: 60,
-        currency: 'AZN',
-        description: '12 gym entries per month - Great for regular visitors',
-        features: [
-          'Access to all gym equipment',
-          '12 entries per month',
-          'Access to group classes',
-          'Locker room access',
-          'Valid for 30 days'
-        ],
-        limitations: [
-          'Limited to 12 entries per month',
-          'Expires after 30 days',
-          'No personal training included'
-        ],
-        duration: '30 days',
-        entryLimit: 12,
-        isActive: true,
-        isPopular: true,
-        createdAt: '2024-01-01T00:00:00',
-        updatedAt: '2024-01-01T00:00:00'
-      },
-      {
-        id: 'plan3',
-        name: 'Monthly - Unlimited Access',
-        type: 'monthly-unlimited',
-        price: 100,
-        currency: 'AZN',
-        description: 'Unlimited access during the month dates',
-        features: [
-          'Unlimited gym access',
-          'All group classes included',
-          'Pool and sauna access',
-          'Locker room access',
-          'Guest pass (2 per month)',
-          'Personal training consultation'
-        ],
-        limitations: [
-          'Valid for calendar month only',
-          'Guest passes limited to 2 per month'
-        ],
-        duration: '1 month',
-        isActive: true,
-        isPopular: false,
-        createdAt: '2024-01-01T00:00:00',
-        updatedAt: '2024-01-01T00:00:00'
-      },
-      {
-        id: 'plan4',
-        name: 'TechCorp Partnership',
-        type: 'company',
-        price: 70,
-        currency: 'AZN',
-        description: 'Special corporate rate for TechCorp employees',
-        features: [
-          'Unlimited monthly access',
-          'All group classes included',
-          'Pool and sauna access',
-          'Flexible schedule',
-          'Corporate wellness reports'
-        ],
-        limitations: [
-          'Valid only for TechCorp employees',
-          'Employment verification required'
-        ],
-        duration: '1 month',
-        isActive: true,
-        isPopular: false,
-        companyName: 'TechCorp',
-        discountPercentage: 30,
-        createdAt: '2024-01-01T00:00:00',
-        updatedAt: '2024-01-01T00:00:00'
-      }
-    ];
-
-    // Mock subscriptions
-    const mockSubscriptions: Subscription[] = [
-      {
-        id: 'sub1',
-        memberId: 'member1',
-        memberName: 'Sarah Johnson',
-        memberEmail: 'sarah.johnson@email.com',
-        planId: 'plan2',
-        planName: 'Monthly - 12 Entries',
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
-        status: 'active',
-        remainingEntries: 8,
-        totalEntries: 12,
-        paymentStatus: 'paid',
-        nextPaymentDate: '2024-02-01'
-      },
-      {
-        id: 'sub2',
-        memberId: 'member2',
-        memberName: 'Mike Thompson',
-        memberEmail: 'mike.thompson@email.com',
-        planId: 'plan3',
-        planName: 'Monthly - Unlimited Access',
-        startDate: '2024-01-15',
-        endDate: '2024-02-15',
-        status: 'active',
-        paymentStatus: 'paid',
-        nextPaymentDate: '2024-02-15'
-      },
-      {
-        id: 'sub3',
-        memberId: 'member3',
-        memberName: 'Elena Rodriguez',
-        memberEmail: 'elena.rodriguez@email.com',
-        planId: 'plan4',
-        planName: 'TechCorp Partnership',
-        startDate: '2024-01-01',
-        endDate: '2024-01-31',
-        status: 'active',
-        paymentStatus: 'paid',
-        companyName: 'TechCorp',
-        nextPaymentDate: '2024-02-01'
-      },
-      {
-        id: 'sub4',
-        memberId: 'member4',
-        memberName: 'David Kim',
-        memberEmail: 'david.kim@email.com',
-        planId: 'plan2',
-        planName: 'Monthly - 12 Entries',
-        startDate: '2023-12-15',
-        endDate: '2024-01-15',
-        status: 'expired',
-        remainingEntries: 0,
-        totalEntries: 12,
-        paymentStatus: 'overdue'
-      }
-    ];
-
-    // Mock companies
-    const mockCompanies: Company[] = [
-      {
-        id: 'comp1',
-        name: 'TechCorp',
-        contactPerson: 'John Smith',
-        email: 'hr@techcorp.com',
-        phone: '+994501234567',
-        address: '123 Business Street, Baku',
-        discountPercentage: 30,
-        employeeCount: 150,
-        activeSubscriptions: 45,
-        contractStartDate: '2024-01-01',
-        contractEndDate: '2024-12-31',
-        status: 'active'
-      },
-      {
-        id: 'comp2',
-        name: 'BuildCorp Construction',
-        contactPerson: 'Maria Garcia',
-        email: 'maria@buildcorp.az',
-        phone: '+994501234568',
-        address: '456 Industry Ave, Baku',
-        discountPercentage: 25,
-        employeeCount: 80,
-        activeSubscriptions: 22,
-        contractStartDate: '2024-02-01',
-        contractEndDate: '2025-01-31',
-        status: 'active'
-      },
-      {
-        id: 'comp3',
-        name: 'FinanceHub',
-        contactPerson: 'Ahmed Aliyev',
-        email: 'ahmed@financehub.az',
-        phone: '+994501234569',
-        address: '789 Finance District, Baku',
-        discountPercentage: 20,
-        employeeCount: 60,
-        activeSubscriptions: 0,
-        contractStartDate: '2024-03-01',
-        contractEndDate: '2025-02-28',
-        status: 'pending'
-      }
-    ];
-
-    setMembershipPlans(mockPlans);
-    setSubscriptions(mockSubscriptions);
-    setCompanies(mockCompanies);
-  };
+  // Mock data loading removed - all data loaded from database
 
   const getFilteredPlans = () => {
     return membershipPlans.filter(plan => {
