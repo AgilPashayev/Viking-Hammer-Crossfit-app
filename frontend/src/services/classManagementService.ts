@@ -60,6 +60,9 @@ export interface Instructor {
   experience: number;
   phone: string;
   status: 'active' | 'inactive' | 'busy';
+  certifications?: string[];
+  bio?: string;
+  avatarUrl?: string;
 }
 
 export interface ScheduleSlot {

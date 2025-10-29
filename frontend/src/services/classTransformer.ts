@@ -9,11 +9,22 @@ import type { GymClass, Instructor, ScheduleSlot, ScheduleEnrollment } from './c
  * Transform class data from API format to frontend format
  */
 export function transformClassFromAPI(apiClass: any): GymClass {
-  // Extract instructor IDs from the nested structure
-  const extractInstructorIds = (classInstructors: any[]): string[] => {
+  // Extract instructor names from the nested structure
+  const extractInstructorNames = (classInstructors: any[]): string[] => {
     if (!classInstructors || !Array.isArray(classInstructors)) return [];
     return classInstructors
-      .map((ci: any) => ci.instructor?.id || ci.instructor_id)
+      .map((ci: any) => {
+        const instructor = ci.instructor;
+        if (!instructor) return null;
+        
+        // Build full name from first_name and last_name
+        const firstName = instructor.first_name || instructor.firstName || '';
+        const lastName = instructor.last_name || instructor.lastName || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        
+        // Fallback to name field or email if full name is empty
+        return fullName || instructor.name || instructor.email || 'Unknown Instructor';
+      })
       .filter(Boolean);
   };
 
@@ -87,7 +98,7 @@ export function transformClassFromAPI(apiClass: any): GymClass {
     duration: apiClass.duration_minutes || apiClass.duration || 60,
     maxCapacity: apiClass.max_capacity || apiClass.maxCapacity || 20,
     currentEnrollment: calculateEnrollment(apiClass.class_bookings),
-    instructors: extractInstructorIds(apiClass.class_instructors),
+    instructors: extractInstructorNames(apiClass.class_instructors),
     schedule: transformSchedule(apiClass.schedule_slots),
     equipment: apiClass.equipment_needed || apiClass.equipment || [],
     difficulty: apiClass.difficulty || 'Beginner',
@@ -141,6 +152,22 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
     return [];
   };
 
+  // Ensure certifications is an array
+  const getCertifications = () => {
+    const certs = apiInstructor.certifications;
+    if (!certs) return [];
+    if (Array.isArray(certs)) return certs;
+    if (typeof certs === 'string') {
+      try {
+        const parsed = JSON.parse(certs);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   return {
     id: apiInstructor.id,
     name: getName(),
@@ -151,6 +178,9 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
     experience: apiInstructor.years_experience || apiInstructor.experience || 0,
     phone: apiInstructor.phone || '',
     status: apiInstructor.status || 'active',
+    certifications: getCertifications(),
+    bio: apiInstructor.bio || '',
+    avatarUrl: apiInstructor.avatar_url || apiInstructor.avatarUrl || '',
   };
 }
 
@@ -262,7 +292,11 @@ export function transformInstructorToAPI(instructor: Partial<Instructor>): any {
     email: instructor.email,
     phone: instructor.phone,
     specialties: instructor.specialization || [],
+    certifications: instructor.certifications || [],
+    bio: instructor.bio || '',
     years_experience: instructor.experience || 0,
+    avatar_url: instructor.avatarUrl || null,
+    availability: instructor.availability || [],
     status: instructor.status || 'active',
   };
 }

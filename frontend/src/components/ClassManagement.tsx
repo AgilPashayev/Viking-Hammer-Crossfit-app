@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { classService, instructorService, scheduleService, type GymClass, type Instructor, type ScheduleSlot, type ScheduleEnrollment } from '../services/classManagementService';
+import { formatDate } from '../utils/dateFormatter';
+import { showConfirmDialog } from '../utils/confirmDialog';
 import './ClassManagement.css';
 
 interface ClassManagementProps {
@@ -17,6 +19,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showAddClassModal, setShowAddClassModal] = useState(false);
   const [showAddInstructorModal, setShowAddInstructorModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -52,7 +55,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     availability: [],
     phone: '',
     experience: 0,
-    status: 'active'
+    status: 'active',
+    certifications: [],
+    bio: '',
+    avatarUrl: ''
   });
 
   // New schedule slot form state
@@ -110,6 +116,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
   const loadData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [classesData, instructorsData, scheduleData] = await Promise.all([
         classService.getAll(),
@@ -117,15 +124,28 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         scheduleService.getAll()
       ]);
       
+      // Validate data
+      if (!Array.isArray(classesData)) {
+        throw new Error('Invalid classes data format');
+      }
+      if (!Array.isArray(instructorsData)) {
+        throw new Error('Invalid instructors data format');
+      }
+      if (!Array.isArray(scheduleData)) {
+        throw new Error('Invalid schedule data format');
+      }
+      
       setClasses(classesData);
       setInstructors(instructorsData);
       setScheduleSlots(scheduleData);
       
       // Log successful data load (optional - using console instead)
       console.log(`Loaded ${classesData.length} classes, ${instructorsData.length} instructors, ${scheduleData.length} schedule slots`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading data:', error);
-      // Log error (optional - using console instead)
+      setError(error.message || 'Failed to load data. Please try again.');
+      // Show user-friendly error
+      alert(`Error loading data: ${error.message || 'Unknown error'}. Please refresh the page.`);
     } finally {
       setLoading(false);
     }
@@ -171,137 +191,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     setRosterError(null);
   };
 
-  const loadMockData_DEPRECATED = () => {
-    // Mock instructors data
-    const mockInstructors: Instructor[] = [
-      {
-        id: 'inst1',
-        name: 'Sarah Johnson',
-        email: 'sarah.j@vikinggym.com',
-        specialization: ['Yoga', 'Pilates', 'Flexibility'],
-        availability: ['Monday', 'Wednesday', 'Friday'],
-        rating: 4.8,
-        experience: 5,
-        phone: '+994501234567',
-        status: 'active'
-      },
-      {
-        id: 'inst2',
-        name: 'Mike Thompson',
-        email: 'mike.t@vikinggym.com',
-        specialization: ['CrossFit', 'Strength Training', 'HIIT'],
-        availability: ['Tuesday', 'Thursday', 'Saturday'],
-        rating: 4.9,
-        experience: 8,
-        phone: '+994501234568',
-        status: 'active'
-      },
-      {
-        id: 'inst3',
-        name: 'Elena Rodriguez',
-        email: 'elena.r@vikinggym.com',
-        specialization: ['Zumba', 'Dance', 'Cardio'],
-        availability: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-        rating: 4.7,
-        experience: 3,
-        phone: '+994501234569',
-        status: 'active'
-      },
-      {
-        id: 'inst4',
-        name: 'David Kim',
-        email: 'david.k@vikinggym.com',
-        specialization: ['Boxing', 'Martial Arts', 'Self Defense'],
-        availability: ['Wednesday', 'Friday', 'Saturday', 'Sunday'],
-        rating: 4.6,
-        experience: 6,
-        phone: '+994501234570',
-        status: 'busy'
-      }
-    ];
-
-    // Mock classes data
-    const mockClasses: GymClass[] = [
-      {
-        id: 'class1',
-        name: 'Morning Yoga Flow',
-        description: 'A gentle yoga session to start your day with energy and mindfulness.',
-        duration: 60,
-        maxCapacity: 15,
-        currentEnrollment: 12,
-        instructors: ['inst1'],
-        schedule: [
-          { dayOfWeek: 1, startTime: '07:00', endTime: '08:00' },
-          { dayOfWeek: 3, startTime: '07:00', endTime: '08:00' },
-          { dayOfWeek: 5, startTime: '07:00', endTime: '08:00' }
-        ],
-        equipment: ['Yoga Mats', 'Blocks', 'Straps'],
-        difficulty: 'Beginner',
-        category: 'Flexibility',
-        price: 15,
-        status: 'active'
-      },
-      {
-        id: 'class2',
-        name: 'CrossFit Intensity',
-        description: 'High-intensity functional fitness workout combining strength and cardio.',
-        duration: 45,
-        maxCapacity: 12,
-        currentEnrollment: 12,
-        instructors: ['inst2'],
-        schedule: [
-          { dayOfWeek: 2, startTime: '18:00', endTime: '18:45' },
-          { dayOfWeek: 4, startTime: '18:00', endTime: '18:45' },
-          { dayOfWeek: 6, startTime: '10:00', endTime: '10:45' }
-        ],
-        equipment: ['Barbells', 'Kettlebells', 'Pull-up Bars', 'Boxes'],
-        difficulty: 'Advanced',
-        category: 'Mixed',
-        price: 25,
-        status: 'full'
-      },
-      {
-        id: 'class3',
-        name: 'Zumba Party',
-        description: 'Fun dance fitness class with Latin and international music.',
-        duration: 60,
-        maxCapacity: 25,
-        currentEnrollment: 18,
-        instructors: ['inst3'],
-        schedule: [
-          { dayOfWeek: 1, startTime: '19:00', endTime: '20:00' },
-          { dayOfWeek: 3, startTime: '19:00', endTime: '20:00' },
-          { dayOfWeek: 5, startTime: '19:00', endTime: '20:00' }
-        ],
-        equipment: ['Sound System', 'Mirrors'],
-        difficulty: 'Beginner',
-        category: 'Cardio',
-        price: 18,
-        status: 'active'
-      },
-      {
-        id: 'class4',
-        name: 'Boxing Fundamentals',
-        description: 'Learn basic boxing techniques and improve your fitness.',
-        duration: 75,
-        maxCapacity: 10,
-        currentEnrollment: 7,
-        instructors: ['inst4'],
-        schedule: [
-          { dayOfWeek: 3, startTime: '20:00', endTime: '21:15' },
-          { dayOfWeek: 6, startTime: '14:00', endTime: '15:15' }
-        ],
-        equipment: ['Boxing Gloves', 'Heavy Bags', 'Speed Bags', 'Hand Wraps'],
-        difficulty: 'Intermediate',
-        category: 'Specialized',
-        price: 22,
-        status: 'active'
-      }
-    ];
-
-    setInstructors(mockInstructors);
-    // Classes are now managed by DataContext - no need to set them here
-  };
+  // Mock data loading function removed - all data loaded from database
 
   const getInstructorName = (instructorId: string): string => {
     const instructor = instructors.find(inst => inst.id === instructorId);
@@ -410,6 +300,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               type: 'instructor_updated',
               message: `Instructor updated: ${result.data!.name}`
             });
+            alert('✅ Instructor updated successfully!');
+          } else {
+            alert(`❌ Error: ${result.message || 'Failed to update instructor'}`);
+            return; // Don't close modal on error
           }
         } else {
           // Create new instructor
@@ -425,10 +319,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               type: 'instructor_created',
               message: `Instructor created: ${result.data!.name}`
             });
+            alert('✅ Instructor added successfully!');
+          } else {
+            alert(`❌ Error: ${result.message || 'Failed to add instructor'}`);
+            return; // Don't close modal on error
           }
         }
         
-        // Reset form
+        // Reset form only if successful
         setNewInstructor({
           name: '',
           email: '',
@@ -436,12 +334,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           availability: [],
           phone: '',
           experience: 0,
-          status: 'active'
+          status: 'active',
+          certifications: [],
+          bio: '',
+          avatarUrl: ''
         });
         setEditingInstructor(null);
         setShowAddInstructorModal(false);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error adding/updating instructor:', error);
+        alert(`❌ Error: ${error.message || 'An unexpected error occurred'}`);
       }
     }
   };
@@ -453,12 +355,21 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         ? selectedClass.instructors.filter(id => id !== instructorId)
         : [...selectedClass.instructors, instructorId];
       
-      // Update class via API
+      // Update class via API - use instructorIds to match backend
       try {
-        const result = await classService.update(selectedClass.id, { instructors: updatedInstructors });
+        const result = await classService.update(selectedClass.id, { instructorIds: updatedInstructors } as any);
         if (result.success) {
-          setClasses(classes.map(c => c.id === selectedClass.id ? result.data! : c));
-          setSelectedClass(result.data!);
+          // Refresh the class list to get updated data with instructors
+          await loadData();
+          // Update selected class with new instructor list
+          const updatedClass = classes.find(c => c.id === selectedClass.id);
+          if (updatedClass) {
+            setSelectedClass(updatedClass);
+          }
+          logActivity({
+            type: 'class_updated',
+            message: `Instructor ${updatedInstructors.length > selectedClass.instructors.length ? 'assigned to' : 'removed from'} class: ${selectedClass.name}`
+          });
         }
       } catch (error) {
         console.error('Error assigning instructor:', error);
@@ -577,7 +488,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         console.error('Error saving schedule slot:', error);
       }
     } else {
-      alert('Please fill in all required fields (Class, Instructor, Start Time, End Time)');
+      await showConfirmDialog({
+        title: '⚠️ Missing Information',
+        message: 'Please fill in all required fields:\n\n• Class\n• Instructor\n• Start Time\n• End Time',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'warning'
+      });
     }
   };
 
@@ -896,7 +813,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               availability: [],
               phone: '',
               experience: 0,
-              status: 'active'
+              status: 'active',
+              certifications: [],
+              bio: '',
+              avatarUrl: ''
             });
             setEditingInstructor(null);
             setShowAddInstructorModal(true);
@@ -928,7 +848,50 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       </div>
 
       <div className="instructors-grid">
-        {getFilteredInstructors().map(instructor => (
+        {getFilteredInstructors().length === 0 ? (
+          <div className="empty-state" style={{
+            gridColumn: '1 / -1',
+            textAlign: 'center',
+            padding: '60px 20px',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '12px',
+            border: '2px dashed #dee2e6'
+          }}>
+            <div style={{ fontSize: '64px', marginBottom: '16px' }}>👨‍🏫</div>
+            <h3 style={{ fontSize: '24px', marginBottom: '8px', color: '#495057' }}>
+              No Instructors Found
+            </h3>
+            <p style={{ color: '#6c757d', marginBottom: '24px' }}>
+              {searchTerm || filterStatus !== 'all' 
+                ? 'Try adjusting your filters to see more results.'
+                : 'Add your first instructor to get started.'}
+            </p>
+            {!searchTerm && filterStatus === 'all' && (
+              <button 
+                className="add-btn" 
+                onClick={() => {
+                  setNewInstructor({
+                    name: '',
+                    email: '',
+                    specialization: [],
+                    availability: [],
+                    phone: '',
+                    experience: 0,
+                    status: 'active',
+                    certifications: [],
+                    bio: '',
+                    avatarUrl: ''
+                  });
+                  setEditingInstructor(null);
+                  setShowAddInstructorModal(true);
+                }}
+              >
+                ➕ Add Your First Instructor
+              </button>
+            )}
+          </div>
+        ) : (
+          getFilteredInstructors().map(instructor => (
           <div key={instructor.id} className="instructor-card">
             <div className="instructor-header">
               <div className="instructor-avatar">
@@ -992,7 +955,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <button className="delete-btn" onClick={() => handleDeleteInstructor(instructor.id)}>🗑️ Delete</button>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
     );
@@ -1476,6 +1440,42 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   })}
                 />
               </div>
+              
+              <div className="form-group">
+                <label>Certifications (comma-separated):</label>
+                <input
+                  type="text"
+                  value={newInstructor.certifications ? newInstructor.certifications.join(', ') : ''}
+                  placeholder="e.g., CPR Certified, Personal Trainer Level 3"
+                  onChange={(e) => setNewInstructor({
+                    ...newInstructor, 
+                    certifications: e.target.value.split(',').map(s => s.trim()).filter(s => s)
+                  })}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Bio / Description:</label>
+                <textarea
+                  value={newInstructor.bio || ''}
+                  onChange={(e) => setNewInstructor({...newInstructor, bio: e.target.value})}
+                  placeholder="Brief description about the instructor..."
+                  rows={4}
+                  style={{ width: '100%', resize: 'vertical', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label>Status:</label>
+                <select
+                  value={newInstructor.status || 'active'}
+                  onChange={(e) => setNewInstructor({...newInstructor, status: e.target.value as 'active' | 'inactive' | 'busy'})}
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="busy">Busy</option>
+                </select>
+              </div>
             </div>
             
             <div className="modal-footer">
@@ -1706,7 +1706,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="roster-summary">
-                <span>📅 {new Date(rosterModalSlot.date).toLocaleDateString()}</span>
+                <span>📅 {formatDate(rosterModalSlot.date)}</span>
                 <span>
                   👥 {rosterCount}
                   {typeof rosterCapacity === 'number' && rosterCapacity > 0

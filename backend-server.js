@@ -22,6 +22,7 @@ const instructorService = require('./services/instructorService');
 const scheduleService = require('./services/scheduleService');
 const bookingService = require('./services/bookingService');
 const subscriptionService = require('./services/subscriptionService');
+const planService = require('./services/planService');
 const notificationService = require('./services/notificationService');
 const invitationService = require('./services/invitationService');
 const resetService = require('./services/resetService');
@@ -469,7 +470,7 @@ app.post(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.status(201).json(result.data);
+    res.status(201).json(result);
   }),
 );
 
@@ -485,7 +486,7 @@ app.put(
       return res.status(result.status || 500).json({ error: result.error });
     }
 
-    res.json(result.data);
+    res.json(result);
   }),
 );
 
@@ -777,6 +778,120 @@ app.post(
     }
 
     res.json(result.data);
+  }),
+);
+
+// ==================== PLANS (MEMBERSHIP PLANS) ====================
+
+/**
+ * GET /api/plans - Get all membership plans
+ * Public endpoint - anyone can view available plans
+ */
+app.get(
+  '/api/plans',
+  asyncHandler(async (req, res) => {
+    const result = await planService.getAllPlans();
+
+    if (result.error) {
+      return res.status(500).json({ success: false, error: result.error });
+    }
+
+    res.json({ success: true, data: result.plans });
+  }),
+);
+
+/**
+ * GET /api/plans/:id - Get a single plan by ID
+ * Public endpoint
+ */
+app.get(
+  '/api/plans/:id',
+  asyncHandler(async (req, res) => {
+    const result = await planService.getPlanById(parseInt(req.params.id));
+
+    if (result.error) {
+      return res.status(500).json({ success: false, error: result.error });
+    }
+
+    if (!result.plan) {
+      return res.status(404).json({ success: false, error: 'Plan not found' });
+    }
+
+    res.json({ success: true, data: result.plan });
+  }),
+);
+
+/**
+ * POST /api/plans - Create a new membership plan
+ * Restricted to Sparta role only
+ */
+app.post(
+  '/api/plans',
+  authenticate,
+  isSpartaOnly,
+  asyncHandler(async (req, res) => {
+    const result = await planService.createPlan(req.body);
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    // Include warning if metadata not saved
+    const response = { success: true, data: result.plan };
+    if (result.warning) {
+      response.warning = result.warning;
+    }
+
+    res.status(201).json(response);
+  }),
+);
+
+/**
+ * PUT /api/plans/:id - Update an existing membership plan
+ * Restricted to Sparta role only
+ */
+app.put(
+  '/api/plans/:id',
+  authenticate,
+  isSpartaOnly,
+  asyncHandler(async (req, res) => {
+    const result = await planService.updatePlan(parseInt(req.params.id), req.body);
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    if (!result.plan) {
+      return res.status(404).json({ success: false, error: 'Plan not found' });
+    }
+
+    // Include warning if metadata not saved
+    const response = { success: true, data: result.plan };
+    if (result.warning) {
+      response.warning = result.warning;
+    }
+
+    res.json(response);
+  }),
+);
+
+/**
+ * DELETE /api/plans/:id - Delete a membership plan
+ * Restricted to Sparta role only
+ * Cannot delete plans with active subscriptions
+ */
+app.delete(
+  '/api/plans/:id',
+  authenticate,
+  isSpartaOnly,
+  asyncHandler(async (req, res) => {
+    const result = await planService.deletePlan(parseInt(req.params.id));
+
+    if (result.error) {
+      return res.status(400).json({ success: false, error: result.error });
+    }
+
+    res.json({ success: true, message: 'Plan deleted successfully' });
   }),
 );
 
@@ -2065,6 +2180,12 @@ async function startServer() {
       console.log('     GET    /api/bookings - Get all bookings (admin)');
       console.log('     POST   /api/bookings/:id/attended - Mark attended');
       console.log('     POST   /api/bookings/:id/no-show - Mark no-show');
+      console.log('   PLANS:');
+      console.log('     GET    /api/plans - Get all membership plans');
+      console.log('     GET    /api/plans/:id - Get plan by ID');
+      console.log('     POST   /api/plans - Create new plan (Sparta)');
+      console.log('     PUT    /api/plans/:id - Update plan (Sparta)');
+      console.log('     DELETE /api/plans/:id - Delete plan (Sparta)');
       console.log('   SUBSCRIPTIONS:');
       console.log('     POST   /api/subscriptions - Create new subscription');
       console.log('     GET    /api/subscriptions - Get all subscriptions');
