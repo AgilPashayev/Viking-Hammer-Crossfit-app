@@ -26,7 +26,7 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric',
     });
   };
@@ -155,14 +155,14 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
             Close
           </button>
           <button
-            className={`btn ${isBooked ? 'btn-outline' : 'btn-primary'}`}
+            className={`btn ${isBooked ? 'btn-success' : 'btn-primary'}`}
             onClick={onBook}
             disabled={isBooking || (isClassFull && !isBooked)}
           >
             {isBooking ? (
               <>🔄 Processing...</>
             ) : isBooked ? (
-              <>✅ Booked</>
+              <>✅ Booked (Click to Cancel)</>
             ) : isClassFull ? (
               <>🚫 Class Full</>
             ) : (

@@ -387,8 +387,8 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = {
       year: 'numeric',
-      month: 'long',
-      day: '2-digit'
+      month: 'short',
+      day: 'numeric'
     };
     return date.toLocaleDateString('en-US', options);
   };

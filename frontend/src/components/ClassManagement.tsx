@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { classService, instructorService, scheduleService, type GymClass, type Instructor, type ScheduleSlot, type ScheduleEnrollment } from '../services/classManagementService';
+import { getAllMembers, type Member } from '../services/memberService';
+import { isSparta } from '../services/authService';
 import { formatDate } from '../utils/dateFormatter';
 import { showConfirmDialog } from '../utils/confirmDialog';
 import './ClassManagement.css';
@@ -80,9 +82,40 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   const [rosterLoading, setRosterLoading] = useState(false);
   const [rosterError, setRosterError] = useState<string | null>(null);
 
+  // New states for enhanced instructor management
+  const [members, setMembers] = useState<Member[]>([]);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [memberSearchTerm, setMemberSearchTerm] = useState('');
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false);
+  const [showScheduleAssignModal, setShowScheduleAssignModal] = useState(false);
+  const [instructorToSchedule, setInstructorToSchedule] = useState<Instructor | null>(null);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [instructorToDelete, setInstructorToDelete] = useState<Instructor | null>(null);
+  
+  // Notification modal state
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const [notificationType, setNotificationType] = useState<'success' | 'error' | 'info'>('info');
+  
+  // Class enrolled members modal state
+  const [showClassEnrolledModal, setShowClassEnrolledModal] = useState(false);
+  const [selectedClassForEnrollment, setSelectedClassForEnrollment] = useState<GymClass | null>(null);
+  const [classEnrolledMembers, setClassEnrolledMembers] = useState<ScheduleEnrollment[]>([]);
+  
+  // Schedule expansion state
+  const [expandedSchedules, setExpandedSchedules] = useState<Set<string>>(new Set());
+  
+  // Last refresh timestamp
+  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+
   useEffect(() => {
     // Load all data from API
     loadData();
+    
+    // Set up polling to keep data in sync with member bookings (every 10 seconds for better real-time updates)
+    const pollInterval = setInterval(loadData, 10000);
+    
+    return () => clearInterval(pollInterval);
   }, []);
 
   useEffect(() => {
@@ -118,10 +151,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     setLoading(true);
     setError(null);
     try {
-      const [classesData, instructorsData, scheduleData] = await Promise.all([
+      const [classesData, instructorsData, scheduleData, membersData] = await Promise.all([
         classService.getAll(),
         instructorService.getAll(),
-        scheduleService.getAll()
+        scheduleService.getAll(),
+        getAllMembers()
       ]);
       
       // Validate data
@@ -134,13 +168,18 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       if (!Array.isArray(scheduleData)) {
         throw new Error('Invalid schedule data format');
       }
+      if (!Array.isArray(membersData)) {
+        throw new Error('Invalid members data format');
+      }
       
       setClasses(classesData);
       setInstructors(instructorsData);
       setScheduleSlots(scheduleData);
+      setMembers(membersData);
+      setLastRefresh(new Date());
       
       // Log successful data load (optional - using console instead)
-      console.log(`Loaded ${classesData.length} classes, ${instructorsData.length} instructors, ${scheduleData.length} schedule slots`);
+      console.log(`Loaded ${classesData.length} classes, ${instructorsData.length} instructors, ${scheduleData.length} schedule slots, ${membersData.length} members`);
     } catch (error: any) {
       console.error('Error loading data:', error);
       setError(error.message || 'Failed to load data. Please try again.');
@@ -149,6 +188,60 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Utility functions for enhanced instructor management
+  const getActiveMembers = () => {
+    return members.filter(member => member.status === 'active');
+  };
+
+  const getFilteredMembers = () => {
+    const activeMembers = getActiveMembers();
+    if (!memberSearchTerm) return activeMembers;
+    
+    return activeMembers.filter(member =>
+      member.name.toLowerCase().includes(memberSearchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(memberSearchTerm.toLowerCase())
+    );
+  };
+
+  const handleMemberSelect = (member: Member) => {
+    setSelectedMember(member);
+    setMemberSearchTerm(member.name);
+    setShowMemberDropdown(false);
+    
+    // Auto-fill instructor form with member data
+    setNewInstructor({
+      ...newInstructor,
+      name: member.name,
+      email: member.email,
+      phone: member.phone || '',
+      avatarUrl: member.avatar_url || ''
+    });
+  };
+
+  const resetInstructorForm = () => {
+    setNewInstructor({
+      name: '',
+      email: '',
+      specialization: [],
+      availability: [],
+      phone: '',
+      experience: 0,
+      status: 'active',
+      certifications: [],
+      bio: '',
+      avatarUrl: ''
+    });
+    setSelectedMember(null);
+    setMemberSearchTerm('');
+    setShowMemberDropdown(false);
+  };
+
+  const showNotification = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setNotificationMessage(message);
+    setNotificationType(type);
+    setShowNotificationModal(true);
   };
 
   const handleViewRoster = async (slot: ScheduleSlot) => {
@@ -189,6 +282,50 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     setRosterModalSlot(null);
     setRosterEntries([]);
     setRosterError(null);
+  };
+
+  // Handler for showing class enrolled members
+  const handleShowClassEnrollment = async (gymClass: GymClass) => {
+    setSelectedClassForEnrollment(gymClass);
+    
+    // Collect all enrolled members from all schedule slots for this class
+    const allEnrolledMembers: ScheduleEnrollment[] = [];
+    
+    // Get schedule slots for this class
+    const classScheduleSlots = scheduleSlots.filter(slot => slot.classId === gymClass.id);
+    
+    for (const slot of classScheduleSlots) {
+      if (slot.enrolledMembers && slot.enrolledMembers.length > 0) {
+        allEnrolledMembers.push(...slot.enrolledMembers);
+      }
+    }
+    
+    // Remove duplicates based on memberId
+    const uniqueMembers = allEnrolledMembers.filter((member, index, self) => 
+      index === self.findIndex(m => m.memberId === member.memberId)
+    );
+    
+    setClassEnrolledMembers(uniqueMembers);
+    setShowClassEnrolledModal(true);
+  };
+
+  const handleCloseClassEnrollmentModal = () => {
+    setShowClassEnrolledModal(false);
+    setSelectedClassForEnrollment(null);
+    setClassEnrolledMembers([]);
+  };
+
+  // Handler for toggling schedule expansion
+  const toggleScheduleExpansion = (classId: string) => {
+    setExpandedSchedules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(classId)) {
+        newSet.delete(classId);
+      } else {
+        newSet.add(classId);
+      }
+      return newSet;
+    });
   };
 
   // Mock data loading function removed - all data loaded from database
@@ -289,71 +426,106 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   };
 
   const handleAddInstructor = async () => {
-    if (newInstructor.name && newInstructor.email) {
-      try {
-        if (editingInstructor) {
-          // Update existing instructor
-          const result = await instructorService.update(editingInstructor.id, newInstructor);
-          if (result.success) {
-            setInstructors(instructors.map(i => i.id === editingInstructor.id ? result.data! : i));
-            logActivity({
-              type: 'instructor_updated',
-              message: `Instructor updated: ${result.data!.name}`
-            });
-            alert('✅ Instructor updated successfully!');
-          } else {
-            alert(`❌ Error: ${result.message || 'Failed to update instructor'}`);
-            return; // Don't close modal on error
-          }
+    // Enhanced validation
+    if (!newInstructor.name || newInstructor.name.trim() === '') {
+      showNotification('Please enter instructor name', 'error');
+      return;
+    }
+    
+    if (!newInstructor.email || newInstructor.email.trim() === '') {
+      showNotification('Please enter instructor email', 'error');
+      return;
+    }
+    
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newInstructor.email)) {
+      showNotification('Please enter a valid email address', 'error');
+      return;
+    }
+    
+    // For new instructors, ensure member is selected
+    if (!editingInstructor && !selectedMember) {
+      showNotification('Please select an active member from the search dropdown', 'error');
+      return;
+    }
+
+    try {
+      if (editingInstructor) {
+        // Update existing instructor
+        const result = await instructorService.update(editingInstructor.id, newInstructor);
+        if (result.success) {
+          setInstructors(instructors.map(i => i.id === editingInstructor.id ? result.data! : i));
+          logActivity({
+            type: 'instructor_updated',
+            message: `Instructor updated: ${result.data!.name}`
+          });
+          showNotification(`Instructor "${result.data!.name}" has been updated successfully!`, 'success');
+          
+          // Reset form and close modal
+          resetInstructorForm();
+          setEditingInstructor(null);
+          setShowAddInstructorModal(false);
         } else {
-          // Create new instructor
-          const instructorToAdd = {
-            ...newInstructor,
-            rating: 0,
-            status: newInstructor.status || 'active'
-          };
-          const result = await instructorService.create(instructorToAdd);
-          if (result.success) {
-            setInstructors([...instructors, result.data!]);
-            logActivity({
-              type: 'instructor_created',
-              message: `Instructor created: ${result.data!.name}`
-            });
-            alert('✅ Instructor added successfully!');
-          } else {
-            alert(`❌ Error: ${result.message || 'Failed to add instructor'}`);
-            return; // Don't close modal on error
-          }
+          const errorMsg = result.message || 'Failed to update instructor';
+          console.error('Update instructor error:', result);
+          showNotification(`Update failed: ${errorMsg}`, 'error');
         }
+      } else {
+        // Create new instructor
+        const instructorToAdd = {
+          ...newInstructor,
+          rating: 0,
+          status: newInstructor.status || 'active',
+          // Ensure experience is a number
+          experience: Number(newInstructor.experience) || 0
+        };
         
-        // Reset form only if successful
-        setNewInstructor({
-          name: '',
-          email: '',
-          specialization: [],
-          availability: [],
-          phone: '',
-          experience: 0,
-          status: 'active',
-          certifications: [],
-          bio: '',
-          avatarUrl: ''
-        });
-        setEditingInstructor(null);
-        setShowAddInstructorModal(false);
-      } catch (error: any) {
-        console.error('Error adding/updating instructor:', error);
-        alert(`❌ Error: ${error.message || 'An unexpected error occurred'}`);
+        console.log('Creating instructor:', instructorToAdd);
+        const result = await instructorService.create(instructorToAdd);
+        
+        if (result.success) {
+          setInstructors([...instructors, result.data!]);
+          logActivity({
+            type: 'instructor_created',
+            message: `Instructor created: ${result.data!.name}`
+          });
+          showNotification(`Instructor "${result.data!.name}" has been added successfully!`, 'success');
+          
+          // Reset form and close modal
+          resetInstructorForm();
+          setEditingInstructor(null);
+          setShowAddInstructorModal(false);
+        } else {
+          const errorMsg = result.message || 'Failed to create instructor';
+          console.error('Create instructor error:', result);
+          showNotification(`Creation failed: ${errorMsg}`, 'error');
+        }
       }
+    } catch (error: any) {
+      console.error('Error adding/updating instructor:', error);
+      const errorMsg = error.message || 'An unexpected error occurred while processing your request';
+      showNotification(`System Error: ${errorMsg}`, 'error');
     }
   };
 
   const handleAssignInstructor = async (instructorId: string) => {
     if (selectedClass) {
-      // Toggle instructor assignment
-      const updatedInstructors = selectedClass.instructors.includes(instructorId)
-        ? selectedClass.instructors.filter(id => id !== instructorId)
-        : [...selectedClass.instructors, instructorId];
+      // Toggle instructor assignment (max 5 instructors per class)
+      const isCurrentlyAssigned = selectedClass.instructors.includes(instructorId);
+      let updatedInstructors: string[];
+      
+      if (isCurrentlyAssigned) {
+        // Remove instructor
+        updatedInstructors = selectedClass.instructors.filter(id => id !== instructorId);
+      } else {
+        // Add instructor (check limit)
+        if (selectedClass.instructors.length >= 5) {
+          showNotification('Maximum of 5 instructors allowed per class', 'error');
+          return;
+        }
+        updatedInstructors = [...selectedClass.instructors, instructorId];
+      }
       
       // Update class via API - use instructorIds to match backend
       try {
@@ -413,36 +585,89 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     setShowAddInstructorModal(true);
   };
 
-  const handleDeleteInstructor = async (instructorId: string) => {
-    const instructorToDelete = instructors.find(i => i.id === instructorId);
-    const instructorName = instructorToDelete ? instructorToDelete.name : 'this instructor';
+  const handleDeleteInstructor = (instructorId: string) => {
+    const instructor = instructors.find(i => i.id === instructorId);
+    if (instructor) {
+      setInstructorToDelete(instructor);
+      setShowDeleteConfirmModal(true);
+    }
+  };
+
+  const confirmDeleteInstructor = async () => {
+    if (!instructorToDelete) return;
     
-    if (confirm(`⚠️ Delete Instructor\n\nAre you sure you want to permanently delete "${instructorName}"?\n\nThis action cannot be undone and will:\n• Remove the instructor from all assigned classes\n• Delete all instructor records\n\nClick OK to confirm deletion or Cancel to keep the instructor.`)) {
-      try {
-        const result = await instructorService.delete(instructorId);
-        if (result.success) {
-          setInstructors(instructors.filter(i => i.id !== instructorId));
-          
-          // Also remove from any assigned classes
-          for (const gymClass of classes) {
-            if (gymClass.instructors.includes(instructorId)) {
-              await classService.update(gymClass.id, {
-                instructors: gymClass.instructors.filter(id => id !== instructorId)
-              });
-            }
+    try {
+      const result = await instructorService.delete(instructorToDelete.id);
+      if (result.success) {
+        setInstructors(instructors.filter(i => i.id !== instructorToDelete.id));
+        
+        // Also remove from any assigned classes
+        for (const gymClass of classes) {
+          if (gymClass.instructors.includes(instructorToDelete.id)) {
+            await classService.update(gymClass.id, {
+              instructors: gymClass.instructors.filter(id => id !== instructorToDelete.id)
+            });
           }
-          // Reload classes to reflect changes
-          const updatedClasses = await classService.getAll();
-          setClasses(updatedClasses);
-          
-          logActivity({
-            type: 'instructor_deleted',
-            message: `Instructor deleted: ${instructorName}`
-          });
         }
-      } catch (error) {
-        console.error('Error deleting instructor:', error);
+        // Reload classes to reflect changes
+        const updatedClasses = await classService.getAll();
+        setClasses(updatedClasses);
+        
+        logActivity({
+          type: 'instructor_deleted',
+          message: `Instructor deleted: ${instructorToDelete.name}`
+        });
+        
+        alert('✅ Instructor deleted successfully!');
+      } else {
+        alert(`❌ Error: ${result.message || 'Failed to delete instructor'}`);
       }
+    } catch (error: any) {
+      console.error('Error deleting instructor:', error);
+      alert(`❌ Error: ${error.message || 'An unexpected error occurred'}`);
+    } finally {
+      setShowDeleteConfirmModal(false);
+      setInstructorToDelete(null);
+    }
+  };
+
+  const handleScheduleInstructor = (instructor: Instructor) => {
+    setInstructorToSchedule(instructor);
+    setShowScheduleAssignModal(true);
+  };
+
+  const handleAssignClassToInstructor = async (classId: string, assign: boolean) => {
+    if (!instructorToSchedule) return;
+
+    try {
+      const targetClass = classes.find(c => c.id === classId);
+      if (!targetClass) return;
+
+      const updatedInstructors = assign
+        ? [...targetClass.instructors, instructorToSchedule.id]
+        : targetClass.instructors.filter(id => id !== instructorToSchedule.id);
+
+      const result = await classService.update(classId, { 
+        instructorIds: updatedInstructors 
+      } as any);
+
+      if (result.success) {
+        // Reload classes to reflect changes
+        const updatedClasses = await classService.getAll();
+        setClasses(updatedClasses);
+        
+        logActivity({
+          type: 'class_updated',
+          message: `Instructor ${assign ? 'assigned to' : 'removed from'} class: ${targetClass.name}`
+        });
+
+        alert(`✅ ${assign ? 'Assigned' : 'Removed'} instructor ${assign ? 'to' : 'from'} "${targetClass.name}" successfully!`);
+      } else {
+        alert(`❌ Error: ${result.message || 'Failed to update class assignment'}`);
+      }
+    } catch (error: any) {
+      console.error('Error updating class assignment:', error);
+      alert(`❌ Error: ${error.message || 'An unexpected error occurred'}`);
     }
   };
 
@@ -548,8 +773,41 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         </div>
 
         <div className="section-header">
-          <h3>Gym Classes Management</h3>
-          <button className="add-btn" onClick={() => {
+          <div>
+            <h3>Gym Classes Management</h3>
+            <p style={{ 
+              margin: '5px 0 0 0', 
+              fontSize: '0.8em', 
+              color: '#6c757d',
+              fontStyle: 'italic' 
+            }}>
+              Last updated: {lastRefresh.toLocaleTimeString()}
+            </p>
+          </div>
+          <div className="header-actions">
+            <button 
+              className="refresh-btn" 
+              onClick={loadData}
+              disabled={loading}
+              title="Refresh data to sync with member bookings"
+              style={{
+                background: loading ? '#6c757d' : 'linear-gradient(135deg, #17a2b8, #138496)',
+                color: 'white',
+                border: 'none',
+                padding: '8px 16px',
+                borderRadius: '6px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontSize: '0.9em',
+                fontWeight: '500',
+                marginRight: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              🔄 {loading ? 'Refreshing...' : 'Refresh'}
+            </button>
+            <button className="add-btn" onClick={() => {
             setNewClass({
               name: '',
               description: '',
@@ -568,6 +826,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           }}>
             ➕ Add New Class
           </button>
+          </div>
         </div>
 
       <div className="filters-section">
@@ -653,13 +912,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             {/* Enrollment Section */}
             <div className="enrollment-section-modern">
               <div className="enrollment-header">
-                <div className="enrollment-info">
+                <div 
+                  className="enrollment-info clickable"
+                  onClick={() => handleShowClassEnrollment(gymClass)}
+                  title="Click to view enrolled members"
+                  style={{ cursor: 'pointer' }}
+                >
                   <span className="enrollment-icon">👥</span>
                   <span className="enrollment-text">
                     <strong>{gymClass.currentEnrollment}</strong> / {gymClass.maxCapacity}
                   </span>
                 </div>
-                <span className={`spots-badge ${spotsLeft <= 5 ? 'spots-low' : ''}`}>
+                <span 
+                  className={`spots-badge ${spotsLeft <= 5 ? 'spots-low' : ''} clickable`}
+                  onClick={() => handleShowClassEnrollment(gymClass)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    loadData(); // Force refresh on double-click
+                  }}
+                  title="Click to view enrolled members, double-click to refresh data"
+                  style={{ cursor: 'pointer' }}
+                >
                   {spotsLeft} spots left
                 </span>
               </div>
@@ -705,14 +978,24 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   <span>Weekly Schedule (24h)</span>
                 </div>
                 <div className="schedule-tags-modern">
-                  {gymClass.schedule.slice(0, 3).map((schedule, index) => (
+                  {(expandedSchedules.has(gymClass.id) ? gymClass.schedule : gymClass.schedule.slice(0, 3)).map((schedule, index) => (
                     <div key={index} className="schedule-badge-modern">
                       <span className="day-badge">{getDayName(schedule.dayOfWeek).slice(0, 3)}</span>
                       <span className="time-text">{formatTime24h(schedule.startTime)}-{formatTime24h(schedule.endTime)}</span>
                     </div>
                   ))}
                   {gymClass.schedule.length > 3 && (
-                    <span className="more-badge">+{gymClass.schedule.length - 3} more</span>
+                    <span 
+                      className="more-badge clickable" 
+                      onClick={() => toggleScheduleExpansion(gymClass.id)}
+                      style={{ cursor: 'pointer' }}
+                      title={expandedSchedules.has(gymClass.id) ? 'Show less' : 'Show more days'}
+                    >
+                      {expandedSchedules.has(gymClass.id) 
+                        ? 'Show less' 
+                        : `+${gymClass.schedule.length - 3} more`
+                      }
+                    </span>
                   )}
                 </div>
               </div>
@@ -805,24 +1088,38 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
         <div className="section-header">
           <h3>Instructors Management</h3>
-          <button className="add-btn" onClick={() => {
-            setNewInstructor({
-              name: '',
-              email: '',
-              specialization: [],
-              availability: [],
-              phone: '',
-              experience: 0,
-              status: 'active',
-              certifications: [],
-              bio: '',
-              avatarUrl: ''
-            });
-            setEditingInstructor(null);
-            setShowAddInstructorModal(true);
-          }}>
-            ➕ Add New Instructor
-          </button>
+          {isSparta() ? (
+            <button className="add-btn" onClick={() => {
+              setNewInstructor({
+                name: '',
+                email: '',
+                specialization: [],
+                availability: [],
+                phone: '',
+                experience: 0,
+                status: 'active',
+                certifications: [],
+                bio: '',
+                avatarUrl: ''
+              });
+              setEditingInstructor(null);
+              resetInstructorForm();
+              setShowAddInstructorModal(true);
+            }}>
+              ➕ Add New Instructor
+            </button>
+          ) : (
+            <div className="sparta-only-message" style={{
+              padding: '8px 16px',
+              background: '#fff3cd',
+              border: '1px solid #ffeaa7',
+              borderRadius: '4px',
+              color: '#856404',
+              fontSize: '0.9em'
+            }}>
+              🔒 SPARTA role required for instructor management
+            </div>
+          )}
         </div>
 
       <div className="filters-section">
@@ -950,9 +1247,25 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             </div>
 
             <div className="instructor-actions">
-              <button className="edit-btn" onClick={() => handleEditInstructor(instructor)}>✏️ Edit</button>
-              <button className="schedule-btn" onClick={() => console.log('Schedule for:', instructor.name)}>📅 Schedule</button>
-              <button className="delete-btn" onClick={() => handleDeleteInstructor(instructor.id)}>🗑️ Delete</button>
+              {isSparta() ? (
+                <>
+                  <button className="edit-btn" onClick={() => handleEditInstructor(instructor)}>✏️ Edit</button>
+                  <button className="schedule-btn" onClick={() => handleScheduleInstructor(instructor)}>📅 Schedule</button>
+                  <button className="delete-btn" onClick={() => handleDeleteInstructor(instructor.id)}>🗑️ Delete</button>
+                </>
+              ) : (
+                <div className="sparta-required-actions" style={{
+                  padding: '6px 12px',
+                  background: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '4px',
+                  color: '#6c757d',
+                  fontSize: '0.8em',
+                  textAlign: 'center'
+                }}>
+                  🔒 SPARTA access required
+                </div>
+              )}
             </div>
           </div>
         ))
@@ -1164,17 +1477,54 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       {showAddClassModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <div className="modal-header">
-              <h3>{editingClass ? 'Edit Class' : 'Add New Class'}</h3>
-              <button className="close-btn" onClick={() => {
-                setShowAddClassModal(false);
-                setEditingClass(null);
-              }}>
+            <div className="modal-header" style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '20px 25px',
+              borderRadius: '12px 12px 0 0',
+              marginBottom: '0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.5em' }}>
+                  {editingClass ? '✏️' : '➕'}
+                </span>
+                <h3 style={{ margin: 0, fontSize: '1.4em', fontWeight: '600' }}>
+                  {editingClass ? 'Edit Class' : 'Add New Class'}
+                </h3>
+              </div>
+              <button 
+                className="close-btn" 
+                onClick={() => {
+                  setShowAddClassModal(false);
+                  setEditingClass(null);
+                }}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  color: 'white',
+                  width: '35px',
+                  height: '35px',
+                  borderRadius: '50%',
+                  fontSize: '1.2em',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              >
                 ✕
               </button>
             </div>
             
-            <div className="modal-body">
+            <div className="modal-body" style={{
+              padding: '25px',
+              background: '#fafafa',
+              maxHeight: '70vh',
+              overflowY: 'auto'
+            }}>
               <div className="form-group">
                 <label>Class Name:</label>
                 <input
@@ -1247,8 +1597,20 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <label>Price (AZN):</label>
                 <input
                   type="number"
-                  value={newClass.price || 0}
-                  onChange={(e) => setNewClass({...newClass, price: parseFloat(e.target.value)})}
+                  min="0"
+                  step="0.01"
+                  value={newClass.price ?? 0}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Handle empty input or invalid input
+                    if (value === '' || value === null) {
+                      setNewClass({...newClass, price: 0});
+                    } else {
+                      const numValue = parseFloat(value);
+                      setNewClass({...newClass, price: isNaN(numValue) ? 0 : numValue});
+                    }
+                  }}
+                  placeholder="0"
                 />
               </div>
 
@@ -1346,15 +1708,62 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
             </div>
             
-            <div className="modal-footer">
-              <button className="cancel-btn" onClick={() => {
-                setShowAddClassModal(false);
-                setEditingClass(null);
-              }}>
+            <div className="modal-footer" style={{
+              padding: '20px 25px',
+              background: 'white',
+              borderTop: '1px solid #e9ecef',
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'flex-end',
+              borderRadius: '0 0 12px 12px'
+            }}>
+              <button 
+                className="cancel-btn" 
+                onClick={() => {
+                  setShowAddClassModal(false);
+                  setEditingClass(null);
+                }}
+                style={{
+                  background: '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = '#5a6268'}
+                onMouseLeave={(e) => e.currentTarget.style.background = '#6c757d'}
+              >
                 Cancel
               </button>
-              <button className="confirm-btn" onClick={handleAddClass}>
-                {editingClass ? 'Update Class' : 'Add Class'}
+              <button 
+                className="confirm-btn" 
+                onClick={handleAddClass}
+                style={{
+                  background: 'linear-gradient(135deg, #28a745, #20c997)',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '0.95em',
+                  fontWeight: '500',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 4px rgba(40, 167, 69, 0.2)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(40, 167, 69, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.2)';
+                }}
+              >
+                {editingClass ? '✏️ Update Class' : '➕ Add Class'}
               </button>
             </div>
           </div>
@@ -1362,20 +1771,90 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       )}
 
       {/* Add/Edit Instructor Modal */}
-      {showAddInstructorModal && (
+      {showAddInstructorModal && isSparta() && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-content" style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <h3>{editingInstructor ? 'Edit Instructor' : 'Add New Instructor'}</h3>
               <button className="close-btn" onClick={() => {
                 setShowAddInstructorModal(false);
                 setEditingInstructor(null);
+                resetInstructorForm();
               }}>
                 ✕
               </button>
             </div>
             
             <div className="modal-body">
+              {/* Member Selection (for new instructors only) */}
+              {!editingInstructor && (
+                <div className="form-group">
+                  <label>👤 Select Active Member:</label>
+                  <div className="member-search-container" style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      value={memberSearchTerm}
+                      onChange={(e) => {
+                        setMemberSearchTerm(e.target.value);
+                        setShowMemberDropdown(true);
+                      }}
+                      onFocus={() => setShowMemberDropdown(true)}
+                      placeholder="Search member by name or email..."
+                      style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ddd' }}
+                    />
+                    
+                    {showMemberDropdown && getFilteredMembers().length > 0 && (
+                      <div className="member-dropdown" style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        background: 'white',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                      }}>
+                        {getFilteredMembers().slice(0, 10).map(member => (
+                          <div
+                            key={member.id}
+                            className="member-option"
+                            onClick={() => handleMemberSelect(member)}
+                            style={{
+                              padding: '12px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #eee',
+                              transition: 'background-color 0.2s'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                          >
+                            <div style={{ fontWeight: 'bold' }}>{member.name}</div>
+                            <div style={{ fontSize: '0.9em', color: '#666' }}>{member.email}</div>
+                            <div style={{ fontSize: '0.8em', color: '#888' }}>{member.phone}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {selectedMember && (
+                    <div className="selected-member-info" style={{
+                      marginTop: '10px',
+                      padding: '12px',
+                      background: '#e8f5e8',
+                      borderRadius: '4px',
+                      border: '1px solid #c3e6c3'
+                    }}>
+                      <div style={{ fontWeight: 'bold', color: '#2d5016' }}>✅ Selected: {selectedMember.name}</div>
+                      <div style={{ fontSize: '0.9em', color: '#4a7c2a' }}>{selectedMember.email} | {selectedMember.phone}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="form-group">
                 <label>Full Name:</label>
                 <input
@@ -1383,6 +1862,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   value={newInstructor.name || ''}
                   onChange={(e) => setNewInstructor({...newInstructor, name: e.target.value})}
                   placeholder="Enter instructor name"
+                  readOnly={!editingInstructor && selectedMember !== null}
+                  style={{
+                    backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
+                    cursor: !editingInstructor && selectedMember ? 'not-allowed' : 'text'
+                  }}
                 />
               </div>
               
@@ -1393,6 +1877,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   value={newInstructor.email || ''}
                   onChange={(e) => setNewInstructor({...newInstructor, email: e.target.value})}
                   placeholder="Enter email address"
+                  readOnly={!editingInstructor && selectedMember !== null}
+                  style={{
+                    backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
+                    cursor: !editingInstructor && selectedMember ? 'not-allowed' : 'text'
+                  }}
                 />
               </div>
               
@@ -1403,6 +1892,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   value={newInstructor.phone || ''}
                   onChange={(e) => setNewInstructor({...newInstructor, phone: e.target.value})}
                   placeholder="+994501234567"
+                  readOnly={!editingInstructor && selectedMember !== null}
+                  style={{
+                    backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
+                    cursor: !editingInstructor && selectedMember ? 'not-allowed' : 'text'
+                  }}
                 />
               </div>
               
@@ -1410,8 +1904,17 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <label>Experience (years):</label>
                 <input
                   type="number"
-                  value={newInstructor.experience || 0}
-                  onChange={(e) => setNewInstructor({...newInstructor, experience: parseInt(e.target.value)})}
+                  value={newInstructor.experience === 0 ? '' : (newInstructor.experience || '')}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setNewInstructor({
+                      ...newInstructor, 
+                      experience: value === '' ? 0 : parseInt(value) || 0
+                    });
+                  }}
+                  placeholder="Enter years of experience"
+                  min="0"
+                  max="50"
                 />
               </div>
               
@@ -1428,17 +1931,46 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 />
               </div>
               
-              <div className="form-group">
-                <label>Availability (comma-separated days):</label>
-                <input
-                  type="text"
-                  value={newInstructor.availability ? newInstructor.availability.join(', ') : ''}
-                  placeholder="e.g., Monday, Wednesday, Friday"
-                  onChange={(e) => setNewInstructor({
-                    ...newInstructor, 
-                    availability: e.target.value.split(',').map(s => s.trim())
+              {/* Enhanced Weekday Availability Selector */}
+              <div className="form-group schedule-builder">
+                <label className="schedule-builder-label">📅 Weekly Availability:</label>
+                <p className="schedule-helper-text">Select weekdays when instructor is available</p>
+                
+                {/* Weekday Checkboxes */}
+                <div className="weekday-checkboxes">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day, arrayIndex) => {
+                    // Map display order to actual dayOfWeek values (0=Sunday, 1=Monday... 6=Saturday)
+                    const dayOfWeekValue = arrayIndex === 6 ? 0 : arrayIndex + 1;
+                    const availabilityArray = newInstructor.availability || [];
+                    const isChecked = availabilityArray.includes(day);
+                    
+                    return (
+                      <label key={dayOfWeekValue} className={`weekday-checkbox ${isChecked ? 'checked' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            const currentAvailability = newInstructor.availability || [];
+                            if (e.target.checked) {
+                              // Add day to availability
+                              setNewInstructor({
+                                ...newInstructor,
+                                availability: [...currentAvailability, day]
+                              });
+                            } else {
+                              // Remove day from availability
+                              setNewInstructor({
+                                ...newInstructor,
+                                availability: currentAvailability.filter(d => d !== day)
+                              });
+                            }
+                          }}
+                        />
+                        <span className="weekday-label">{day.slice(0, 3)}</span>
+                      </label>
+                    );
                   })}
-                />
+                </div>
               </div>
               
               <div className="form-group">
@@ -1482,10 +2014,19 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <button className="cancel-btn" onClick={() => {
                 setShowAddInstructorModal(false);
                 setEditingInstructor(null);
+                resetInstructorForm();
               }}>
                 Cancel
               </button>
-              <button className="confirm-btn" onClick={handleAddInstructor}>
+              <button 
+                className="confirm-btn" 
+                onClick={handleAddInstructor}
+                disabled={!editingInstructor && !selectedMember}
+                style={{
+                  opacity: !editingInstructor && !selectedMember ? 0.5 : 1,
+                  cursor: !editingInstructor && !selectedMember ? 'not-allowed' : 'pointer'
+                }}
+              >
                 {editingInstructor ? 'Update Instructor' : 'Add Instructor'}
               </button>
             </div>
@@ -1497,14 +2038,72 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       {showAssignModal && selectedClass && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <div className="modal-header">
-              <h3>Assign Instructors to "{selectedClass.name}"</h3>
-              <button className="close-btn" onClick={() => setShowAssignModal(false)}>
+            <div className="modal-header" style={{
+              background: 'linear-gradient(135deg, #fd7e14 0%, #e67e22 100%)',
+              color: 'white',
+              padding: '20px 25px',
+              borderRadius: '12px 12px 0 0',
+              marginBottom: '0'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.5em' }}>👨‍🏫</span>
+                <h3 style={{ margin: 0, fontSize: '1.4em', fontWeight: '600' }}>
+                  Assign Instructors to "{selectedClass.name}"
+                </h3>
+              </div>
+              <button 
+                className="close-btn" 
+                onClick={() => setShowAssignModal(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  border: 'none',
+                  color: 'white',
+                  width: '35px',
+                  height: '35px',
+                  borderRadius: '50%',
+                  fontSize: '1.2em',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+              >
                 ✕
               </button>
             </div>
             
             <div className="modal-body">
+              <div className="assignment-status" style={{
+                background: 'linear-gradient(135deg, #f8f9fa, #e9ecef)',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
+                    👨‍🏫 Instructors: {selectedClass.instructors.length} / 5
+                  </div>
+                  <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
+                    {selectedClass.instructors.length >= 5 ? 'Maximum instructors assigned' : `${5 - selectedClass.instructors.length} more can be assigned`}
+                  </div>
+                </div>
+                <div style={{ 
+                  background: selectedClass.instructors.length >= 5 ? '#dc3545' : '#28a745',
+                  color: 'white',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  fontSize: '0.9em',
+                  fontWeight: 'bold'
+                }}>
+                  {selectedClass.instructors.length >= 5 ? 'FULL' : 'AVAILABLE'}
+                </div>
+              </div>
               <div className="instructors-assignment">
                 {instructors.map(instructor => (
                   <div key={instructor.id} className="instructor-assignment-item">
@@ -1520,6 +2119,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <button
                       className={`assign-toggle ${selectedClass.instructors.includes(instructor.id) ? 'assigned' : ''}`}
                       onClick={() => handleAssignInstructor(instructor.id)}
+                      disabled={!selectedClass.instructors.includes(instructor.id) && selectedClass.instructors.length >= 5}
+                      title={!selectedClass.instructors.includes(instructor.id) && selectedClass.instructors.length >= 5 ? 'Maximum of 5 instructors allowed' : ''}
                     >
                       {selectedClass.instructors.includes(instructor.id) ? '✓ Assigned' : '+ Assign'}
                     </button>
@@ -1531,6 +2132,360 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="modal-footer">
               <button className="confirm-btn" onClick={() => setShowAssignModal(false)}>
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enhanced Schedule Assignment Modal */}
+      {showScheduleAssignModal && instructorToSchedule && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '800px', maxHeight: '85vh', overflowY: 'auto' }}>
+            <div className="modal-header">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '1.5em' }}>👤</span>
+                <div>
+                  <div>Class Assignment for {instructorToSchedule.name}</div>
+                  <div style={{ fontSize: '0.9em', fontWeight: 'normal', color: '#666' }}>
+                    Manage instructor's class schedule
+                  </div>
+                </div>
+              </h3>
+              <button className="close-btn" onClick={() => {
+                setShowScheduleAssignModal(false);
+                setInstructorToSchedule(null);
+              }}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              {/* Summary Bar */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                padding: '15px',
+                borderRadius: '8px',
+                marginBottom: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <div>
+                  <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
+                    📚 Available Classes: {classes.length}
+                  </div>
+                  <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
+                    Click to assign or remove classes from this instructor
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontSize: '1.3em', fontWeight: 'bold' }}>
+                    {classes.filter(c => c.instructors.includes(instructorToSchedule.id)).length}
+                  </div>
+                  <div style={{ fontSize: '0.8em', opacity: 0.9 }}>
+                    Currently Assigned
+                  </div>
+                </div>
+              </div>
+              
+              <div className="class-assignment-list">
+                {classes.length === 0 ? (
+                  <div className="empty-state" style={{ 
+                    textAlign: 'center', 
+                    padding: '60px 20px', 
+                    background: '#f8f9fa',
+                    borderRadius: '12px',
+                    border: '2px dashed #dee2e6'
+                  }}>
+                    <div style={{ fontSize: '3em', marginBottom: '10px' }}>📋</div>
+                    <h4 style={{ color: '#6c757d', marginBottom: '10px' }}>No Classes Available</h4>
+                    <p style={{ color: '#868e96' }}>Create classes first to assign them to instructors.</p>
+                  </div>
+                ) : (
+                  classes.map(classItem => {
+                    const isAssigned = classItem.instructors.includes(instructorToSchedule.id);
+                    return (
+                      <div key={classItem.id} className="class-assignment-item" style={{
+                        display: 'block',
+                        padding: '20px',
+                        border: `2px solid ${isAssigned ? '#28a745' : '#e9ecef'}`,
+                        borderRadius: '12px',
+                        marginBottom: '15px',
+                        backgroundColor: isAssigned ? '#f8fff9' : 'white',
+                        boxShadow: isAssigned ? '0 2px 8px rgba(40, 167, 69, 0.1)' : '0 1px 3px rgba(0,0,0,0.1)',
+                        transition: 'all 0.3s ease',
+                        cursor: 'pointer',
+                        position: 'relative'
+                      }}
+                      onClick={() => handleAssignClassToInstructor(classItem.id, !isAssigned)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = isAssigned ? '0 4px 12px rgba(40, 167, 69, 0.2)' : '0 4px 12px rgba(0,0,0,0.15)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = isAssigned ? '0 2px 8px rgba(40, 167, 69, 0.1)' : '0 1px 3px rgba(0,0,0,0.1)';
+                      }}
+                      >
+                        {/* Assignment Status Badge */}
+                        <div style={{
+                          position: 'absolute',
+                          top: '15px',
+                          right: '15px',
+                          background: isAssigned ? '#28a745' : '#6c757d',
+                          color: 'white',
+                          padding: '4px 8px',
+                          borderRadius: '12px',
+                          fontSize: '0.75em',
+                          fontWeight: 'bold'
+                        }}>
+                          {isAssigned ? '✓ ASSIGNED' : 'AVAILABLE'}
+                        </div>
+
+                        {/* Class Header */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                          <div style={{
+                            width: '50px',
+                            height: '50px',
+                            borderRadius: '10px',
+                            background: isAssigned ? 
+                              'linear-gradient(135deg, #28a745, #20c997)' : 
+                              'linear-gradient(135deg, #6c757d, #495057)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '1.5em'
+                          }}>
+                            🏃‍♂️
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ 
+                              margin: '0 0 4px 0', 
+                              color: isAssigned ? '#155724' : '#333',
+                              fontSize: '1.2em',
+                              fontWeight: 'bold'
+                            }}>
+                              {classItem.name}
+                            </h4>
+                            <div style={{ 
+                              display: 'flex', 
+                              gap: '15px', 
+                              fontSize: '0.9em', 
+                              color: '#666' 
+                            }}>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span>🏷️</span> {classItem.category}
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span>👥</span> {classItem.maxCapacity} max
+                              </span>
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <span>💰</span> ${classItem.price}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Schedule Information */}
+                        {classItem.schedule && classItem.schedule.length > 0 && (
+                          <div style={{
+                            background: isAssigned ? '#e8f5e8' : '#f8f9fa',
+                            padding: '12px',
+                            borderRadius: '8px',
+                            marginTop: '12px'
+                          }}>
+                            <div style={{ 
+                              fontSize: '0.85em', 
+                              fontWeight: 'bold', 
+                              color: '#495057',
+                              marginBottom: '8px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <span>📅</span> Weekly Schedule:
+                            </div>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                              {classItem.schedule.map((scheduleItem, idx) => (
+                                <div key={idx} style={{
+                                  background: isAssigned ? '#d4edda' : '#e9ecef',
+                                  color: isAssigned ? '#155724' : '#495057',
+                                  padding: '6px 10px',
+                                  borderRadius: '6px',
+                                  fontSize: '0.8em',
+                                  fontWeight: '500',
+                                  border: `1px solid ${isAssigned ? '#c3e6cb' : '#dee2e6'}`
+                                }}>
+                                  <span style={{ fontWeight: 'bold' }}>
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][scheduleItem.dayOfWeek]}
+                                  </span>
+                                  <span style={{ margin: '0 4px' }}>•</span>
+                                  <span>{scheduleItem.startTime} - {scheduleItem.endTime}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Button */}
+                        <div style={{ marginTop: '15px', textAlign: 'center' }}>
+                          <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '10px 20px',
+                            borderRadius: '25px',
+                            background: isAssigned ? 
+                              'linear-gradient(135deg, #dc3545, #c82333)' : 
+                              'linear-gradient(135deg, #28a745, #20c997)',
+                            color: 'white',
+                            fontWeight: 'bold',
+                            fontSize: '0.9em',
+                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                          }}>
+                            {isAssigned ? (
+                              <>
+                                <span>✕</span>
+                                <span>Click to Remove</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>✓</span>
+                                <span>Click to Assign</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+            
+            <div className="modal-footer" style={{ 
+              borderTop: '1px solid #dee2e6', 
+              padding: '20px',
+              background: '#f8f9fa'
+            }}>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'space-between', 
+                alignItems: 'center' 
+              }}>
+                <div style={{ color: '#6c757d', fontSize: '0.9em' }}>
+                  <span style={{ fontWeight: 'bold' }}>
+                    {classes.filter(c => c.instructors.includes(instructorToSchedule.id)).length}
+                  </span> of {classes.length} classes assigned
+                </div>
+                <button 
+                  className="confirm-btn" 
+                  onClick={() => {
+                    showNotification(
+                      `Class assignments updated for ${instructorToSchedule.name}`, 
+                      'success'
+                    );
+                    setShowScheduleAssignModal(false);
+                    setInstructorToSchedule(null);
+                  }}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '6px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer'
+                  }}
+                >
+                  ✅ Complete Assignment
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Instructor Confirmation Modal */}
+      {showDeleteConfirmModal && instructorToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3>🗑️ Delete Instructor</h3>
+              <button className="close-btn" onClick={() => {
+                setShowDeleteConfirmModal(false);
+                setInstructorToDelete(null);
+              }}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div className="warning-message" style={{
+                background: '#fff3cd',
+                border: '1px solid #ffeaa7',
+                borderRadius: '8px',
+                padding: '20px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
+                  <span style={{ fontSize: '2em', marginRight: '10px' }}>⚠️</span>
+                  <h4 style={{ margin: 0, color: '#856404' }}>Permanent Action Warning</h4>
+                </div>
+                <p style={{ margin: '0 0 10px 0', color: '#856404' }}>
+                  You are about to permanently delete instructor:
+                </p>
+                <div style={{
+                  background: 'white',
+                  padding: '10px',
+                  borderRadius: '4px',
+                  border: '1px solid #ffeaa7',
+                  fontWeight: 'bold'
+                }}>
+                  👤 {instructorToDelete.name} ({instructorToDelete.email})
+                </div>
+              </div>
+              
+              <div className="consequences-list" style={{ color: '#666', fontSize: '0.95em' }}>
+                <p><strong>This action will:</strong></p>
+                <ul style={{ paddingLeft: '20px' }}>
+                  <li>Permanently remove the instructor from the system</li>
+                  <li>Remove them from all assigned classes</li>
+                  <li>Cannot be undone</li>
+                </ul>
+              </div>
+              
+              <div style={{ marginTop: '20px', padding: '15px', background: '#f8f9fa', borderRadius: '4px' }}>
+                <p style={{ margin: 0, fontSize: '0.9em', color: '#495057' }}>
+                  <strong>💡 Alternative:</strong> Consider setting the instructor status to "Inactive" instead of deleting.
+                </p>
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={() => {
+                setShowDeleteConfirmModal(false);
+                setInstructorToDelete(null);
+              }}>
+                Cancel
+              </button>
+              <button 
+                className="delete-btn"
+                onClick={confirmDeleteInstructor}
+                style={{
+                  backgroundColor: '#dc3545',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                🗑️ Delete Permanently
               </button>
             </div>
           </div>
@@ -1752,6 +2707,137 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={handleCloseRosterModal}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {showNotificationModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3 style={{ 
+                color: notificationType === 'success' ? '#28a745' : 
+                       notificationType === 'error' ? '#dc3545' : '#17a2b8',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                {notificationType === 'success' && '✅'} 
+                {notificationType === 'error' && '❌'} 
+                {notificationType === 'info' && 'ℹ️'}
+                {notificationType === 'success' ? 'Success' : 
+                 notificationType === 'error' ? 'Error' : 'Information'}
+              </h3>
+              <button className="close-btn" onClick={() => setShowNotificationModal(false)}>
+                ✕
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <div style={{
+                padding: '20px',
+                fontSize: '1.1em',
+                lineHeight: '1.5',
+                textAlign: 'center',
+                color: notificationType === 'error' ? '#721c24' : '#333'
+              }}>
+                {notificationMessage}
+              </div>
+            </div>
+            
+            <div className="modal-footer">
+              <button 
+                className={`confirm-btn ${notificationType === 'error' ? 'error-btn' : ''}`}
+                onClick={() => setShowNotificationModal(false)}
+                style={{
+                  backgroundColor: notificationType === 'success' ? '#28a745' : 
+                                   notificationType === 'error' ? '#dc3545' : '#17a2b8',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold'
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Class Enrolled Members Modal */}
+      {showClassEnrolledModal && selectedClassForEnrollment && (
+        <div className="modal-overlay">
+          <div className="modal-content roster-modal">
+            <div className="modal-header">
+              <div>
+                <h3>Enrolled Members</h3>
+                <p className="roster-subtitle">
+                  {selectedClassForEnrollment.name}
+                </p>
+                <p className="roster-subtitle">
+                  Total Enrollment: {classEnrolledMembers.length} / {selectedClassForEnrollment.maxCapacity}
+                </p>
+              </div>
+              <button className="close-btn" onClick={handleCloseClassEnrollmentModal}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="roster-summary">
+                <span>📊 Class: {selectedClassForEnrollment.name}</span>
+                <span>
+                  👥 {classEnrolledMembers.length} enrolled
+                  {selectedClassForEnrollment.maxCapacity > 0 
+                    ? ` / ${selectedClassForEnrollment.maxCapacity} max capacity`
+                    : ''}
+                </span>
+                <span>🎯 Category: {selectedClassForEnrollment.category}</span>
+              </div>
+
+              {classEnrolledMembers.length === 0 ? (
+                <div className="roster-empty">No members are enrolled in this class yet.</div>
+              ) : (
+                <div className="roster-table-wrapper">
+                  <table className="roster-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Enrolled On</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {classEnrolledMembers.map((member, index) => (
+                        <tr key={`${member.memberId}-${index}`}>
+                          <td>{member.name}</td>
+                          <td>{member.email}</td>
+                          <td>{member.phone || '—'}</td>
+                          <td>
+                            <span className={`status-badge status-${member.status}`}>
+                              {member.status}
+                            </span>
+                          </td>
+                          <td>{member.bookedAt ? new Date(member.bookedAt).toLocaleString() : '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="modal-footer">
+              <button className="cancel-btn" onClick={handleCloseClassEnrollmentModal}>
                 Close
               </button>
             </div>

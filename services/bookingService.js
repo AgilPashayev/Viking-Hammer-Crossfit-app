@@ -5,9 +5,64 @@ const { supabase } = require('../supabaseClient');
 
 /**
  * Book a class slot for a user
+ * Accepts EITHER scheduleSlotId OR (classId + dayOfWeek + startTime)
  */
-async function bookClassSlot(userId, scheduleSlotId, bookingDate) {
+async function bookClassSlot(userId, scheduleSlotIdOrData, bookingDate) {
   try {
+    let scheduleSlotId = scheduleSlotIdOrData;
+
+    // If scheduleSlotIdOrData is an object, look up the schedule slot
+    if (typeof scheduleSlotIdOrData === 'object') {
+      const { classId, dayOfWeek, startTime } = scheduleSlotIdOrData;
+
+      // DEBUG: Log lookup parameters
+      console.log('🔍 BOOKING DEBUG - Backend Service (Schedule Slot Lookup):');
+      console.log('  classId:', classId);
+      console.log(
+        '  dayOfWeek:',
+        dayOfWeek,
+        `(${
+          ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][dayOfWeek]
+        })`,
+      );
+      console.log('  startTime:', startTime);
+
+      const { data: foundSlot, error: lookupError } = await supabase
+        .from('schedule_slots')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('day_of_week', dayOfWeek)
+        .eq('start_time', startTime)
+        .eq('status', 'active')
+        .single();
+
+      if (lookupError || !foundSlot) {
+        console.error('❌ BOOKING ERROR: Schedule slot not found');
+        console.error(
+          '  Searched for: classId=%s, dayOfWeek=%s, startTime=%s',
+          classId,
+          dayOfWeek,
+          startTime,
+        );
+        console.error('  Lookup error:', lookupError);
+
+        // Query to see what slots actually exist for this class
+        const { data: debugSlots } = await supabase
+          .from('schedule_slots')
+          .select('id, class_id, day_of_week, start_time, end_time, status')
+          .eq('class_id', classId);
+
+        console.error('  Available slots for this class:', JSON.stringify(debugSlots, null, 2));
+
+        return { error: 'Schedule slot not found for this class and time', status: 404 };
+      }
+
+      scheduleSlotId = foundSlot.id;
+      console.log(
+        `📍 Found schedule slot ${scheduleSlotId} for class ${classId} on day ${dayOfWeek} at ${startTime}`,
+      );
+    }
+
     // Check if user exists
     const { data: user, error: userError } = await supabase
       .from('users_profile')

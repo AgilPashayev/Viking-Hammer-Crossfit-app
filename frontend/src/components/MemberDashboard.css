@@ -380,11 +380,46 @@
 .announcement-header h4 {
   margin: 0;
   color: var(--viking-text);
+  flex: 1;
+}
+
+.announcement-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
 .announcement-date {
   opacity: 0.7;
   font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.btn-dismiss {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid rgba(231, 76, 60, 0.3);
+  color: #e74c3c;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.btn-dismiss:hover {
+  background: rgba(231, 76, 60, 0.2);
+  border-color: #e74c3c;
+  transform: scale(1.1);
+}
+
+.btn-dismiss:active {
+  transform: scale(0.95);
 }
 
 .announcement-card p {
@@ -916,4 +951,119 @@
     transform: translateY(0);
     opacity: 1;
   }
+}
+
+/* Dismiss Announcement Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.modal-message {
+  font-size: 1rem;
+  color: #374151;
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+
+.modal-submessage {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  justify-content: flex-end;
+}
+
+.modal-actions .btn {
+  padding: 10px 24px;
+  min-width: 100px;
+  height: auto;
+  font-size: 0.95rem;
+}
+
+.modal-actions .btn-secondary {
+  background: white;
+  color: #374151;
+  border: 2px solid #d1d5db;
+}
+
+.modal-actions .btn-secondary:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.modal-actions .btn-primary {
+  background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+  color: white;
+  border: none;
+}
+
+.modal-actions .btn-primary:hover {
+  box-shadow: 0 8px 20px rgba(255, 107, 53, 0.3);
 }

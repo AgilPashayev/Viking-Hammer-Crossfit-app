@@ -9,6 +9,20 @@ import type { GymClass, Instructor, ScheduleSlot, ScheduleEnrollment } from './c
  * Transform class data from API format to frontend format
  */
 export function transformClassFromAPI(apiClass: any): GymClass {
+  // Extract instructor IDs from the nested structure
+  const extractInstructorIds = (classInstructors: any[]): string[] => {
+    if (!classInstructors || !Array.isArray(classInstructors)) return [];
+    return classInstructors
+      .map((ci: any) => {
+        const instructor = ci.instructor;
+        if (!instructor) return null;
+        
+        // Return instructor ID
+        return instructor.id || ci.instructor_id;
+      })
+      .filter(Boolean);
+  };
+
   // Extract instructor names from the nested structure
   const extractInstructorNames = (classInstructors: any[]): string[] => {
     if (!classInstructors || !Array.isArray(classInstructors)) return [];
@@ -17,13 +31,14 @@ export function transformClassFromAPI(apiClass: any): GymClass {
         const instructor = ci.instructor;
         if (!instructor) return null;
         
-        // Build full name from first_name and last_name
-        const firstName = instructor.first_name || instructor.firstName || '';
-        const lastName = instructor.last_name || instructor.lastName || '';
-        const fullName = `${firstName} ${lastName}`.trim();
-        
-        // Fallback to name field or email if full name is empty
-        return fullName || instructor.name || instructor.email || 'Unknown Instructor';
+        // Return instructor name
+        if (instructor.first_name && instructor.last_name) {
+          return `${instructor.first_name} ${instructor.last_name}`;
+        }
+        if (instructor.name) {
+          return instructor.name;
+        }
+        return null;
       })
       .filter(Boolean);
   };
@@ -98,7 +113,8 @@ export function transformClassFromAPI(apiClass: any): GymClass {
     duration: apiClass.duration_minutes || apiClass.duration || 60,
     maxCapacity: apiClass.max_capacity || apiClass.maxCapacity || 20,
     currentEnrollment: calculateEnrollment(apiClass.class_bookings),
-    instructors: extractInstructorNames(apiClass.class_instructors),
+    instructors: extractInstructorIds(apiClass.class_instructors),
+    instructorNames: extractInstructorNames(apiClass.class_instructors),
     schedule: transformSchedule(apiClass.schedule_slots),
     equipment: apiClass.equipment_needed || apiClass.equipment || [],
     difficulty: apiClass.difficulty || 'Beginner',

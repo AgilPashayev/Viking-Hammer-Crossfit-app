@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import MemberDashboard from './components/MemberDashboard';
+import ClassList from './components/ClassList';
 import MyProfile from './components/MyProfile';
 import Reception from './components/Reception';
 import Sparta from './components/Sparta';
@@ -37,7 +38,7 @@ interface UserData {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'auth' | 'verify-email' | 'invite-register' | 'register' | 'forgot-password' | 'reset-password'
+    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'classes' | 'auth' | 'verify-email' | 'invite-register' | 'register' | 'forgot-password' | 'reset-password'
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
@@ -170,19 +171,32 @@ export default function App() {
   };
   
   const handleUserUpdate = (updatedUser: any) => {
+    console.log('🔄 [App] Updating user data:', updatedUser);
+    
     // Update user state with new data (e.g., profile photo)
     setUser(prev => prev ? { ...prev, ...updatedUser } : null);
     
-    // Also update localStorage if user was remembered
+    // Update BOTH localStorage keys to prevent data loss on refresh
     try {
-      const stored = localStorage.getItem('viking_remembered_user');
-      if (stored) {
-        const parsed = JSON.parse(stored);
+      // Update userData (used by JWT auth system)
+      const userData = localStorage.getItem('userData');
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        const updated = { ...parsed, ...updatedUser };
+        localStorage.setItem('userData', JSON.stringify(updated));
+        console.log('✅ [App] Updated userData in localStorage');
+      }
+      
+      // Also update viking_remembered_user (legacy support)
+      const remembered = localStorage.getItem('viking_remembered_user');
+      if (remembered) {
+        const parsed = JSON.parse(remembered);
         const updated = { ...parsed, ...updatedUser };
         localStorage.setItem('viking_remembered_user', JSON.stringify(updated));
+        console.log('✅ [App] Updated viking_remembered_user in localStorage');
       }
     } catch (error) {
-      console.error('Failed to update stored user data:', error);
+      console.error('❌ [App] Failed to update stored user data:', error);
     }
   };
 
@@ -195,6 +209,8 @@ export default function App() {
       setCurrentPage('home');
     } else if (page === 'dashboard') {
       setCurrentPage('dashboard');
+    } else if (page === 'classes') {
+      setCurrentPage('classes');
     } else if (page === 'profile') {
       setCurrentPage('profile');
     } else if (page === 'reception') {
@@ -383,6 +399,9 @@ export default function App() {
                 🏠 Home
               </button>
               <button className="nav-btn active">📊 Dashboard</button>
+              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
+                🏋️ Classes
+              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -407,6 +426,9 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
               </button>
+              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
+                🏋️ Classes
+              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -429,6 +451,9 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
               </button>
+              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
+                🏋️ Classes
+              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -442,6 +467,31 @@ export default function App() {
             </div>
             <Sparta onNavigate={handleNavigate} user={user} />
           </div>
+        ) : currentPage === 'classes' ? (
+          <div>
+            <div className="navigation-bar">
+              <button className="nav-btn" onClick={() => handleNavigate('home')}>
+                🏠 Home
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
+                📊 Dashboard
+              </button>
+              <button className="nav-btn active">🏋️ Classes</button>
+              <button className="nav-btn" onClick={() => handleNavigate('profile')}>
+                👤 Profile
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+                🏢 Reception
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                ⚔️ Sparta
+              </button>
+              <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
+                🚪 Logout
+              </button>
+            </div>
+            <ClassList onNavigate={handleNavigate} user={user} />
+          </div>
         ) : (
           <div>
             <div className="navigation-bar">
@@ -450,6 +500,9 @@ export default function App() {
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
+              </button>
+              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
+                🏋️ Classes
               </button>
               <button className="nav-btn active">👤 Profile</button>
               <button className="nav-btn" onClick={() => handleNavigate('reception')}>

@@ -268,6 +268,9 @@
   background: rgba(255, 255, 255, 0.9);
   color: var(--viking-text);
   border: 2px solid rgba(61, 165, 255, 0.3);
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
 }
 
 .modal-footer .btn-secondary:hover {
@@ -284,6 +287,18 @@
 .modal-footer .btn-outline:hover:not(:disabled) {
   background: var(--viking-success);
   color: white;
+}
+
+.modal-footer .btn-success {
+  background: var(--viking-success);
+  color: white;
+  border: 2px solid var(--viking-success);
+}
+
+.modal-footer .btn-success:hover:not(:disabled) {
+  background: #45a049;
+  border-color: #45a049;
+  transform: translateY(-1px);
 }
 
 .modal-footer .btn:disabled {

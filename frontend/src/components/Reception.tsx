@@ -5,7 +5,7 @@ import ClassManagement from './ClassManagement';
 import AnnouncementManager from './AnnouncementManager';
 import MembershipManager from './MembershipManager';
 import UpcomingBirthdays from './UpcomingBirthdays';
-import { validateQRCode } from '../services/qrCodeService';
+import jsQR from 'jsqr';
 import { useData, Activity } from '../contexts/DataContext';
 import './Reception.css';
 
@@ -22,8 +22,11 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [scanResult, setScanResult] = useState<any>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [showMemberReview, setShowMemberReview] = useState(false);
+  const [scannedMemberData, setScannedMemberData] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scanIntervalRef = useRef<number | null>(null);
 
   // activity rendering utils
   const timeAgo = (ts: string) => {
@@ -40,13 +43,67 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     return `${day} day${day === 1 ? '' : 's'} ago`;
   };
 
+  // Format activity messages with bold names and actions
+  const formatActivityMessage = (message: string): React.ReactElement => {
+    // Patterns to match:
+    // "John Doe checked in" -> <strong>John Doe</strong> checked in
+    // "New member: Jane Smith" -> New member: <strong>Jane Smith</strong>
+    // "Class created: CrossFit 101" -> <strong>Class created:</strong> CrossFit 101
+    
+    // Pattern 1: Name at the start (e.g., "John Doe checked in")
+    const nameAtStartMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (checked in|profile updated|birthday upcoming)/i);
+    if (nameAtStartMatch) {
+      const [, name, action] = nameAtStartMatch;
+      return <span><strong>{name}</strong> {action}</span>;
+    }
+    
+    // Pattern 2: "Action: Name" (e.g., "New member: John Doe")
+    const actionNameMatch = message.match(/^(New member|New class added|Class updated|Instructor added|Instructor updated|Schedule created|Schedule updated): (.+)$/i);
+    if (actionNameMatch) {
+      const [, action, name] = actionNameMatch;
+      return <span><strong>{action}:</strong> {name}</span>;
+    }
+    
+    // Pattern 3: "Announcement X" (e.g., "Announcement created: Title")
+    const announcementMatch = message.match(/^(Announcement (?:created|published|deleted)): (.+)$/i);
+    if (announcementMatch) {
+      const [, action, title] = announcementMatch;
+      return <span><strong>{action}:</strong> {title}</span>;
+    }
+    
+    // Pattern 4: "Membership changed" patterns
+    const membershipMatch = message.match(/^(Membership changed|Member status changed): (.+)$/i);
+    if (membershipMatch) {
+      const [, action, details] = membershipMatch;
+      return <span><strong>{action}:</strong> {details}</span>;
+    }
+    
+    // Pattern 5: Delete actions (e.g., "Class deleted: CrossFit 101")
+    const deleteMatch = message.match(/^(Class deleted|Instructor deleted|Schedule deleted): (.+)$/i);
+    if (deleteMatch) {
+      const [, action, name] = deleteMatch;
+      return <span><strong>{action}:</strong> {name}</span>;
+    }
+    
+    // Default: try to bold any names (capitalized words at start)
+    const defaultMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*)/);
+    if (defaultMatch) {
+      const [, name] = defaultMatch;
+      const rest = message.slice(name.length);
+      return <span><strong>{name}</strong>{rest}</span>;
+    }
+    
+    // Fallback: return as-is
+    return <span>{message}</span>;
+  };
+
   const iconFor = (type: Activity['type']) => {
     switch (type) {
       case 'checkin': return { icon: '✅', cls: 'success' };
       case 'member_added': return { icon: '👤', cls: 'info' };
       case 'member_updated': return { icon: '🛠️', cls: 'info' };
       case 'membership_changed': return { icon: '💳', cls: 'warning' };
-      case 'announcement_created': return { icon: '�', cls: 'info' };
+      case 'announcement_created': return { icon: '📝', cls: 'info' };
       case 'announcement_published': return { icon: '📢', cls: 'success' };
       case 'announcement_deleted': return { icon: '🗑️', cls: 'warning' };
       case 'birthday_upcoming': return { icon: '🎂', cls: 'birthday' };
@@ -88,27 +145,75 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     };
   }, []);
 
-  // QR Scanner functions
+  // QR Scanner functions with real jsQR detection
   const startCamera = async () => {
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' },
+        video: { facingMode: 'environment', width: 640, height: 480 },
       });
       setStream(mediaStream);
       setCameraActive(true);
+      setScanResult(null);
+      
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
+        // Start continuous scanning when video starts playing
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play();
+          startContinuousScanning();
+        };
       }
     } catch (error) {
       console.error('Error accessing camera:', error);
       setScanResult({
-        isValid: false,
-        error: 'Camera access denied. Please allow camera permissions.',
+        success: false,
+        message: 'Camera access denied. Please allow camera permissions.',
       });
     }
   };
 
+  const startContinuousScanning = () => {
+    // Clear any existing interval
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+    }
+
+    scanIntervalRef.current = window.setInterval(() => {
+      if (videoRef.current && canvasRef.current && cameraActive && !isScanning) {
+        const video = videoRef.current;
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
+
+        if (context && video.readyState === video.HAVE_ENOUGH_DATA) {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: 'dontInvert',
+          });
+
+          if (code) {
+            // QR code detected!
+            setIsScanning(true);
+            processScan(code.data);
+            stopContinuousScanning();
+          }
+        }
+      }
+    }, 300); // Scan every 300ms
+  };
+
+  const stopContinuousScanning = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+  };
+
   const stopCamera = () => {
+    stopContinuousScanning();
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
       setStream(null);
@@ -117,81 +222,114 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     setShowQRScanner(false);
   };
 
-  const captureQRCode = () => {
-    if (videoRef.current && canvasRef.current) {
-      const canvas = canvasRef.current;
-      const video = videoRef.current;
-      const context = canvas.getContext('2d');
-
-      if (context) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0);
-
-        // Simulate QR code detection
-        const simulatedQRData = JSON.stringify({
-          userId: 'user' + Date.now(),
-          email: 'member@example.com',
-          membershipType: 'Viking Warrior Pro',
-          timestamp: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          checkInId: 'checkin_' + Date.now(),
-        });
-        processScan(simulatedQRData);
-        stopCamera();
-      }
-    }
-  };
-
   const processScan = async (qrData: string) => {
     setIsScanning(true);
+    stopCamera(); // Stop camera immediately when QR detected
+    
     try {
-      let parsedData;
-      try {
-        parsedData = JSON.parse(qrData);
-      } catch {
-        parsedData = {
-          userId: qrData.split('-')[2] || 'unknown',
-          email: 'demo@example.com',
-          membershipType: 'Basic',
-          timestamp: new Date().toISOString(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          checkInId: qrData,
-        };
+      // Call backend API to verify QR code with membership limits
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4001/api/qr/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ qrCode: qrData }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setScanResult({
+          success: false,
+          message: result.error || 'QR verification failed',
+        });
+        setIsScanning(false);
+        return;
       }
 
-      const result = await validateQRCode(parsedData);
-      setScanResult(result);
-
-      if (result.isValid) {
-        // Update member check-in (this would normally use the member ID from QR code)
-        // For demo purposes, we'll check in the first member
-        if (members.length > 0) {
-          checkInMember(members[0].id);
-        }
-
-        setScanResult({
-          success: true,
-          message: 'Welcome back! Check-in successful.',
-          member: {
-            id: 'MB001',
-            name: 'John Doe',
-            status: 'Active',
-          },
-        });
+      if (result.valid && result.data) {
+        // Show member review modal with all details
+        setScannedMemberData(result.data);
+        setShowMemberReview(true);
+        setScanResult(null);
       } else {
         setScanResult({
           success: false,
-          message: result.reason || 'QR Code verification failed',
+          message: result.error || 'QR code verification failed',
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('QR verification error:', error);
       setScanResult({
         success: false,
-        message: 'Failed to validate QR code',
+        message: error.message || 'Failed to validate QR code with server',
       });
     }
     setIsScanning(false);
+  };
+
+  const handleConfirmCheckIn = async () => {
+    if (!scannedMemberData) return;
+
+    try {
+      // Call backend to create check-in record
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:4001/api/check-ins', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          userId: scannedMemberData.userId,
+          qrCode: 'verified',
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setScanResult({
+          success: false,
+          message: result.error || 'Check-in failed',
+        });
+        setShowMemberReview(false);
+        return;
+      }
+
+      // Also update local state
+      checkInMember(scannedMemberData.userId);
+
+      // Show success message
+      setScanResult({
+        success: true,
+        message: `Welcome back, ${scannedMemberData.firstName}! Check-in successful.`,
+        member: scannedMemberData,
+      });
+
+      setShowMemberReview(false);
+      setScannedMemberData(null);
+
+      // Auto-clear success message after 5 seconds
+      setTimeout(() => {
+        setScanResult(null);
+      }, 5000);
+    } catch (error: any) {
+      console.error('Check-in error:', error);
+      setScanResult({
+        success: false,
+        message: error.message || 'Failed to record check-in',
+      });
+      setShowMemberReview(false);
+    }
+  };
+
+  const handleCancelCheckIn = () => {
+    setShowMemberReview(false);
+    setScannedMemberData(null);
+    setScanResult(null);
   };
 
   const handleQRScanClick = () => {
@@ -346,7 +484,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
               <div key={item.id} className="activity-item">
                 <div className={`activity-icon ${m.cls}`}>{m.icon}</div>
                 <div className="activity-content">
-                  <p>{item.message}</p>
+                  <p>{formatActivityMessage(item.message)}</p>
                   <span>{timeAgo(item.timestamp)}</span>
                 </div>
               </div>
@@ -399,17 +537,13 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                     ref={videoRef}
                     autoPlay
                     playsInline
-                    style={{ width: '100%', maxWidth: '400px' }}
+                    style={{ width: '100%', maxWidth: '400px', borderRadius: '8px' }}
                   />
                   <canvas ref={canvasRef} style={{ display: 'none' }} />
                   <div className="scanner-controls">
-                    <button
-                      className="btn btn-success"
-                      onClick={captureQRCode}
-                      disabled={isScanning}
-                    >
-                      {isScanning ? '🔄 Scanning...' : '📷 Capture QR'}
-                    </button>
+                    <p style={{ color: '#2ecc71', fontWeight: 'bold', marginTop: '10px' }}>
+                      {isScanning ? '🔄 Scanning for QR codes...' : '📱 Scanning automatically...'}
+                    </p>
                     <button className="btn btn-secondary" onClick={stopCamera}>
                       🛑 Stop Camera
                     </button>
@@ -420,33 +554,116 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
               {scanResult && (
                 <div className="scan-result">
                   <div className={`result-message ${scanResult.success ? 'success' : 'error'}`}>
-                    <h4>{scanResult.success ? '✅ Valid QR Code' : '❌ Invalid QR Code'}</h4>
+                    <h4>{scanResult.success ? '✅ Check-In Successful' : '❌ Check-In Failed'}</h4>
                     <p>{scanResult.message}</p>
-                    {scanResult.member && (
-                      <div className="member-info">
-                        <p>
-                          <strong>Member:</strong> {scanResult.member.name}
-                        </p>
-                        <p>
-                          <strong>ID:</strong> {scanResult.member.id}
-                        </p>
-                        <p>
-                          <strong>Status:</strong> {scanResult.member.status}
-                        </p>
-                      </div>
-                    )}
                   </div>
                   <button
                     className="btn btn-primary"
                     onClick={() => {
                       setScanResult(null);
                       startCamera();
+                      setShowQRScanner(true);
                     }}
                   >
                     🔄 Scan Another
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMemberReview && scannedMemberData && (
+        <div className="qr-scanner-modal">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3>Member Check-In Confirmation</h3>
+              <button className="btn-close" onClick={handleCancelCheckIn}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="member-review-card">
+                {scannedMemberData.avatarUrl && (
+                  <div className="member-photo">
+                    <img 
+                      src={scannedMemberData.avatarUrl} 
+                      alt={`${scannedMemberData.firstName}`}
+                      style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 20px' }}
+                    />
+                  </div>
+                )}
+                
+                <div className="member-details" style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <h2 style={{ margin: '10px 0', color: '#2c3e50' }}>
+                    {scannedMemberData.firstName} {scannedMemberData.lastName}
+                  </h2>
+                  <p style={{ color: '#7f8c8d', marginBottom: '20px' }}>
+                    {scannedMemberData.email}
+                  </p>
+                </div>
+
+                <div className="membership-info" style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Membership Type:</span>
+                    <span style={{ color: '#3498db', fontWeight: '600' }}>{scannedMemberData.membershipType || 'N/A'}</span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Status:</span>
+                    <span style={{ color: scannedMemberData.membershipStatus === 'active' ? '#27ae60' : '#e74c3c', fontWeight: '600' }}>
+                      {scannedMemberData.membershipStatus === 'active' ? '✓ Active' : '✗ Inactive'}
+                    </span>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Visits This Month:</span>
+                    <span style={{ color: '#34495e', fontWeight: '600' }}>{scannedMemberData.monthlyCheckInCount || 0}</span>
+                  </div>
+
+                  {scannedMemberData.remainingVisits !== null && scannedMemberData.remainingVisits !== -1 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>Remaining Visits:</span>
+                      <span style={{ color: scannedMemberData.remainingVisits > 3 ? '#27ae60' : '#e67e22', fontWeight: '600' }}>
+                        {scannedMemberData.remainingVisits}
+                      </span>
+                    </div>
+                  )}
+
+                  {scannedMemberData.limitMessage && (
+                    <div style={{ marginTop: '15px', padding: '12px', background: scannedMemberData.canCheckIn ? '#d4edda' : '#f8d7da', borderRadius: '6px', borderLeft: `4px solid ${scannedMemberData.canCheckIn ? '#28a745' : '#dc3545'}` }}>
+                      <p style={{ margin: 0, fontSize: '14px', color: scannedMemberData.canCheckIn ? '#155724' : '#721c24' }}>
+                        {scannedMemberData.limitMessage}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-actions" style={{ display: 'flex', gap: '10px' }}>
+                  {scannedMemberData.canCheckIn ? (
+                    <button 
+                      className="btn btn-success" 
+                      onClick={handleConfirmCheckIn}
+                      style={{ flex: 1, padding: '12px 24px', fontSize: '16px', fontWeight: '600' }}
+                    >
+                      ✓ Confirm Check-In
+                    </button>
+                  ) : (
+                    <div style={{ flex: 1, padding: '12px', background: '#fff3cd', border: '2px solid #ffc107', borderRadius: '6px', textAlign: 'center' }}>
+                      <strong style={{ color: '#856404' }}>⚠️ Cannot Check-In</strong>
+                      <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#856404' }}>Monthly limit reached or membership expired</p>
+                    </div>
+                  )}
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={handleCancelCheckIn}
+                    style={{ flex: 1, padding: '12px 24px', fontSize: '16px' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

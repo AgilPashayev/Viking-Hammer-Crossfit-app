@@ -1,7 +1,7 @@
 // services/userService.js
 // User/Member service with Supabase database operations
 
-const { supabase } = require('../supabaseClient');
+const { supabase, supabaseAdmin } = require('../supabaseClient');
 
 /**
  * Get all users/members with optional filters
@@ -151,10 +151,18 @@ async function createUser(userData) {
       });
 
       if (invitationResult.error) {
-        console.warn('Failed to create invitation for new member:', invitationResult.error);
-        // Don't fail user creation if invitation fails
+        console.error('❌ Failed to create invitation for new member:', invitationResult.error);
+        // Don't fail user creation if invitation fails, but return warning
+        newUser.invitationStatus = 'failed';
+        newUser.invitationError = invitationResult.error;
+      } else if (!invitationResult.emailSent) {
+        console.warn('⚠️  Invitation created but email NOT sent:', invitationResult.emailError);
+        newUser.invitationStatus = 'created_but_email_failed';
+        newUser.invitationError = invitationResult.emailError;
+        newUser.isTestModeRestriction = invitationResult.isTestModeRestriction;
       } else {
-        console.log(`✅ Invitation created and email sent to ${newUser.email}`);
+        console.log(`✅ Invitation created and email successfully sent to ${newUser.email}`);
+        newUser.invitationStatus = 'sent';
       }
     }
 
@@ -207,6 +215,76 @@ async function updateUser(userId, updates) {
     if (allowedUpdates.status !== undefined) dbUpdates.status = allowedUpdates.status;
     if (allowedUpdates.dob !== undefined) dbUpdates.dob = allowedUpdates.dob;
 
+    // Emergency contact fields (with fallback for missing columns)
+    if (allowedUpdates.emergency_contact_name !== undefined) {
+      dbUpdates.emergency_contact_name = allowedUpdates.emergency_contact_name;
+    }
+    if (allowedUpdates.emergency_contact_phone !== undefined) {
+      dbUpdates.emergency_contact_phone = allowedUpdates.emergency_contact_phone;
+    }
+    if (allowedUpdates.emergency_contact_country_code !== undefined) {
+      dbUpdates.emergency_contact_country_code = allowedUpdates.emergency_contact_country_code;
+    }
+
+    // Profile photo / avatar
+    if (allowedUpdates.avatar_url !== undefined) {
+      dbUpdates.avatar_url = allowedUpdates.avatar_url;
+    }
+    if (allowedUpdates.profilePhoto !== undefined) {
+      dbUpdates.avatar_url = allowedUpdates.profilePhoto; // Store in avatar_url column
+    }
+
+    // Handle base64 photo upload
+    if (allowedUpdates.photo_base64 && allowedUpdates.photo_filename) {
+      try {
+        console.log('📸 Processing base64 photo upload for user:', userId);
+
+        // Extract base64 data and file extension
+        const base64Data = allowedUpdates.photo_base64;
+        const matches = base64Data.match(/^data:image\/(png|jpg|jpeg|gif|webp);base64,(.+)$/);
+
+        if (!matches) {
+          console.error('❌ Invalid base64 image format');
+          return { error: 'Invalid image format', status: 400 };
+        }
+
+        const fileExt = matches[1];
+        const base64Content = matches[2];
+        const buffer = Buffer.from(base64Content, 'base64');
+
+        // Create unique filename
+        const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        const filePath = `avatars/${fileName}`;
+
+        console.log('📤 Uploading to Supabase storage:', filePath);
+
+        // Upload to Supabase Storage using ADMIN client (bypasses RLS)
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('user-avatars')
+          .upload(filePath, buffer, {
+            contentType: `image/${fileExt}`,
+            cacheControl: '3600',
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.error('❌ Storage upload error:', uploadError);
+          return { error: `Upload failed: ${uploadError.message}`, status: 500 };
+        }
+
+        // Get public URL (also using admin client)
+        const { data: urlData } = supabaseAdmin.storage.from('user-avatars').getPublicUrl(filePath);
+
+        const publicUrl = urlData.publicUrl;
+        console.log('✅ Photo uploaded successfully:', publicUrl);
+
+        dbUpdates.avatar_url = publicUrl;
+      } catch (photoError) {
+        console.error('❌ Photo processing error:', photoError);
+        return { error: `Failed to process photo: ${photoError.message}`, status: 500 };
+      }
+    }
+
     if (allowedUpdates.membershipType !== undefined) {
       dbUpdates.membership_type = allowedUpdates.membershipType;
     }
@@ -232,6 +310,17 @@ async function updateUser(userId, updates) {
 
     if (error) {
       console.error('Error updating user:', error);
+
+      // Check if error is due to missing columns
+      if (error.code === 'PGRST204' && error.message.includes('emergency_contact')) {
+        return {
+          error:
+            'Emergency contact feature requires database update. Please contact administrator to run migration.',
+          status: 500,
+          needsMigration: true,
+        };
+      }
+
       return { error: 'Failed to update user', status: 500 };
     }
 

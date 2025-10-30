@@ -1,6 +1,7 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import './MyProfile.css';
 import './MyProfile-enhancements.css';
+import './MyProfile-notifications.css';
 import { uploadProfilePhoto, updateUserProfile, getUserProfile } from '../services/supabaseService';
 import { getUserMembershipHistory, MembershipRecord } from '../services/membershipHistoryService';
 
@@ -35,11 +36,39 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || user?.avatar_url || '');
   const [isEditingEmergency, setIsEditingEmergency] = useState(false);
   const [isEditingSettings, setIsEditingSettings] = useState(false);
+  const [isEditingPersonal, setIsEditingPersonal] = useState(false);
+  const [personalInfo, setPersonalInfo] = useState({
+    email: user?.email || '',
+    phone: user?.phone || '',
+    countryCode: user?.countryCode || '+994',
+    dateOfBirth: user?.dateOfBirth || '',
+    gender: user?.gender || ''
+  });
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [membershipHistory, setMembershipHistory] = useState<MembershipRecord[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showPhotoSuccessModal, setShowPhotoSuccessModal] = useState(false);
+  
+  // Custom notification modal state
+  const [notificationModal, setNotificationModal] = useState<{
+    show: boolean;
+    type: 'success' | 'error' | 'warning' | 'info';
+    title: string;
+    message: string;
+    autoClose?: boolean;
+  }>({
+    show: false,
+    type: 'info',
+    title: '',
+    message: '',
+    autoClose: true
+  });
+  
+  // Subscription state
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(false);
+  
   const [emergencyContact, setEmergencyContact] = useState({
     name: user?.emergencyContactName || '',
     phone: user?.emergencyContactPhone || '',
@@ -93,28 +122,92 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
       setProfilePhoto(user.avatar_url || user.profilePhoto || '');
     }
   }, [user]);
+  
+  // Update personal info when user changes
+  useEffect(() => {
+    if (user) {
+      setPersonalInfo({
+        email: user.email || '',
+        phone: user.phone || '',
+        countryCode: user.countryCode || '+994',
+        dateOfBirth: user.dateOfBirth || '',
+        gender: user.gender || ''
+      });
+    }
+  }, [user]);
 
-  // Load membership history when modal opens
+  // Load subscription data when subscription tab is active
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (activeTab === 'subscription' && user?.id) {
+        setIsLoadingSubscription(true);
+        try {
+          console.log('💳 Loading subscription data for user:', user.id);
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          
+          const response = await fetch(`http://localhost:4001/api/subscriptions/user/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (!response.ok) {
+            console.error('❌ Failed to load subscription:', response.status);
+            setSubscription(null);
+            return;
+          }
+          
+          const result = await response.json();
+          console.log('📊 Subscription response:', result);
+          
+          if (result.success && result.data && result.data.length > 0) {
+            // Find active subscription or use the most recent one
+            const activeSub = result.data.find((s: any) => s.status === 'active') || result.data[0];
+            console.log('✅ Active subscription found:', activeSub);
+            setSubscription(activeSub);
+          } else {
+            console.log('ℹ️ No subscription found for user');
+            setSubscription(null);
+          }
+        } catch (error) {
+          console.error('❌ Failed to load subscription:', error);
+          setSubscription(null);
+        } finally {
+          setIsLoadingSubscription(false);
+        }
+      }
+    };
+
+    loadSubscription();
+  }, [activeTab, user?.id]);
+
+    // Load membership history when modal opens
   useEffect(() => {
     const loadMembershipHistory = async () => {
       if (showHistoryModal && user?.id) {
         setIsLoadingHistory(true);
         setHistoryError(null);
-
-        const result = await getUserMembershipHistory(user.id);
-
-        if (result.success && result.data) {
-          setMembershipHistory(result.data);
-          console.log('✅ Membership history loaded:', result.data.length, 'records');
-        } else {
-          const friendlyError = result.error?.includes('fetch') 
-            ? 'Unable to connect to the server. Please check your internet connection and try again.'
-            : result.error || 'Unable to load membership history. Please try again later.';
-          setHistoryError(friendlyError);
-          console.error('❌ Membership history error:', result.error);
+        try {
+          console.log('📊 Loading membership history for user:', user.id);
+          const result = await getUserMembershipHistory(user.id);
+          
+          if (result.success && result.data) {
+            setMembershipHistory(result.data);
+            console.log('✅ Membership history loaded:', result.data.length, 'records');
+          } else {
+            // User-friendly message for new members
+            const errorMsg = result.data && result.data.length === 0
+              ? '👋 Welcome! Your membership history will appear here once you start using our services.'
+              : result.error || 'Unable to load membership history. Please try again later.';
+            setHistoryError(errorMsg);
+            console.error('❌ Membership history error:', result.error);
+          }
+        } catch (error) {
+          console.error('❌ Failed to load membership history:', error);
+          setHistoryError('⚠️ Unable to connect to the server. Please check your connection and try again.');
+        } finally {
+          setIsLoadingHistory(false);
         }
-
-        setIsLoadingHistory(false);
       }
     };
 
@@ -124,13 +217,40 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
   // Check if current user can edit names
   const canEditNames = currentUserRole === 'admin' || currentUserRole === 'reception' || currentUserRole === 'sparta';
   
-  // Format date to readable format (e.g., "January 15, 2025")
+  // Helper function to show user-friendly notification modals
+  const showNotification = (
+    type: 'success' | 'error' | 'warning' | 'info', 
+    title: string, 
+    message: string,
+    autoClose: boolean = true
+  ) => {
+    setNotificationModal({
+      show: true,
+      type,
+      title,
+      message,
+      autoClose
+    });
+    
+    // Auto-close success notifications after 5 seconds
+    if (autoClose && type === 'success') {
+      setTimeout(() => {
+        closeNotification();
+      }, 5000);
+    }
+  };
+  
+  const closeNotification = () => {
+    setNotificationModal({ show: false, type: 'info', title: '', message: '', autoClose: true });
+  };
+  
+  // Format date to readable format (e.g., "Oct 15, 2025")
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', { 
         year: 'numeric', 
-        month: 'long', 
+        month: 'short', 
         day: 'numeric' 
       });
     } catch {
@@ -140,78 +260,284 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
   
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Validate file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        alert('❌ File size must be less than 5MB');
+    if (!file) return;
+    
+    if (!user?.id) {
+      showNotification('error', 'Not Logged In', 'User session expired. Please refresh the page and login again.');
+      return;
+    }
+    
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      showNotification('error', 'File Too Large', 'Please select an image smaller than 5MB.');
+      return;
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      showNotification('error', 'Invalid File Type', 'Please select an image file (JPG, PNG, GIF, etc.).');
+      return;
+    }
+    
+    try {
+      console.log('📸 Starting photo upload...');
+      
+      // Get auth token (try both possible token storage keys)
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        showNotification('error', 'Authentication Required', 'Please login again to upload your profile photo.');
+        console.error('❌ No auth token found in localStorage');
         return;
       }
+      console.log('🔑 Auth token found:', token.substring(0, 20) + '...');
       
-      // Validate file type
-      if (!file.type.startsWith('image/')) {
-        alert('❌ Please upload an image file');
-        return;
-      }
+      // Convert file to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
       
-      // Show loading state
-      console.log('📸 Uploading photo...');
-      
-      try {
-        // Upload to Supabase storage
-        const { url, error } = await uploadProfilePhoto(user?.id || '', file);
-        
-        if (error) {
-          alert(`❌ Failed to upload photo: ${error}`);
-          return;
-        }
-        
-        if (url) {
-          // Update local state
-          setProfilePhoto(url);
+      reader.onload = async () => {
+        try {
+          const base64Data = reader.result as string;
+          console.log('📦 Image converted to base64, uploading to backend...');
           
-          // Update user profile in database
-          const { user: updatedUser, error: updateError } = await updateUserProfile(user?.id || '', {
-            profilePhoto: url,
-            avatar_url: url
+          // Upload via backend API endpoint
+          const response = await fetch(`http://localhost:4001/api/users/${user.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              photo_base64: base64Data,
+              photo_filename: file.name
+            })
           });
           
-          if (updateError) {
-            console.error('Failed to update profile:', updateError);
-            alert('❌ Photo uploaded but failed to update profile');
-            return;
+          console.log('📥 Response status:', response.status, response.statusText);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+            console.error('❌ Server error:', errorData);
+            throw new Error(errorData.error || 'Upload failed');
           }
           
-          // Notify parent component of user update
-          if (onUserUpdate && updatedUser) {
-            onUserUpdate(updatedUser as User);
-          }
+          const result = await response.json();
+          console.log('✅ Photo uploaded successfully:', result);
           
-          console.log('✅ Profile photo updated successfully!');
-          // Show user-friendly success modal
-          setShowPhotoSuccessModal(true);
+          if (result.success && result.user && result.user.avatar_url) {
+            // Update local state immediately
+            setProfilePhoto(result.user.avatar_url);
+            
+            // Fetch fresh user data from backend to ensure consistency
+            try {
+              const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+              if (token) {
+                const userResponse = await fetch('http://localhost:4001/api/users/me', {
+                  headers: {
+                    'Authorization': `Bearer ${token}`
+                  }
+                });
+                
+                if (userResponse.ok) {
+                  const freshUserData = await userResponse.json();
+                  console.log('✅ Fetched fresh user data:', freshUserData);
+                  
+                  // Update parent component with complete fresh data
+                  if (onUserUpdate) {
+                    onUserUpdate(freshUserData);
+                  }
+                }
+              }
+            } catch (fetchError) {
+              console.warn('⚠️ Could not fetch fresh user data:', fetchError);
+              // Fall back to updating with result data
+              if (onUserUpdate && user) {
+                onUserUpdate({
+                  ...user,
+                  profilePhoto: result.user.avatar_url,
+                  avatar_url: result.user.avatar_url
+                });
+              }
+            }
+            
+            showNotification('success', 'Photo Updated!', 'Your profile photo has been updated successfully.');
+          } else {
+            showNotification('warning', 'Upload Complete', 'Photo was saved but preview unavailable. Please refresh the page.');
+          }
+        } catch (uploadError: any) {
+          console.error('❌ Upload error:', uploadError);
+          const errorMsg = uploadError.message || '';
+          if (errorMsg.includes('Storage configuration') || errorMsg.includes('Bucket not found')) {
+            showNotification('error', 'Storage Setup Required', 
+              'The photo storage bucket needs to be created in Supabase. Please check the CREATE_STORAGE_BUCKET.md file in your project folder for 5-minute setup instructions.', false);
+          } else {
+            showNotification('error', 'Upload Failed', 
+              uploadError.message || 'Failed to upload photo. Please try again or contact support if the problem persists.', false);
+          }
         }
-      } catch (error) {
-        console.error('Photo upload error:', error);
-        alert('❌ An unexpected error occurred');
-      }
+      };
+      
+      reader.onerror = () => {
+        console.error('❌ File reading error');
+        showNotification('error', 'File Read Error', 'Unable to read the selected file. Please try a different image.');
+      };
+    } catch (error: any) {
+      console.error('❌ Photo upload error:', error);
+      showNotification('error', 'Upload Error', error.message || 'An unexpected error occurred. Please try again.');
     }
   };
   
-  const handleSaveEmergencyContact = () => {
-    // TODO: Save to database via API
-    console.log('💾 Saving emergency contact:', emergencyContact);
-    alert('✅ Emergency contact updated successfully!');
-    setIsEditingEmergency(false);
+  const handleSavePersonalInfo = async () => {
+    if (!user?.id) {
+      showNotification('error', 'User Not Found', 'Unable to identify user. Please refresh the page and try again.');
+      return;
+    }
+
+    try {
+      console.log('💾 Saving personal info to database:', personalInfo);
+      
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        showNotification('error', 'Authentication Required', 'Please login again to save your personal information.');
+        return;
+      }
+      
+      const response = await fetch(`http://localhost:4001/api/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          email: personalInfo.email,
+          phone: personalInfo.phone,
+          dob: personalInfo.dateOfBirth,
+          gender: personalInfo.gender
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Update failed' }));
+        throw new Error(errorData.error || 'Failed to update personal info');
+      }
+
+      const result = await response.json();
+      console.log('✅ Personal info saved successfully:', result);
+
+      // Update parent component
+      if (onUserUpdate && user) {
+        onUserUpdate({
+          ...user,
+          email: personalInfo.email,
+          phone: personalInfo.phone,
+          dateOfBirth: personalInfo.dateOfBirth,
+          gender: personalInfo.gender
+        });
+      }
+
+      showNotification('success', 'Information Updated!', 'Your personal information has been saved successfully.');
+      setIsEditingPersonal(false);
+    } catch (error: any) {
+      console.error('❌ Failed to save personal info:', error);
+      showNotification('error', 'Update Failed', error.message || 'Unable to save personal information. Please check your connection and try again.');
+    }
+  };
+  
+  const handleSaveEmergencyContact = async () => {
+    if (!user?.id) {
+      showNotification('error', 'User Not Found', 'Unable to identify user. Please refresh the page and try again.');
+      return;
+    }
+
+    // Validate emergency contact data
+    if (!emergencyContact.name || emergencyContact.name.trim() === '') {
+      showNotification('warning', 'Name Required', 'Please enter the emergency contact\'s name.');
+      return;
+    }
+
+    if (!emergencyContact.phone || emergencyContact.phone.trim() === '') {
+      showNotification('warning', 'Phone Required', 'Please enter the emergency contact\'s phone number.');
+      return;
+    }
+
+    try {
+      console.log('💾 Saving emergency contact to database:', emergencyContact);
+      console.log('🔑 User ID:', user.id);
+      
+      // Get auth token (try both possible token storage keys)
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      console.log('🔐 Token exists:', !!token);
+      
+      if (!token) {
+        showNotification('error', 'Authentication Required', 'Please login again to save emergency contact information.');
+        console.error('❌ No auth token found in localStorage');
+        return;
+      }
+      console.log('🔑 Auth token found:', token.substring(0, 20) + '...');
+      
+      // Update user profile via API
+      const apiUrl = `http://localhost:4001/api/users/${user.id}`;
+      console.log('📡 API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          emergency_contact_name: emergencyContact.name,
+          emergency_contact_phone: emergencyContact.phone,
+          emergency_contact_country_code: emergencyContact.countryCode
+        })
+      });
+
+      console.log('📥 Response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Update failed' }));
+        console.error('❌ Server error:', errorData);
+        throw new Error(errorData.error || errorData.message || 'Failed to update emergency contact');
+      }
+
+      const result = await response.json();
+      console.log('✅ Emergency contact saved successfully:', result);
+
+      // Update local user state
+      if (onUserUpdate && user) {
+        onUserUpdate({
+          ...user,
+          emergencyContactName: emergencyContact.name,
+          emergencyContactPhone: emergencyContact.phone,
+          emergencyContactCountryCode: emergencyContact.countryCode
+        });
+      }
+
+      showNotification('success', 'Emergency Contact Saved!', 'Your emergency contact information has been updated successfully.');
+      setIsEditingEmergency(false);
+    } catch (error: any) {
+      console.error('❌ Failed to save emergency contact:', error);
+      showNotification('error', 'Update Failed', error.message || 'Unable to save emergency contact. Please check your connection and try again.');
+    }
   };
   
   const handleSaveSettings = async () => {
     if (!user?.id) return;
 
     try {
+      // Get auth token (try both possible token storage keys)
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      if (!token) {
+        showNotification('error', 'Authentication Required', 'Please login again to save your settings.');
+        console.error('❌ No auth token found in localStorage');
+        return;
+      }
+
       const response = await fetch(`http://localhost:4001/api/settings/user/${user.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           emailNotifications: settings.emailAlerts,
@@ -226,14 +552,14 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
 
       if (result.success) {
         console.log('⚙️ Settings saved successfully:', result.data);
-        alert('✅ Settings saved successfully!');
+        showNotification('success', 'Settings Saved!', 'Your preferences have been updated successfully.');
         setIsEditingSettings(false);
       } else {
-        alert('❌ Failed to save settings. Please try again.');
+        showNotification('error', 'Save Failed', 'Unable to save settings. Please try again.');
       }
     } catch (error) {
       console.error('Failed to save settings:', error);
-      alert('❌ Failed to save settings. Please check your connection.');
+      showNotification('error', 'Connection Error', 'Unable to connect to server. Please check your connection and try again.');
     }
   };
   
@@ -243,12 +569,12 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
       const permission = await Notification.requestPermission();
       if (permission === 'granted') {
         setSettings(prev => ({ ...prev, pushNotifications: true }));
-        alert('✅ Notifications enabled successfully!');
+        showNotification('success', 'Notifications Enabled!', 'You will now receive push notifications from Viking Hammer.');
       } else {
-        alert('❌ Notification permission denied');
+        showNotification('warning', 'Permission Denied', 'Push notifications are disabled. You can enable them later in your browser settings.');
       }
     } else {
-      alert('❌ Notifications not supported in this browser');
+      showNotification('error', 'Not Supported', 'Your browser does not support push notifications.');
     }
   };
 
@@ -324,6 +650,12 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
           <div className="profile-section">
             <div className="section-header">
               <h3>📋 Personal Information</h3>
+              <p className="section-description">Update your contact details and personal information</p>
+              {!isEditingPersonal && (
+                <button className="btn btn-primary btn-sm" onClick={() => setIsEditingPersonal(true)}>
+                  ✏️ Edit
+                </button>
+              )}
             </div>
             <div className="form-grid">
               <div className="form-group">
@@ -332,8 +664,9 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                   type="text" 
                   className="form-input" 
                   value={user?.firstName || ''} 
-                  readOnly={!canEditNames}
-                  disabled={!canEditNames}
+                  readOnly
+                  disabled
+                  title="First name cannot be edited"
                 />
               </div>
               <div className="form-group">
@@ -342,27 +675,112 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                   type="text" 
                   className="form-input" 
                   value={user?.lastName || ''} 
-                  readOnly={!canEditNames}
-                  disabled={!canEditNames}
+                  readOnly
+                  disabled
+                  title="Last name cannot be edited"
                 />
               </div>
               <div className="form-group">
                 <label>Email</label>
-                <input type="email" className="form-input" value={user?.email || ''} readOnly />
+                <input 
+                  type="email" 
+                  className="form-input" 
+                  value={isEditingPersonal ? personalInfo.email : (user?.email || '')}
+                  onChange={(e) => setPersonalInfo(prev => ({ ...prev, email: e.target.value }))}
+                  readOnly={!isEditingPersonal}
+                  disabled={!isEditingPersonal}
+                  placeholder="Enter email"
+                />
               </div>
               <div className="form-group">
                 <label>Phone</label>
-                <input type="text" className="form-input" value={`${user?.countryCode || ''} ${user?.phone || ''}`} readOnly />
+                <div className="phone-input-group">
+                  <select 
+                    className="country-code-select"
+                    value={personalInfo.countryCode}
+                    onChange={(e) => setPersonalInfo(prev => ({ ...prev, countryCode: e.target.value }))}
+                    disabled={!isEditingPersonal}
+                  >
+                    <option value="+994">🇦🇿 +994</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+49">🇩🇪 +49</option>
+                    <option value="+33">🇫🇷 +33</option>
+                  </select>
+                  <input 
+                    type="tel" 
+                    className="form-input phone-input" 
+                    value={isEditingPersonal ? personalInfo.phone : (user?.phone || '')}
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setPersonalInfo(prev => ({ ...prev, phone: value }));
+                    }}
+                    readOnly={!isEditingPersonal}
+                    disabled={!isEditingPersonal}
+                    placeholder="Enter phone number (numbers only)"
+                    maxLength={15}
+                  />
+                </div>
               </div>
               <div className="form-group">
                 <label>Date of Birth</label>
-                <input type="text" className="form-input" value={user?.dateOfBirth || 'Not provided'} readOnly />
+                {isEditingPersonal ? (
+                  <input 
+                    type="date" 
+                    className="form-input" 
+                    value={personalInfo.dateOfBirth}
+                    onChange={(e) => setPersonalInfo(prev => ({ ...prev, dateOfBirth: e.target.value }))}
+                  />
+                ) : (
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={user?.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'short', 
+                      day: 'numeric' 
+                    }) : ''}
+                    readOnly
+                    disabled
+                  />
+                )}
               </div>
               <div className="form-group">
                 <label>Gender</label>
-                <input type="text" className="form-input" value={user?.gender || 'Not provided'} readOnly />
+                <select 
+                  className="form-input" 
+                  value={isEditingPersonal ? personalInfo.gender : (user?.gender || '')}
+                  onChange={(e) => setPersonalInfo(prev => ({ ...prev, gender: e.target.value }))}
+                  disabled={!isEditingPersonal}
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                  <option value="Prefer not to say">Prefer not to say</option>
+                </select>
               </div>
             </div>
+            {isEditingPersonal && (
+              <div className="action-buttons">
+                <button className="btn btn-success" onClick={handleSavePersonalInfo}>
+                  ✅ Save Changes
+                </button>
+                <button className="btn btn-secondary" onClick={() => {
+                  setIsEditingPersonal(false);
+                  setPersonalInfo({
+                    email: user?.email || '',
+                    phone: user?.phone || '',
+                    countryCode: user?.countryCode || '+994',
+                    dateOfBirth: user?.dateOfBirth || '',
+                    gender: user?.gender || ''
+                  });
+                }}>
+                  ❌ Cancel
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -372,51 +790,110 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
               <h3>💎 My Subscription</h3>
               <p className="section-description">Manage your membership and view subscription details</p>
             </div>
-            <div className="subscription-card">
-              <div className="subscription-badge active">Active Membership</div>
-              <div className="subscription-details">
-                <div className="detail-row">
-                  <span className="detail-icon">🎯</span>
-                  <div className="detail-content">
-                    <span className="detail-label">Membership Type</span>
-                    <span className="detail-value subscription-value">{user?.membershipType || 'Viking Warrior Basic'}</span>
-                  </div>
+            
+            {isLoadingSubscription ? (
+              <div className="loading-container">
+                <div className="spinner"></div>
+                <p>Loading subscription details...</p>
+              </div>
+            ) : subscription ? (
+              <div className="subscription-card">
+                <div className={`subscription-badge ${subscription.status || 'active'}`}>
+                  {subscription.status === 'active' ? 'Active Membership' : 
+                   subscription.status === 'suspended' ? 'Suspended' :
+                   subscription.status === 'expired' ? 'Expired' : 'Membership'}
                 </div>
-                <div className="detail-row">
-                  <span className="detail-icon">📅</span>
-                  <div className="detail-content">
-                    <span className="detail-label">Join Date</span>
-                    <span className="detail-value subscription-value">{formatDate(user?.joinDate || new Date().toISOString())}</span>
+                <div className="subscription-details">
+                  <div className="detail-row">
+                    <span className="detail-icon">🎯</span>
+                    <div className="detail-content">
+                      <span className="detail-label">Membership Type</span>
+                      <span className="detail-value subscription-value">
+                        {subscription.plan_name || user?.membershipType || 'Viking Warrior Basic'}
+                      </span>
+                    </div>
                   </div>
+                  <div className="detail-row">
+                    <span className="detail-icon">📅</span>
+                    <div className="detail-content">
+                      <span className="detail-label">Start Date</span>
+                      <span className="detail-value subscription-value">
+                        {formatDate(subscription.start_date || user?.joinDate || new Date().toISOString())}
+                      </span>
+                    </div>
+                  </div>
+                  {subscription.end_date && (
+                    <div className="detail-row">
+                      <span className="detail-icon">📅</span>
+                      <div className="detail-content">
+                        <span className="detail-label">End Date</span>
+                        <span className="detail-value subscription-value">
+                          {formatDate(subscription.end_date)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="detail-row">
+                    <span className="detail-icon">✅</span>
+                    <div className="detail-content">
+                      <span className="detail-label">Status</span>
+                      <span className={`detail-value status-${subscription.status || 'active'}`}>
+                        {subscription.status === 'active' ? 'Active' :
+                         subscription.status === 'suspended' ? 'Suspended' :
+                         subscription.status === 'expired' ? 'Expired' :
+                         subscription.status === 'cancelled' ? 'Cancelled' : 'Active'}
+                      </span>
+                    </div>
+                  </div>
+                  {subscription.next_billing_date && (
+                    <div className="detail-row">
+                      <span className="detail-icon">💰</span>
+                      <div className="detail-content">
+                        <span className="detail-label">Next Payment</span>
+                        <span className="detail-value subscription-value">
+                          {formatDate(subscription.next_billing_date)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="detail-row">
+                    <span className="detail-icon">🏋️</span>
+                    <div className="detail-content">
+                      <span className="detail-label">Remaining Entries</span>
+                      <span className="detail-value subscription-value">
+                        {subscription.remaining_entries !== null && subscription.remaining_entries !== undefined
+                          ? subscription.remaining_entries
+                          : subscription.class_limit 
+                          ? `${subscription.class_limit} per month`
+                          : 'Unlimited'}
+                      </span>
+                    </div>
+                  </div>
+                  {subscription.amount && (
+                    <div className="detail-row">
+                      <span className="detail-icon">💵</span>
+                      <div className="detail-content">
+                        <span className="detail-label">Amount</span>
+                        <span className="detail-value subscription-value">
+                          {subscription.currency || 'AZN'} {subscription.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="detail-row">
-                  <span className="detail-icon">✅</span>
-                  <div className="detail-content">
-                    <span className="detail-label">Status</span>
-                    <span className="detail-value status-active">Active</span>
-                  </div>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-icon">💰</span>
-                  <div className="detail-content">
-                    <span className="detail-label">Next Payment</span>
-                    <span className="detail-value subscription-value">January 15, 2025</span>
-                  </div>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-icon">🏋️</span>
-                  <div className="detail-content">
-                    <span className="detail-label">Remaining Entries</span>
-                    <span className="detail-value subscription-value">Unlimited</span>
-                  </div>
+                <div className="subscription-actions">
+                  <button className="btn btn-primary" onClick={() => setShowHistoryModal(true)}>
+                    📊 View History
+                  </button>
                 </div>
               </div>
-              <div className="subscription-actions">
-                <button className="btn btn-primary" onClick={() => setShowHistoryModal(true)}>
-                  📊 View History
-                </button>
+            ) : (
+              <div className="empty-container">
+                <span className="empty-icon">💳</span>
+                <h3>No Active Subscription</h3>
+                <p>You don't have an active subscription yet. Contact reception to set up your membership.</p>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -460,13 +937,18 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                     <option value="+33">🇫🇷 +33</option>
                   </select>
                   <input 
-                    type="text" 
+                    type="tel" 
                     className="form-input phone-input" 
                     value={isEditingEmergency ? emergencyContact.phone : (user?.emergencyContactPhone || 'Not provided')}
-                    onChange={(e) => setEmergencyContact(prev => ({ ...prev, phone: e.target.value }))}
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setEmergencyContact(prev => ({ ...prev, phone: value }));
+                    }}
                     readOnly={!isEditingEmergency}
                     disabled={!isEditingEmergency}
-                    placeholder="Enter phone number"
+                    placeholder="Enter phone number (numbers only)"
+                    maxLength={15}
                   />
                 </div>
               </div>
@@ -663,11 +1145,7 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                             <div className="info-content">
                               <span className="info-label">Start Date</span>
                               <span className="info-value">
-                                {new Date(record.start_date).toLocaleDateString('en-US', { 
-                                  year: 'numeric', 
-                                  month: 'long', 
-                                  day: 'numeric' 
-                                })}
+                                {formatDate(record.start_date)}
                               </span>
                             </div>
                           </div>
@@ -678,11 +1156,7 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                               <div className="info-content">
                                 <span className="info-label">End Date</span>
                                 <span className="info-value">
-                                  {new Date(record.end_date).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                  })}
+                                  {formatDate(record.end_date)}
                                 </span>
                               </div>
                             </div>
@@ -755,11 +1229,7 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                               <div className="info-content">
                                 <span className="info-label">Next Billing Date</span>
                                 <span className="info-value next-billing">
-                                  {new Date(record.next_billing_date).toLocaleDateString('en-US', { 
-                                    year: 'numeric', 
-                                    month: 'long', 
-                                    day: 'numeric' 
-                                  })}
+                                  {formatDate(record.next_billing_date)}
                                 </span>
                               </div>
                             </div>
@@ -818,6 +1288,54 @@ const MyProfile: React.FC<MyProfileProps> = ({ user, onNavigate, currentUserRole
                 Great!
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Notification Modal */}
+      {notificationModal.show && (
+        <div className="modal-overlay" onClick={closeNotification}>
+          <div 
+            className={`modal-content notification-modal notification-${notificationModal.type}`} 
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="notification-title"
+            aria-describedby="notification-message"
+          >
+            <div className="notification-header">
+              <div className="notification-icon-wrapper">
+                {notificationModal.type === 'success' && <span className="notification-icon">✅</span>}
+                {notificationModal.type === 'error' && <span className="notification-icon">❌</span>}
+                {notificationModal.type === 'warning' && <span className="notification-icon">⚠️</span>}
+                {notificationModal.type === 'info' && <span className="notification-icon">ℹ️</span>}
+              </div>
+              <h3 className="notification-title" id="notification-title">{notificationModal.title}</h3>
+              <button 
+                className="notification-close" 
+                onClick={closeNotification}
+                aria-label="Close notification"
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+            <div className="notification-body">
+              <p className="notification-message" id="notification-message">{notificationModal.message}</p>
+            </div>
+            <div className="notification-footer">
+              <button 
+                className={`btn btn-${notificationModal.type === 'success' ? 'success' : notificationModal.type === 'error' ? 'danger' : 'primary'}`}
+                onClick={closeNotification}
+                autoFocus
+              >
+                {notificationModal.type === 'success' ? '✨ Great!' : notificationModal.type === 'error' ? '👍 Got it' : '✓ OK'}
+              </button>
+            </div>
+            {notificationModal.autoClose && notificationModal.type === 'success' && (
+              <div className="notification-progress">
+                <div className="notification-progress-bar"></div>
+              </div>
+            )}
           </div>
         </div>
       )}

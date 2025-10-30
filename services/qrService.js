@@ -12,7 +12,7 @@ async function mintQRCode(userId) {
     // Verify user exists
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, name, membership_status')
+      .select('id, name, status')
       .eq('id', userId)
       .single();
 
@@ -21,7 +21,7 @@ async function mintQRCode(userId) {
     }
 
     // Check membership status
-    if (user.membership_status !== 'active') {
+    if (user.status !== 'active') {
       return {
         data: null,
         error: 'Membership is not active. Cannot generate QR code.',
@@ -51,7 +51,7 @@ async function mintQRCode(userId) {
 }
 
 /**
- * Verify QR code and extract user information
+ * Verify QR code and extract user information with membership limits validation
  * @param {string} qrCode - Base64 QR code string
  * @returns {Promise<{data: object|null, error: string|null, valid: boolean}>}
  */
@@ -84,10 +84,10 @@ async function verifyQRCode(qrCode) {
       };
     }
 
-    // Verify user exists and has active membership
+    // Verify user exists and get membership info
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, name, email, membership_status, membership_type')
+      .select('id, name, email, status, membership_type, avatar_url')
       .eq('id', userId)
       .single();
 
@@ -100,13 +100,69 @@ async function verifyQRCode(qrCode) {
       };
     }
 
-    if (user.membership_status !== 'active') {
+    if (user.status !== 'active') {
       return {
         data: { ...user, reason: 'inactive_membership' },
         error: 'Membership is not active',
         valid: false,
         status: 403,
       };
+    }
+
+    // Get current month start and end dates
+    const currentDate = new Date();
+    const monthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    const monthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59);
+
+    // Count check-ins for current month
+    const { data: checkIns, error: checkInError } = await supabase
+      .from('checkins')
+      .select('id, ts')
+      .eq('user_id', userId)
+      .gte('ts', monthStart.toISOString())
+      .lte('ts', monthEnd.toISOString());
+
+    if (checkInError) {
+      console.error('Error fetching check-ins:', checkInError);
+      // Continue without check-in count if error
+    }
+
+    const monthlyCheckInCount = checkIns ? checkIns.length : 0;
+    let canCheckIn = true;
+    let limitMessage = '';
+    let remainingVisits = null;
+
+    // Validate membership limits based on type
+    const membershipType = user.membership_type || '';
+
+    if (membershipType.toLowerCase().includes('limited') || membershipType === 'Monthly Limited') {
+      // Monthly Limited: 12 visits per month
+      const limit = 12;
+      remainingVisits = Math.max(0, limit - monthlyCheckInCount);
+
+      if (monthlyCheckInCount >= limit) {
+        canCheckIn = false;
+        limitMessage = `Monthly limit reached (${monthlyCheckInCount}/${limit} visits this month). Please upgrade to Monthly Unlimited.`;
+      } else {
+        limitMessage = `${remainingVisits} visits remaining this month (${monthlyCheckInCount}/${limit} used)`;
+      }
+    } else if (
+      membershipType.toLowerCase().includes('unlimited') ||
+      membershipType === 'Monthly Unlimited'
+    ) {
+      // Monthly Unlimited: No visit limit
+      limitMessage = `Unlimited visits (${monthlyCheckInCount} visits this month)`;
+      remainingVisits = -1; // -1 indicates unlimited
+    } else if (
+      membershipType.toLowerCase().includes('single') ||
+      membershipType === 'Single Session'
+    ) {
+      // Single Session: Pay-per-visit, always allowed (payment verified separately)
+      limitMessage = 'Pay-per-visit (Single Session)';
+      remainingVisits = -1; // -1 indicates pay-per-visit
+    } else {
+      // Unknown membership type - allow but flag
+      limitMessage = `Unknown membership type: ${membershipType} (${monthlyCheckInCount} visits this month)`;
     }
 
     const [firstName, ...lastParts] = (user.name || '').trim().split(' ');
@@ -118,12 +174,18 @@ async function verifyQRCode(qrCode) {
         firstName: firstName || user.name || 'Member',
         lastName: lastName || '',
         email: user.email,
-        membershipStatus: user.membership_status,
+        membershipStatus: user.status,
         membershipType: user.membership_type,
+        avatarUrl: user.avatar_url,
         qrGeneratedAt: new Date(qrTimestamp).toISOString(),
+        // Membership limits info
+        canCheckIn: canCheckIn,
+        monthlyCheckInCount: monthlyCheckInCount,
+        remainingVisits: remainingVisits,
+        limitMessage: limitMessage,
       },
-      error: null,
-      valid: true,
+      error: canCheckIn ? null : limitMessage,
+      valid: canCheckIn,
     };
   } catch (error) {
     console.error('Error verifying QR code:', error);

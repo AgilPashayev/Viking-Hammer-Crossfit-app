@@ -37,6 +37,7 @@ export interface GymClass {
   maxCapacity: number;
   currentEnrollment: number;
   instructors: string[];
+  instructorNames?: string[]; // Optional field for instructor names
   schedule: {
     dayOfWeek: number;
     startTime: string;
@@ -282,10 +283,11 @@ export const instructorService = {
   // Update instructor
   async update(id: string, instructor: Partial<Instructor>): Promise<{ success: boolean; data?: Instructor; message?: string }> {
     try {
+      const apiData = transformInstructorToAPI(instructor);
       const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify(instructor),
+        body: JSON.stringify(apiData),
       });
       
       if (response.status === 401) {
@@ -293,8 +295,17 @@ export const instructorService = {
         return { success: false, message: 'Session expired. Please login again.' };
       }
       
-      const data = await response.json();
-      return data;
+      const result = await response.json();
+      
+      if (result.success || result.id) {
+        const instructorData = result.data || result;
+        return {
+          success: true,
+          data: transformInstructorFromAPI(instructorData),
+        };
+      }
+      
+      return { success: false, message: result.message || 'Failed to update instructor' };
     } catch (error) {
       console.error('Error updating instructor:', error);
       return { success: false, message: 'Failed to update instructor' };

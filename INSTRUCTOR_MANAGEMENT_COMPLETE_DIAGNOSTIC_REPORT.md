@@ -93,10 +93,12 @@ The Instructor Management tab in Class Management page has **MULTIPLE CRITICAL I
 ## 🔴 CRITICAL ISSUES IDENTIFIED
 
 ### **ISSUE #1: Backend API Response Format Inconsistency** ⛔
+
 **Severity**: CRITICAL  
 **Location**: `backend-server.js` lines 423-503
 
 **Problem**:
+
 ```javascript
 // GET /api/instructors (Line 435)
 const result = await instructorService.getAllInstructors(filters);
@@ -105,14 +107,16 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.json(result);  // ❌ INCONSISTENT: Returns raw result
+res.json(result); // ❌ INCONSISTENT: Returns raw result
 ```
 
 The backend returns `result` directly, which could be:
+
 - `{ success: true, data: [...] }` (from service)
 - `{ error: "message", status: 500 }` (from service)
 
 **But frontend expects**:
+
 ```typescript
 // Frontend expects EITHER:
 { success: true, data: [...] }  // Success case
@@ -125,10 +129,12 @@ Array of instructors directly
 ---
 
 ### **ISSUE #2: POST /api/instructors Wrong Response Format** ⛔
+
 **Severity**: CRITICAL  
 **Location**: `backend-server.js` lines 465-477
 
 **Problem**:
+
 ```javascript
 // POST /api/instructors (Line 467)
 const result = await instructorService.createInstructor(req.body);
@@ -137,17 +143,19 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.status(201).json(result.data);  // ❌ WRONG: Returns only data, not wrapped
+res.status(201).json(result.data); // ❌ WRONG: Returns only data, not wrapped
 ```
 
 **Backend returns**: `{ id: "...", first_name: "...", ... }`  
 **Frontend expects**: `{ success: true, data: {...} }`
 
 **Frontend code** (classManagementService.ts line 247):
+
 ```typescript
 const result = await response.json();
 
-if (result.success || result.id) {  // ⚠️ Workaround for missing success field
+if (result.success || result.id) {
+  // ⚠️ Workaround for missing success field
   const instructorData = result.data || result;
   return {
     success: true,
@@ -161,10 +169,12 @@ if (result.success || result.id) {  // ⚠️ Workaround for missing success fie
 ---
 
 ### **ISSUE #3: Data Transformation Field Mismatch** ⚠️
+
 **Severity**: HIGH  
 **Location**: `classTransformer.ts` lines 123-172
 
 **Problem**:
+
 ```typescript
 // transformInstructorFromAPI() (Line 123)
 export function transformInstructorFromAPI(apiInstructor: any): Instructor {
@@ -177,12 +187,14 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
 ```
 
 **Database schema** (instructors table):
+
 - Columns: `first_name`, `last_name` (snake_case)
 - NO `name` column
 
 **Backend service returns**: `first_name`, `last_name`
 
 **Frontend transformer tries**:
+
 1. Check for `name` field (doesn't exist)
 2. Check for `first_name` or `firstName`
 3. Check for `last_name` or `lastName`
@@ -194,10 +206,12 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
 ---
 
 ### **ISSUE #4: Specialization/Availability Array Handling** ⚠️
+
 **Severity**: MEDIUM  
 **Location**: `classTransformer.ts` lines 140-160
 
 **Problem**:
+
 ```typescript
 const getAvailability = () => {
   const avail = apiInstructor.availability;
@@ -216,14 +230,17 @@ const getAvailability = () => {
 ```
 
 **Database schema**:
+
 - `specialties` column: `text[]` (PostgreSQL array)
 - `availability` column: `jsonb`
 
 **Backend returns**:
+
 - `specialties`: `["Yoga", "HIIT"]` (array)
 - `availability`: `{}` or `{ "Monday": [...], ... }` (object)
 
 **Frontend expects**:
+
 - `specialization`: `string[]`
 - `availability`: `string[]`
 
@@ -234,10 +251,12 @@ const getAvailability = () => {
 ---
 
 ### **ISSUE #5: instructorService.create() API Data Mismatch** ⚠️
+
 **Severity**: HIGH  
 **Location**: `classTransformer.ts` lines 308-318
 
 **Problem**:
+
 ```typescript
 // transformInstructorToAPI() (Line 308)
 export function transformInstructorToAPI(instructor: Partial<Instructor>): any {
@@ -250,7 +269,7 @@ export function transformInstructorToAPI(instructor: Partial<Instructor>): any {
     last_name: lastName,
     email: instructor.email,
     phone: instructor.phone,
-    specialties: instructor.specialization || [],  // ✅ Correct
+    specialties: instructor.specialization || [], // ✅ Correct
     years_experience: instructor.experience || 0,
     status: instructor.status || 'active',
   };
@@ -258,12 +277,14 @@ export function transformInstructorToAPI(instructor: Partial<Instructor>): any {
 ```
 
 **Missing fields that backend expects**:
+
 - `certifications`: Expected by backend, not sent
 - `bio`: Expected by backend, not sent
 - `avatar_url`: Expected by backend, not sent
 - `availability`: Expected by backend, not sent (or sent as empty)
 
 **Backend service** (instructorService.js line 68):
+
 ```javascript
 const {
   first_name,
@@ -271,11 +292,11 @@ const {
   email,
   phone,
   specialties = [],
-  certifications = [],  // ⚠️ Frontend doesn't send
-  bio,                   // ⚠️ Frontend doesn't send
+  certifications = [], // ⚠️ Frontend doesn't send
+  bio, // ⚠️ Frontend doesn't send
   years_experience = 0,
-  avatar_url,            // ⚠️ Frontend doesn't send
-  availability = {},     // ⚠️ Frontend doesn't send (or empty)
+  avatar_url, // ⚠️ Frontend doesn't send
+  availability = {}, // ⚠️ Frontend doesn't send (or empty)
   status = 'active',
 } = instructorData;
 ```
@@ -285,11 +306,13 @@ const {
 ---
 
 ### **ISSUE #6: Frontend Form Missing Fields** ⚠️
+
 **Severity**: MEDIUM  
 **Location**: `ClassManagement.tsx` lines 48-57, 1245-1378
 
 **Problem**:
 Frontend form state only includes:
+
 ```typescript
 const [newInstructor, setNewInstructor] = useState<Partial<Instructor>>({
   name: '',
@@ -298,11 +321,12 @@ const [newInstructor, setNewInstructor] = useState<Partial<Instructor>>({
   availability: [],
   phone: '',
   experience: 0,
-  status: 'active'
+  status: 'active',
 });
 ```
 
 **Missing from form UI**:
+
 - ❌ Bio / Description field
 - ❌ Certifications field
 - ❌ Avatar/Photo upload
@@ -313,16 +337,19 @@ const [newInstructor, setNewInstructor] = useState<Partial<Instructor>>({
 ---
 
 ### **ISSUE #7: Empty Instructors Table in Database** ⚠️
+
 **Severity**: UNKNOWN (NEEDS VERIFICATION)  
 **Location**: Database `public.instructors`
 
-**Hypothesis**: 
+**Hypothesis**:
 The table may exist but contain no data, which would explain:
+
 - Empty list displayed
 - No instructors to show
 - "Was working before" → Data may have been deleted
 
 **Verification Needed**:
+
 ```sql
 SELECT COUNT(*) FROM public.instructors;
 SELECT * FROM public.instructors LIMIT 5;
@@ -333,10 +360,12 @@ SELECT * FROM public.instructors LIMIT 5;
 ---
 
 ### **ISSUE #8: No Error Handling in Frontend** ⚠️
+
 **Severity**: MEDIUM  
 **Location**: `ClassManagement.tsx` lines 113-132, 273-321
 
 **Problem**:
+
 ```typescript
 const loadData = async () => {
   setLoading(true);
@@ -344,13 +373,13 @@ const loadData = async () => {
     const [classesData, instructorsData, scheduleData] = await Promise.all([
       classService.getAll(),
       instructorService.getAll(),
-      scheduleService.getAll()
+      scheduleService.getAll(),
     ]);
-    
+
     setClasses(classesData);
-    setInstructors(instructorsData);  // ❌ No validation
+    setInstructors(instructorsData); // ❌ No validation
     setScheduleSlots(scheduleData);
-    
+
     console.log(`Loaded ${instructorsData.length} instructors`);
   } catch (error) {
     console.error('Error loading data:', error);
@@ -362,6 +391,7 @@ const loadData = async () => {
 ```
 
 **Issues**:
+
 - No validation of `instructorsData` format
 - No error message displayed to user
 - Console.log only (user won't see)
@@ -372,10 +402,12 @@ const loadData = async () => {
 ---
 
 ### **ISSUE #9: handleAddInstructor No Error Feedback** ⚠️
+
 **Severity**: MEDIUM  
 **Location**: `ClassManagement.tsx` lines 273-321
 
 **Problem**:
+
 ```typescript
 const handleAddInstructor = async () => {
   if (newInstructor.name && newInstructor.email) {
@@ -387,7 +419,7 @@ const handleAddInstructor = async () => {
         // ✅ Success logged
       }
       // ❌ NO ELSE BLOCK for failure case
-      
+
       // Reset form regardless of success/failure
       setNewInstructor({...});
       setShowAddInstructorModal(false);
@@ -399,7 +431,8 @@ const handleAddInstructor = async () => {
 };
 ```
 
-**Impact**: 
+**Impact**:
+
 - User clicks "Add Instructor"
 - Request fails
 - Modal closes
@@ -412,8 +445,10 @@ const handleAddInstructor = async () => {
 ### **Backend Layer** ⚠️
 
 #### 1. **services/instructorService.js** - ✅ MOSTLY CORRECT
+
 **Status**: Backend service logic is SOLID  
 **Functions**:
+
 - `getAllInstructors()` ✅ Returns `{ success: true, data: [...] }`
 - `getInstructorById()` ✅ Returns `{ success: true, data: {...} }`
 - `createInstructor()` ✅ Returns `{ success: true, data: {...} }`
@@ -421,6 +456,7 @@ const handleAddInstructor = async () => {
 - `deleteInstructor()` ✅ Returns `{ success: true, message: "..." }`
 
 **Issues**:
+
 - Line 82: Checks for `existing Instructor.email` before insert ✅
 - Line 91-107: Inserts instructor with all fields ✅
 - Returns consistent format ✅
@@ -430,9 +466,11 @@ const handleAddInstructor = async () => {
 ---
 
 #### 2. **backend-server.js** - ❌ INCONSISTENT RESPONSE FORMAT
+
 **Status**: **CRITICAL ISSUES** - Response format handling broken
 
 **GET /api/instructors** (Lines 429-442):
+
 ```javascript
 const result = await instructorService.getAllInstructors(filters);
 
@@ -440,11 +478,13 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.json(result);  // ❌ Returns { success: true, data: [...] }
+res.json(result); // ❌ Returns { success: true, data: [...] }
 ```
+
 **Issue**: Returns service result directly (correct format by luck, but inconsistent pattern)
 
 **POST /api/instructors** (Lines 465-477):
+
 ```javascript
 const result = await instructorService.createInstructor(req.body);
 
@@ -452,11 +492,13 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.status(201).json(result.data);  // ❌ Returns ONLY data, not { success, data }
+res.status(201).json(result.data); // ❌ Returns ONLY data, not { success, data }
 ```
+
 **Issue**: **BREAKS FRONTEND** - Frontend expects `{ success: true, data: {...} }`
 
 **PUT /api/instructors/:id** (Lines 481-493):
+
 ```javascript
 const result = await instructorService.updateInstructor(req.params.id, req.body);
 
@@ -464,10 +506,11 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.json(result.data);  // ❌ Same issue
+res.json(result.data); // ❌ Same issue
 ```
 
 **DELETE /api/instructors/:id** (Lines 497-509):
+
 ```javascript
 const result = await instructorService.deleteInstructor(req.params.id);
 
@@ -475,7 +518,7 @@ if (result.error) {
   return res.status(result.status || 500).json({ error: result.error });
 }
 
-res.json(result);  // ⚠️ Returns { success: true, message: "..." }
+res.json(result); // ⚠️ Returns { success: true, message: "..." }
 ```
 
 **Verdict**: **NEEDS STANDARDIZATION** - All endpoints should return `{ success, data/message }`
@@ -485,26 +528,28 @@ res.json(result);  // ⚠️ Returns { success: true, message: "..." }
 ### **Frontend Layer** ❌
 
 #### 3. **frontend/src/services/classManagementService.ts** - ⚠️ WORKAROUNDS PRESENT
+
 **Status**: Has workarounds for backend inconsistencies
 
 **instructorService.getAll()** (Lines 207-224):
+
 ```typescript
 async getAll(): Promise<Instructor[]> {
   try {
     const response = await fetch(`${API_BASE_URL}/instructors`, {
       headers: getAuthHeaders(),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       return [];
     }
-    
+
     const result = await response.json();
     const data = result.success ? result.data : (Array.isArray(result) ? result : []);
     //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     //           Tries multiple formats due to backend inconsistency
-    
+
     return data.map(transformInstructorFromAPI);
   } catch (error) {
     console.error('Error fetching instructors:', error);
@@ -514,6 +559,7 @@ async getAll(): Promise<Instructor[]> {
 ```
 
 **instructorService.create()** (Lines 247-274):
+
 ```typescript
 async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?: Instructor; message?: string }> {
   try {
@@ -523,14 +569,14 @@ async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?
       headers: getAuthHeaders(),
       body: JSON.stringify(apiData),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       return { success: false, message: 'Session expired. Please login again.' };
     }
-    
+
     const result = await response.json();
-    
+
     if (result.success || result.id) {
       //  ^^^^^^^^^^^^^^^^^^^^^^^^^^
       //  Workaround: Check for either success field OR id field
@@ -542,7 +588,7 @@ async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?
         data: transformInstructorFromAPI(instructorData),
       };
     }
-    
+
     return { success: false, message: result.message || 'Failed to create instructor' };
   } catch (error) {
     console.error('Error creating instructor:', error);
@@ -556,15 +602,18 @@ async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?
 ---
 
 #### 4. **frontend/src/services/classTransformer.ts** - ⚠️ TRANSFORMATION BUGS
+
 **Status**: Data transformer has field mapping issues
 
 **transformInstructorFromAPI()** (Lines 123-172):
+
 - ✅ Handles multiple name formats (name, first_name+last_name, firstName+lastName)
 - ⚠️ availability array handling assumes string array, but DB has JSONB object
 - ⚠️ specialization array handling OK
 - ⚠️ Falls back to "Unknown" if names missing
 
 **transformInstructorToAPI()** (Lines 308-318):
+
 - ✅ Splits name into first_name and last_name
 - ❌ **Missing fields**: certifications, bio, avatar_url, availability (JSONB format)
 - ⚠️ Sends specialties correctly
@@ -574,21 +623,25 @@ async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?
 ---
 
 #### 5. **frontend/src/components/ClassManagement.tsx** - ⚠️ MISSING ERROR HANDLING
+
 **Status**: UI component has silent failures
 
 **loadData()** (Lines 113-132):
+
 - ✅ Fetches instructors from API
 - ❌ No error state variable
 - ❌ No error message displayed
 - ❌ No data validation
 
 **handleAddInstructor()** (Lines 273-321):
+
 - ✅ Validates name and email
 - ❌ No success/error toast or notification
 - ❌ Closes modal even if API fails
 - ❌ No retry mechanism
 
 **renderInstructorsTab()** (Lines 732-882):
+
 - ✅ Displays instructor cards nicely
 - ✅ Shows statistics
 - ✅ Filter and search work
@@ -602,8 +655,10 @@ async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?
 ### **Database Layer** ✅
 
 #### 6. **Database Schema** - ✅ CORRECT
+
 **Table**: `public.instructors`  
 **Schema**:
+
 ```sql
 CREATE TABLE public.instructors (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -656,9 +711,9 @@ Frontend Component (ClassManagement.tsx)
               │
               └─> Backend response: res.json(result)
                     Returns: { success: true, data: [...] }
-                    
+
         ↓
-        
+
 Frontend receives response
   │
   ├─> result = response.json()
@@ -678,9 +733,9 @@ Frontend receives response
                 phone: apiInstructor.phone,
                 status: apiInstructor.status
               }
-              
+
         ↓
-        
+
 setInstructors(transformedData)
   │
   └─> State updated, UI re-renders
@@ -691,6 +746,7 @@ setInstructors(transformedData)
 ```
 
 **Potential Break Points**:
+
 1. ⚠️ If database is empty → returns empty array → displays nothing
 2. ⚠️ If `first_name` or `last_name` are null → name shows as "Unknown"
 3. ⚠️ If `availability` is JSONB object → may not parse correctly as string array
@@ -740,9 +796,9 @@ Frontend Component (ClassManagement.tsx)
                           method: 'POST',
                           body: JSON.stringify(apiData)
                         })
-                        
+
         ↓
-        
+
 Backend: POST /api/instructors
   │
   ├─> instructorService.createInstructor(req.body)
@@ -767,9 +823,9 @@ Backend: POST /api/instructors
   └─> Backend response: res.status(201).json(result.data)
         ❌ WRONG: Returns ONLY data, not { success, data }
         Returns: { id: "uuid", first_name: "John", ... }
-        
+
         ↓
-        
+
 Frontend receives response
   │
   ├─> result = response.json()
@@ -780,7 +836,7 @@ Frontend receives response
   │     const instructorData = result.data || result;
   │     //                      ^^^^^^^^^^^^^^^^^^^^
   │     //                      result.data is undefined, uses result
-  │     
+  │
   │     return {
   │       success: true,
   │       data: transformInstructorFromAPI(result)
@@ -789,16 +845,17 @@ Frontend receives response
   │
   └─> handleAddInstructor() receives:
         { success: true, data: <Instructor> }
-        
+
         if (result.success) {
           setInstructors([...instructors, result.data]);  ✅
           logActivity(...);  ✅
         }
-        
+
         // Closes modal and resets form ✅
 ```
 
 **Potential Break Points**:
+
 1. ❌ If backend returns `{ success: true, data: {...} }` → Frontend expects it, but backend returns `{...}` directly
 2. ⚠️ Frontend workaround saves the day: `result.data || result`
 3. ⚠️ Missing fields in request: certifications, bio, avatar_url, availability
@@ -808,17 +865,17 @@ Frontend receives response
 
 ## 📊 COMPARISON: EXPECTED VS ACTUAL
 
-| Layer          | Expected Behavior                          | Actual Behavior                                    | Status |
-| -------------- | ------------------------------------------ | -------------------------------------------------- | ------ |
-| **Database**   | instructors table exists with data         | ✅ Table exists, ⚠️ May be empty                   | ⚠️     |
-| **Backend API** | GET returns `{success, data: [...] }`      | ✅ Returns correct format                           | ✅     |
-| **Backend API** | POST returns `{success, data: {...} }`     | ❌ Returns `{...}` directly (no success wrapper)    | ❌     |
-| **Backend API** | PUT returns `{success, data: {...} }`      | ❌ Returns `{...}` directly                         | ❌     |
-| **Transformer** | Transforms all fields correctly            | ⚠️ Missing certifications, bio, avatar, availability | ⚠️     |
-| **Frontend UI** | Displays instructor list                   | ❌ Empty or "Unknown" instructors                   | ❌     |
-| **Frontend UI** | Add instructor works                       | ⚠️ Works via workaround, incomplete data            | ⚠️     |
-| **Frontend UI** | Shows success/error messages               | ❌ Silent failures                                  | ❌     |
-| **Frontend UI** | Validates form data                        | ✅ Validates name + email only                      | ⚠️     |
+| Layer           | Expected Behavior                      | Actual Behavior                                      | Status |
+| --------------- | -------------------------------------- | ---------------------------------------------------- | ------ |
+| **Database**    | instructors table exists with data     | ✅ Table exists, ⚠️ May be empty                     | ⚠️     |
+| **Backend API** | GET returns `{success, data: [...] }`  | ✅ Returns correct format                            | ✅     |
+| **Backend API** | POST returns `{success, data: {...} }` | ❌ Returns `{...}` directly (no success wrapper)     | ❌     |
+| **Backend API** | PUT returns `{success, data: {...} }`  | ❌ Returns `{...}` directly                          | ❌     |
+| **Transformer** | Transforms all fields correctly        | ⚠️ Missing certifications, bio, avatar, availability | ⚠️     |
+| **Frontend UI** | Displays instructor list               | ❌ Empty or "Unknown" instructors                    | ❌     |
+| **Frontend UI** | Add instructor works                   | ⚠️ Works via workaround, incomplete data             | ⚠️     |
+| **Frontend UI** | Shows success/error messages           | ❌ Silent failures                                   | ❌     |
+| **Frontend UI** | Validates form data                    | ✅ Validates name + email only                       | ⚠️     |
 
 ---
 
@@ -827,13 +884,15 @@ Frontend receives response
 ### **Primary Root Cause**: **Backend API Response Format Inconsistency**
 
 The backend endpoint **POST /api/instructors** returns:
+
 ```javascript
 res.status(201).json(result.data);
 ```
 
 But it **SHOULD** return:
+
 ```javascript
-res.status(201).json(result);  // { success: true, data: {...} }
+res.status(201).json(result); // { success: true, data: {...} }
 ```
 
 This breaks the frontend's expectation and forces workarounds.
@@ -843,6 +902,7 @@ This breaks the frontend's expectation and forces workarounds.
 ### **Secondary Root Cause**: **Missing Form Fields & Data Transformation**
 
 The frontend form and transformer don't include:
+
 - Certifications
 - Bio
 - Avatar URL
@@ -855,6 +915,7 @@ This results in incomplete instructor profiles being created.
 ### **Tertiary Root Cause**: **No Error Handling & User Feedback**
 
 Silent failures in:
+
 - `loadData()` - No error state or message
 - `handleAddInstructor()` - No success/error toast
 - No empty state message when instructors list is empty
@@ -866,24 +927,28 @@ Users have no visibility into what went wrong.
 ## 🎯 REQUIRED FIXES SUMMARY
 
 ### **Priority 1: CRITICAL (Must Fix)**
+
 1. ✅ Fix backend POST /api/instructors response format
 2. ✅ Fix backend PUT /api/instructors response format
 3. ✅ Add error handling and user feedback to frontend
 4. ✅ Add empty state message when no instructors
 
 ### **Priority 2: HIGH (Should Fix)**
+
 5. ✅ Add missing form fields (bio, certifications, avatar)
 6. ✅ Fix availability data format (JSONB object vs string array)
 7. ✅ Update transformInstructorToAPI() to include all fields
 8. ✅ Add data validation in loadData()
 
 ### **Priority 3: MEDIUM (Nice to Have)**
+
 9. ✅ Add loading indicator while fetching
 10. ✅ Add success/error toast notifications
 11. ✅ Add retry mechanism for failed requests
 12. ✅ Add form validation for all fields
 
 ### **Priority 4: LOW (Optional)**
+
 13. ⚠️ Standardize all API responses across backend
 14. ⚠️ Add TypeScript types to backend service
 15. ⚠️ Add unit tests for transformer functions
@@ -893,11 +958,13 @@ Users have no visibility into what went wrong.
 ## 📝 DETAILED FIX CHECKLIST
 
 ### **Backend Fixes** (backend-server.js)
+
 - [ ] **Line 475**: Change `res.status(201).json(result.data)` to `res.status(201).json(result)`
 - [ ] **Line 491**: Change `res.json(result.data)` to `res.json(result)`
 - [ ] **Verify**: GET /api/instructors already returns correct format ✅
 
 ### **Frontend Transformer Fixes** (classTransformer.ts)
+
 - [ ] **Line 308-318**: Add missing fields to transformInstructorToAPI():
   ```typescript
   return {
@@ -906,17 +973,19 @@ Users have no visibility into what went wrong.
     email: instructor.email,
     phone: instructor.phone,
     specialties: instructor.specialization || [],
-    certifications: instructor.certifications || [],  // ← ADD
-    bio: instructor.bio || '',                        // ← ADD
+    certifications: instructor.certifications || [], // ← ADD
+    bio: instructor.bio || '', // ← ADD
     years_experience: instructor.experience || 0,
-    avatar_url: instructor.avatarUrl || null,         // ← ADD
-    availability: instructor.availability || {},      // ← ADD (as JSONB)
+    avatar_url: instructor.avatarUrl || null, // ← ADD
+    availability: instructor.availability || {}, // ← ADD (as JSONB)
     status: instructor.status || 'active',
   };
   ```
 
 ### **Frontend UI Fixes** (ClassManagement.tsx)
+
 - [ ] **Line 48-57**: Add missing fields to newInstructor state:
+
   ```typescript
   const [newInstructor, setNewInstructor] = useState<Partial<Instructor>>({
     name: '',
@@ -926,27 +995,28 @@ Users have no visibility into what went wrong.
     phone: '',
     experience: 0,
     status: 'active',
-    certifications: [],  // ← ADD
-    bio: '',             // ← ADD
-    avatarUrl: null,     // ← ADD
+    certifications: [], // ← ADD
+    bio: '', // ← ADD
+    avatarUrl: null, // ← ADD
   });
   ```
 
 - [ ] **Line 113-132**: Add error handling to loadData():
+
   ```typescript
   const [error, setError] = useState<string | null>(null);
-  
+
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
       const [classesData, instructorsData, scheduleData] = await Promise.all([...]);
-      
+
       // Validate data
       if (!Array.isArray(instructorsData)) {
         throw new Error('Invalid instructors data format');
       }
-      
+
       setClasses(classesData);
       setInstructors(instructorsData);
       setScheduleSlots(scheduleData);
@@ -961,6 +1031,7 @@ Users have no visibility into what went wrong.
   ```
 
 - [ ] **Line 273-321**: Add success/error feedback to handleAddInstructor():
+
   ```typescript
   const handleAddInstructor = async () => {
     if (newInstructor.name && newInstructor.email) {
@@ -990,7 +1061,7 @@ Users have no visibility into what went wrong.
             return; // Don't close modal
           }
         }
-        
+
         // Reset form only if successful
         setNewInstructor({...});
         setEditingInstructor(null);
@@ -1005,6 +1076,7 @@ Users have no visibility into what went wrong.
   ```
 
 - [ ] **Line 732-882**: Add empty state message in renderInstructorsTab():
+
   ```typescript
   <div className="instructors-grid">
     {getFilteredInstructors().length === 0 ? (
@@ -1017,7 +1089,7 @@ Users have no visibility into what went wrong.
         </button>
       </div>
     ) : (
-      getFilteredInstructors().map(instructor => (
+      getFilteredInstructors().map((instructor) => (
         <div key={instructor.id} className="instructor-card">
           {/* ...existing card content... */}
         </div>
@@ -1031,6 +1103,7 @@ Users have no visibility into what went wrong.
 - [ ] **Add**: Avatar upload to add instructor modal
 
 ### **Database Verification**
+
 - [ ] **Run SQL**: Check if instructors table has data
   ```sql
   SELECT COUNT(*) FROM public.instructors;
@@ -1039,7 +1112,7 @@ Users have no visibility into what went wrong.
 - [ ] **If empty**: Create test instructors
   ```sql
   INSERT INTO public.instructors (first_name, last_name, email, phone, specialties, years_experience, status)
-  VALUES 
+  VALUES
     ('John', 'Doe', 'john.doe@example.com', '555-0001', ARRAY['Yoga', 'HIIT'], 5, 'active'),
     ('Jane', 'Smith', 'jane.smith@example.com', '555-0002', ARRAY['CrossFit', 'Strength'], 8, 'active'),
     ('Mike', 'Johnson', 'mike.johnson@example.com', '555-0003', ARRAY['Cardio', 'Boxing'], 3, 'active');
@@ -1050,18 +1123,21 @@ Users have no visibility into what went wrong.
 ## 🧪 TESTING REQUIREMENTS
 
 ### **Unit Tests Needed**:
+
 - [ ] transformInstructorFromAPI() - All field mappings
 - [ ] transformInstructorToAPI() - All field mappings
 - [ ] instructorService.create() - API response handling
 - [ ] instructorService.getAll() - API response handling
 
 ### **Integration Tests Needed**:
+
 - [ ] Full flow: Add instructor → Save to DB → Fetch list → Display
 - [ ] Error handling: API returns error → User sees message
 - [ ] Empty state: No instructors → User sees empty message
 - [ ] Form validation: Invalid data → User sees validation errors
 
 ### **Manual Tests Needed**:
+
 - [ ] Open Class Management → Instructor tab
 - [ ] Verify instructors display (if data exists)
 - [ ] Click "Add New Instructor"
@@ -1078,30 +1154,35 @@ Users have no visibility into what went wrong.
 System will be considered FULLY FIXED when:
 
 ✅ **Instructor List Display**:
+
 - Instructor list loads from database
 - All fields display correctly (name, email, phone, specialization)
 - Empty state message shows when no instructors
 - Loading indicator shows while fetching
 
 ✅ **Add Instructor**:
+
 - Form includes all fields (name, email, phone, specialization, experience, bio, certifications)
 - Submit creates instructor in database
 - Success message displays
 - New instructor appears in list immediately
 
 ✅ **Edit Instructor**:
+
 - Clicking edit pre-fills form with existing data
 - Submit updates instructor in database
 - Success message displays
 - List updates immediately
 
 ✅ **Delete Instructor**:
+
 - Confirmation dialog appears
 - Delete removes from database
 - Success message displays
 - List updates immediately
 
 ✅ **Error Handling**:
+
 - API errors display user-friendly messages
 - Form validation errors display
 - Network errors handled gracefully
@@ -1117,7 +1198,8 @@ System will be considered FULLY FIXED when:
 
 **Risk Level**: MEDIUM - Core functionality broken but fixable
 
-**Recommendation**: 
+**Recommendation**:
+
 1. Fix backend API response formats first (30 minutes)
 2. Fix frontend transformer to include all fields (1 hour)
 3. Add error handling and user feedback (2 hours)

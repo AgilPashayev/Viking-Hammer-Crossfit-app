@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useData, Member } from '../contexts/DataContext';
+import { formatDate } from '../utils/dateFormatter';
 import './MemberManagement.css';
 
 interface MemberManagementProps {
@@ -41,6 +42,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     membershipType: membershipTypes[0] || 'Single',
     role: 'member' as 'member' | 'instructor' | 'admin' | 'reception' | 'sparta',
     company: '',
+    dateOfBirth: '',
   });
 
   const companies = [
@@ -104,10 +106,10 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
     setFilteredMembers(filtered);
   }, [filterRole, filterMembershipType, filterStatus, searchTerm, members]);
 
-  const showToast = (message: string) => {
+  const showToast = (message: string, duration: number = 3000) => {
     setConfirmationMessage(message);
     setShowConfirmation(true);
-    setTimeout(() => setShowConfirmation(false), 3000);
+    setTimeout(() => setShowConfirmation(false), duration);
   };
 
   const handleAddMember = async () => {
@@ -160,20 +162,36 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           role: newMember.role,
           membershipType: newMember.membershipType,
           company: newMember.company || undefined,
+          dateOfBirth: newMember.dateOfBirth || undefined,
         });
         showToast('✅ Member updated successfully!');
       } else {
-        await addMember({
+        const result = await addMember({
           firstName: newMember.firstName,
           lastName: newMember.lastName,
           email: newMember.email,
           phone: formattedPhone,
           membershipType: newMember.membershipType,
-          status: 'active',
+          // Don't set status - let backend handle it
+          // Members will be 'pending' until they complete registration
+          // Staff (instructor, reception, sparta, admin) will be 'active' immediately
           role: newMember.role,
           company: newMember.company || undefined,
+          dateOfBirth: newMember.dateOfBirth || undefined,
         });
-        showToast('✅ Member added successfully!');
+        
+        // Check invitation email status
+        if ((result as any).invitationStatus === 'created_but_email_failed') {
+          if ((result as any).isTestModeRestriction) {
+            showToast('⚠️ Member added, but invitation email NOT sent. Email service is in test mode and can only send to vikingshammerxfit@gmail.com. Please verify your domain at resend.com/domains to send to all members.', 8000);
+          } else {
+            showToast('⚠️ Member added, but invitation email failed to send. Please check email configuration.', 5000);
+          }
+        } else if ((result as any).invitationStatus === 'failed') {
+          showToast('⚠️ Member added, but invitation system failed. Member may need manual onboarding.', 5000);
+        } else {
+          showToast('✅ Member added successfully and invitation email sent!');
+        }
       }
 
       await refreshMembers();
@@ -186,6 +204,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         membershipType: membershipTypes[0] || 'Single',
         role: 'member',
         company: '',
+        dateOfBirth: '',
       });
       setSelectedCountry(countries[0]);
       setSelectedMember(null);
@@ -227,6 +246,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       membershipType: member.membershipType,
       role: member.role,
       company: member.company || '',
+      dateOfBirth: member.dateOfBirth || '',
     });
     setShowAddForm(true);
   };
@@ -301,6 +321,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 membershipType: membershipTypes[0] || 'Single',
                 role: 'member',
                 company: '',
+                dateOfBirth: '',
               });
               setSelectedCountry(countries[0]);
               setShowAddForm(true);
@@ -496,37 +517,67 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 {expandedMembers.has(member.id) && (
                   <div className="member-details">
                     <div className="detail-row">
-                      <span className="label">Phone:</span>
+                      <span className="label">📧 Email:</span>
+                      <span className="value">{member.email}</span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">📞 Phone:</span>
                       <span className="value">{member.phone}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">Membership:</span>
+                      <span className="label">💎 Membership:</span>
                       <span className="value">{member.membershipType}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">Role:</span>
+                      <span className="label">👤 Role:</span>
                       <span className="value">
                         {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                       </span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">Join Date:</span>
+                      <span className="label">📅 Join Date:</span>
                       <span className="value">
-                        {new Date(member.joinDate).toLocaleDateString()}
+                        {formatDate(member.joinDate)}
                       </span>
                     </div>
+                    {member.dateOfBirth && (
+                      <div className="detail-row">
+                        <span className="label">🎂 Date of Birth:</span>
+                        <span className="value">
+                          {formatDate(member.dateOfBirth)}
+                        </span>
+                      </div>
+                    )}
+                    {member.gender && (
+                      <div className="detail-row">
+                        <span className="label">⚧ Gender:</span>
+                        <span className="value">{member.gender}</span>
+                      </div>
+                    )}
                     {member.lastCheckIn && (
                       <div className="detail-row">
-                        <span className="label">Last Check-in:</span>
+                        <span className="label">✅ Last Check-in:</span>
                         <span className="value">
-                          {new Date(member.lastCheckIn).toLocaleDateString()}
+                          {formatDate(member.lastCheckIn)}
                         </span>
                       </div>
                     )}
                     {member.company && (
                       <div className="detail-row">
-                        <span className="label">Company:</span>
+                        <span className="label">🏢 Company:</span>
                         <span className="value">{member.company}</span>
+                      </div>
+                    )}
+                    {member.emergencyContact && (
+                      <div className="detail-row">
+                        <span className="label">🚨 Emergency Contact:</span>
+                        <span className="value">{member.emergencyContact}</span>
+                      </div>
+                    )}
+                    {member.address && (
+                      <div className="detail-row">
+                        <span className="label">🏠 Address:</span>
+                        <span className="value">{member.address}</span>
                       </div>
                     )}
                   </div>
@@ -548,9 +599,6 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   >
                     <span className="btn-icon" aria-hidden="true">🗑️</span>
                     <span className="btn-label">Delete</span>
-                  </button>
-                  <button className="btn btn-secondary btn-xs" title="View Profile">
-                    👁️
                   </button>
                 </div>
               </div>
@@ -627,16 +675,52 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                         <span className="detail-value">{member.email}</span>
                       </div>
                       <div className="detail-group">
-                        <span className="detail-label">📅 Join Date:</span>
+                        <span className="detail-label">� Phone:</span>
+                        <span className="detail-value">{member.phone}</span>
+                      </div>
+                      <div className="detail-group">
+                        <span className="detail-label">💎 Membership:</span>
+                        <span className="detail-value">{member.membershipType}</span>
+                      </div>
+                      <div className="detail-group">
+                        <span className="detail-label">👤 Role:</span>
                         <span className="detail-value">
-                          {new Date(member.joinDate).toLocaleDateString()}
+                          {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                         </span>
                       </div>
+                      <div className="detail-group">
+                        <span className="detail-label">📅 Join Date:</span>
+                        <span className="detail-value">
+                          {formatDate(member.joinDate)}
+                        </span>
+                      </div>
+                      {member.dateOfBirth && (
+                        <div className="detail-group">
+                          <span className="detail-label">🎂 Date of Birth:</span>
+                          <span className="detail-value">
+                            {formatDate(member.dateOfBirth)}
+                          </span>
+                        </div>
+                      )}
                       {member.lastCheckIn && (
                         <div className="detail-group">
                           <span className="detail-label">✅ Last Check-in:</span>
                           <span className="detail-value">
-                            {new Date(member.lastCheckIn).toLocaleDateString()}
+                            {formatDate(member.lastCheckIn)}
+                          </span>
+                        </div>
+                      )}
+                      {member.gender && (
+                        <div className="detail-group">
+                          <span className="detail-label">⚧ Gender:</span>
+                          <span className="detail-value">{member.gender}</span>
+                        </div>
+                      )}
+                      {member.lastCheckIn && (
+                        <div className="detail-group">
+                          <span className="detail-label">✅ Last Check-in:</span>
+                          <span className="detail-value">
+                            {formatDate(member.lastCheckIn)}
                           </span>
                         </div>
                       )}
@@ -644,6 +728,18 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                         <div className="detail-group">
                           <span className="detail-label">🏢 Company:</span>
                           <span className="detail-value">{member.company}</span>
+                        </div>
+                      )}
+                      {member.emergencyContact && (
+                        <div className="detail-group">
+                          <span className="detail-label">🚨 Emergency Contact:</span>
+                          <span className="detail-value">{member.emergencyContact}</span>
+                        </div>
+                      )}
+                      {member.address && (
+                        <div className="detail-group">
+                          <span className="detail-label">🏠 Address:</span>
+                          <span className="detail-value">{member.address}</span>
                         </div>
                       )}
                     </div>
@@ -754,12 +850,46 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   onChange={(e) => setNewMember({ ...newMember, role: e.target.value as any })}
                   className="form-select"
                 >
-                  <option value="member">🛡️ Viking (Member)</option>
-                  <option value="instructor">⚔️ Warrior (Instructor)</option>
-                  <option value="reception">🏛️ Guardian (Reception)</option>
-                  <option value="sparta">👑 Commander (Sparta)</option>
-                  <option value="admin">👑 Admin</option>
+                  <option value="member">Member</option>
+                  <option value="reception">Reception</option>
+                  <option value="instructor">Instructor</option>
+                  <option value="sparta">Sparta</option>
+                  <option value="admin">Admin</option>
                 </select>
+              </div>
+              <div className="form-group">
+                <label>📅 Date of Birth (Optional)</label>
+                <div style={{ position: 'relative' }}>
+                  <input
+                    type="date"
+                    value={newMember.dateOfBirth}
+                    onChange={(e) => setNewMember({ ...newMember, dateOfBirth: e.target.value })}
+                    className="form-input"
+                    style={{ paddingLeft: '40px' }}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <span style={{
+                    position: 'absolute',
+                    left: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    fontSize: '18px',
+                    pointerEvents: 'none',
+                    color: '#666'
+                  }}>
+                    📅
+                  </span>
+                </div>
+                {newMember.dateOfBirth && (
+                  <div style={{ 
+                    marginTop: '8px', 
+                    fontSize: '14px', 
+                    color: '#666',
+                    fontStyle: 'italic'
+                  }}>
+                    Preview: {formatDate(newMember.dateOfBirth)}
+                  </div>
+                )}
               </div>
               {newMember.role === 'member' && (
                 <div className="form-group">
@@ -795,6 +925,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                     membershipType: membershipTypes[0] || 'Single',
                     role: 'member',
                     company: '',
+                    dateOfBirth: '',
                   });
                 }}
               >

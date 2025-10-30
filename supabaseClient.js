@@ -2,11 +2,12 @@
 // Supabase client configuration and initialization
 
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: './env/.env.dev' });
+require('dotenv').config({ path: './env/.env.dev', override: true });
 
 // Validate environment variables
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseKey || supabaseUrl === 'REPLACE' || supabaseKey === 'REPLACE') {
   console.error('❌ ERROR: Supabase credentials not configured!');
@@ -15,7 +16,7 @@ if (!supabaseUrl || !supabaseKey || supabaseUrl === 'REPLACE' || supabaseKey ===
   process.exit(1);
 }
 
-// Create Supabase client
+// Create Supabase client (for regular operations with RLS)
 const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
@@ -23,6 +24,16 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
     detectSessionInUrl: false,
   },
 });
+
+// Create admin client (for storage operations - bypasses RLS)
+const supabaseAdmin = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
+  : supabase; // Fallback to regular client if service key not provided
 
 // Test connection
 async function testConnection() {
@@ -42,4 +53,4 @@ async function testConnection() {
   }
 }
 
-module.exports = { supabase, testConnection };
+module.exports = { supabase, supabaseAdmin, testConnection };

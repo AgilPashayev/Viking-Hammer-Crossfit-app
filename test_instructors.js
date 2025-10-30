@@ -4,10 +4,7 @@ const path = require('path');
 
 dotenv.config({ path: path.join(__dirname, 'env', '.env.dev'), override: true });
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
 async function testInstructors() {
   console.log('🔍 Checking instructors table...\n');
@@ -31,7 +28,11 @@ async function testInstructors() {
       existingInstructors.forEach((instructor, index) => {
         console.log(`   ${index + 1}. ${instructor.first_name} ${instructor.last_name}`);
         console.log(`      Email: ${instructor.email}`);
-        console.log(`      Specialties: ${instructor.specialties ? instructor.specialties.join(', ') : 'None'}`);
+        console.log(
+          `      Specialties: ${
+            instructor.specialties ? instructor.specialties.join(', ') : 'None'
+          }`,
+        );
         console.log(`      Status: ${instructor.status}`);
         console.log('');
       });
@@ -45,12 +46,16 @@ async function testInstructors() {
           email: 'john.doe@vikinghammer.com',
           phone: '+994501234567',
           specialties: ['CrossFit', 'Strength Training', 'Olympic Lifting'],
-          certifications: ['CrossFit Level 2 Trainer', 'USA Weightlifting Level 1', 'CPR Certified'],
+          certifications: [
+            'CrossFit Level 2 Trainer',
+            'USA Weightlifting Level 1',
+            'CPR Certified',
+          ],
           bio: '8+ years of coaching experience specializing in Olympic lifting and CrossFit methodology. Former competitive athlete with a passion for helping others reach their fitness goals.',
           years_experience: 8,
           avatar_url: null,
           availability: ['Monday', 'Wednesday', 'Friday'],
-          status: 'active'
+          status: 'active',
         },
         {
           first_name: 'Jane',
@@ -58,12 +63,16 @@ async function testInstructors() {
           email: 'jane.smith@vikinghammer.com',
           phone: '+994501234568',
           specialties: ['Yoga', 'Pilates', 'Mobility'],
-          certifications: ['Registered Yoga Teacher (RYT-200)', 'Pilates Instructor', 'Functional Movement Specialist'],
+          certifications: [
+            'Registered Yoga Teacher (RYT-200)',
+            'Pilates Instructor',
+            'Functional Movement Specialist',
+          ],
           bio: 'Certified yoga and pilates instructor focusing on flexibility, core strength, and injury prevention. Specializes in working with athletes to improve mobility and recovery.',
           years_experience: 5,
           avatar_url: null,
           availability: ['Tuesday', 'Thursday', 'Saturday'],
-          status: 'active'
+          status: 'active',
         },
         {
           first_name: 'Mike',
@@ -76,7 +85,7 @@ async function testInstructors() {
           years_experience: 6,
           avatar_url: null,
           availability: ['Monday', 'Tuesday', 'Thursday', 'Friday'],
-          status: 'active'
+          status: 'active',
         },
         {
           first_name: 'Sarah',
@@ -84,12 +93,16 @@ async function testInstructors() {
           email: 'sarah.williams@vikinghammer.com',
           phone: '+994501234570',
           specialties: ['Bodybuilding', 'Nutrition', 'Powerlifting'],
-          certifications: ['NASM Certified Personal Trainer', 'Sports Nutritionist', 'Powerlifting Coach'],
+          certifications: [
+            'NASM Certified Personal Trainer',
+            'Sports Nutritionist',
+            'Powerlifting Coach',
+          ],
           bio: 'Bodybuilding and powerlifting coach with expertise in muscle building, body recomposition, and nutrition planning. Helps clients achieve aesthetic and strength goals.',
           years_experience: 7,
           avatar_url: null,
           availability: ['Wednesday', 'Friday', 'Saturday', 'Sunday'],
-          status: 'active'
+          status: 'active',
         },
         {
           first_name: 'David',
@@ -97,13 +110,17 @@ async function testInstructors() {
           email: 'david.brown@vikinghammer.com',
           phone: '+994501234571',
           specialties: ['Endurance Training', 'Running', 'Triathlon'],
-          certifications: ['Certified Running Coach', 'Ironman Finisher', 'Sports Performance Coach'],
+          certifications: [
+            'Certified Running Coach',
+            'Ironman Finisher',
+            'Sports Performance Coach',
+          ],
           bio: 'Endurance athlete and coach specializing in marathon training, triathlon prep, and long-distance running. Former competitive runner with multiple marathon completions.',
           years_experience: 10,
           avatar_url: null,
           availability: ['Monday', 'Wednesday', 'Saturday', 'Sunday'],
-          status: 'active'
-        }
+          status: 'active',
+        },
       ];
 
       const { data: insertedInstructors, error: insertError } = await supabase
@@ -119,7 +136,11 @@ async function testInstructors() {
       console.log(`✅ Successfully created ${insertedInstructors.length} test instructors!\n`);
       console.log('📋 Created Instructors:');
       insertedInstructors.forEach((instructor, index) => {
-        console.log(`   ${index + 1}. ${instructor.first_name} ${instructor.last_name} (${instructor.specialties.join(', ')})`);
+        console.log(
+          `   ${index + 1}. ${instructor.first_name} ${
+            instructor.last_name
+          } (${instructor.specialties.join(', ')})`,
+        );
       });
     }
 

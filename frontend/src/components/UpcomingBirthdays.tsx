@@ -192,7 +192,7 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
   const formatBirthdayDate = (dateOfBirth: string) => {
     const date = new Date(dateOfBirth);
     return date.toLocaleDateString('en-US', {
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
@@ -201,7 +201,7 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
     const date = new Date(dateOfBirth);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
@@ -485,7 +485,7 @@ const UpcomingBirthdays: React.FC<UpcomingBirthdaysProps> = ({ onBack }) => {
                       <div className="detail-row">
                         <span className="detail-icon">�</span>
                         <span className="detail-label">Member since:</span>
-                        <span className="detail-value">{new Date(member.joinDate).toLocaleDateString()}</span>
+                        <span className="detail-value">{formatFullDate(member.joinDate)}</span>
                       </div>
                     </div>
 

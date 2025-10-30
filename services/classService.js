@@ -60,6 +60,14 @@ async function getAllClasses(filters = {}) {
       return { error: 'Failed to fetch classes', status: 500 };
     }
 
+    // Debug: Log first class structure
+    if (data && data.length > 0) {
+      console.log('📊 First class structure:');
+      console.log('   - name:', data[0].name);
+      console.log('   - class_instructors:', data[0].class_instructors);
+      console.log('   - schedule_slots count:', data[0].schedule_slots?.length || 0);
+    }
+
     return { success: true, data };
   } catch (error) {
     console.error('Get all classes error:', error);

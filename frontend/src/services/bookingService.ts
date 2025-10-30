@@ -35,13 +35,31 @@ export interface MemberBooking {
 export const bookingService = {
   /**
    * Book a class for a member
+   * Backend expects: POST /api/bookings with { userId, classId, dayOfWeek, startTime, bookingDate }
    */
-  async bookClass(classId: string, memberId: string, date: string, time: string): Promise<BookingResponse> {
+  async bookClass(classId: string, memberId: string, bookingDate: string, startTime: string, dayOfWeek?: number): Promise<BookingResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/classes/${classId}/book`, {
+      // Calculate dayOfWeek if not provided
+      const calculatedDayOfWeek = dayOfWeek ?? new Date(bookingDate).getDay();
+      
+      // DEBUG: Log booking parameters
+      console.log('🔍 BOOKING DEBUG - Frontend Service:');
+      console.log('  classId:', classId);
+      console.log('  bookingDate:', bookingDate);
+      console.log('  startTime:', startTime);
+      console.log('  calculatedDayOfWeek:', calculatedDayOfWeek, `(${['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][calculatedDayOfWeek]})`);
+      console.log('  Date object:', new Date(bookingDate));
+      
+      const response = await fetch(`${API_BASE_URL}/bookings`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ memberId, date, time }),
+        body: JSON.stringify({ 
+          userId: memberId, 
+          classId,
+          dayOfWeek: calculatedDayOfWeek,
+          startTime,
+          bookingDate 
+        }),
       });
       
       if (response.status === 401) {
@@ -52,8 +70,20 @@ export const bookingService = {
         };
       }
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        return {
+          success: false,
+          message: errorData.error || 'Failed to book class',
+        };
+      }
+      
       const data = await response.json();
-      return data;
+      return {
+        success: true,
+        message: 'Class booked successfully!',
+        data: data.data
+      };
     } catch (error) {
       console.error('Error booking class:', error);
       return {
@@ -65,13 +95,14 @@ export const bookingService = {
 
   /**
    * Cancel a class booking
+   * Backend expects: POST /api/bookings/:id/cancel with { userId }
    */
-  async cancelBooking(classId: string, memberId: string, date: string, time: string): Promise<BookingResponse> {
+  async cancelBooking(bookingId: string, memberId: string, date?: string, time?: string): Promise<BookingResponse> {
     try {
-      const response = await fetch(`${API_BASE_URL}/classes/${classId}/cancel`, {
+      const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify({ memberId, date, time }),
+        body: JSON.stringify({ userId: memberId }),
       });
       
       if (response.status === 401) {
@@ -82,8 +113,20 @@ export const bookingService = {
         };
       }
       
+      if (!response.ok) {
+        const errorData = await response.json();
+        return {
+          success: false,
+          message: errorData.error || 'Failed to cancel booking',
+        };
+      }
+      
       const data = await response.json();
-      return data;
+      return {
+        success: true,
+        message: 'Booking cancelled successfully!',
+        data
+      };
     } catch (error) {
       console.error('Error cancelling booking:', error);
       return {

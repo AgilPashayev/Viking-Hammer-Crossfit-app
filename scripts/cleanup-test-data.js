@@ -1,31 +1,26 @@
 /**
  * Production-Ready Test Data Cleanup Utility
- * 
+ *
  * This script safely removes test/mock data from the database.
  * Use with caution in production environments!
- * 
+ *
  * Usage:
  *   node scripts/cleanup-test-data.js [--dry-run] [--pattern=<email_pattern>]
- * 
+ *
  * Options:
  *   --dry-run    Show what would be deleted without actually deleting
  *   --pattern    Email pattern to match (default: %test%,%mock%,%dummy%,%example%)
  */
 
-const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config({ path: './env/.env.dev' });
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const { supabase } = require('../supabaseClient');
 
 // Parse command line arguments
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
-const patternArg = args.find(arg => arg.startsWith('--pattern='));
-const emailPattern = patternArg 
-  ? patternArg.split('=')[1] 
+const patternArg = args.find((arg) => arg.startsWith('--pattern='));
+const emailPattern = patternArg
+  ? patternArg.split('=')[1]
   : '%test%,%mock%,%dummy%,%example%,%sample%';
 
 const patterns = emailPattern.split(',');
@@ -35,11 +30,11 @@ const patterns = emailPattern.split(',');
  */
 async function findTestUsers() {
   console.log('🔍 Searching for test users with patterns:', patterns);
-  
+
   const { data: users, error } = await supabase
     .from('users_profile')
     .select('id, email, name, role, status, created_at')
-    .or(patterns.map(p => `email.ilike.${p}`).join(','));
+    .or(patterns.map((p) => `email.ilike.${p}`).join(','));
 
   if (error) {
     console.error('❌ Error finding test users:', error);
@@ -54,11 +49,11 @@ async function findTestUsers() {
  */
 async function findTestInvitations() {
   console.log('🔍 Searching for test invitations...');
-  
+
   const { data: invitations, error } = await supabase
     .from('invitations')
     .select('id, email, status, created_at')
-    .or(patterns.map(p => `email.ilike.${p}`).join(','));
+    .or(patterns.map((p) => `email.ilike.${p}`).join(','));
 
   if (error) {
     console.error('❌ Error finding test invitations:', error);
@@ -66,6 +61,44 @@ async function findTestInvitations() {
   }
 
   return invitations || [];
+}
+
+/**
+ * Find all test classes
+ */
+async function findTestClasses() {
+  console.log('🔍 Searching for test classes...');
+
+  const { data: classes, error } = await supabase
+    .from('classes')
+    .select('id, name, description, created_at')
+    .or(
+      'name.ilike.%test%,name.ilike.%demo%,name.ilike.%mock%,name.ilike.%sample%,description.ilike.%test%',
+    );
+
+  if (error) {
+    console.error('❌ Error finding test classes:', error);
+    return [];
+  }
+
+  return classes || [];
+}
+
+/**
+ * Delete test classes
+ */
+async function deleteTestClasses(classes) {
+  console.log(`🗑️  Deleting ${classes.length} test classes...`);
+
+  for (const classItem of classes) {
+    const { error } = await supabase.from('classes').delete().eq('id', classItem.id);
+
+    if (error) {
+      console.error(`  ❌ Failed to delete class ${classItem.name}: ${error.message}`);
+    } else {
+      console.log(`  ✅ Deleted class: ${classItem.name}`);
+    }
+  }
 }
 
 /**
@@ -124,10 +157,7 @@ async function deleteUserData(userId, email) {
     }
 
     // Delete user profile
-    const { error: profileError } = await supabase
-      .from('users_profile')
-      .delete()
-      .eq('id', userId);
+    const { error: profileError } = await supabase.from('users_profile').delete().eq('id', userId);
 
     if (profileError) {
       console.error(`  ❌ Failed to delete user profile: ${profileError.message}`);
@@ -150,10 +180,7 @@ async function deleteOrphanedInvitations(invitations) {
   console.log(`🗑️  Deleting ${invitations.length} orphaned invitations...`);
 
   for (const invitation of invitations) {
-    const { error } = await supabase
-      .from('invitations')
-      .delete()
-      .eq('id', invitation.id);
+    const { error } = await supabase.from('invitations').delete().eq('id', invitation.id);
 
     if (error) {
       console.error(`  ❌ Failed to delete invitation ${invitation.email}: ${error.message}`);
@@ -170,7 +197,11 @@ async function cleanup() {
   console.log('='.repeat(60));
   console.log('🧹 TEST DATA CLEANUP UTILITY');
   console.log('='.repeat(60));
-  console.log(`Mode: ${isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚠️  LIVE MODE (data will be deleted!)'}`);
+  console.log(
+    `Mode: ${
+      isDryRun ? '🔍 DRY RUN (no changes will be made)' : '⚠️  LIVE MODE (data will be deleted!)'
+    }`,
+  );
   console.log(`Email patterns: ${patterns.join(', ')}`);
   console.log('='.repeat(60));
   console.log();
@@ -178,14 +209,16 @@ async function cleanup() {
   // Find test data
   const testUsers = await findTestUsers();
   const testInvitations = await findTestInvitations();
+  const testClasses = await findTestClasses();
 
   // Display summary
   console.log('\n📊 SUMMARY:');
   console.log(`   Test users found: ${testUsers.length}`);
   console.log(`   Test invitations found: ${testInvitations.length}`);
+  console.log(`   Test classes found: ${testClasses.length}`);
   console.log();
 
-  if (testUsers.length === 0 && testInvitations.length === 0) {
+  if (testUsers.length === 0 && testInvitations.length === 0 && testClasses.length === 0) {
     console.log('✅ No test data found. Database is clean!');
     return;
   }
@@ -193,7 +226,7 @@ async function cleanup() {
   // Show details
   if (testUsers.length > 0) {
     console.log('👥 Test Users:');
-    testUsers.forEach(user => {
+    testUsers.forEach((user) => {
       console.log(`   - ${user.email} (${user.name}, role: ${user.role}, status: ${user.status})`);
     });
     console.log();
@@ -201,8 +234,16 @@ async function cleanup() {
 
   if (testInvitations.length > 0) {
     console.log('📧 Test Invitations:');
-    testInvitations.forEach(inv => {
+    testInvitations.forEach((inv) => {
       console.log(`   - ${inv.email} (status: ${inv.status})`);
+    });
+    console.log();
+  }
+
+  if (testClasses.length > 0) {
+    console.log('📅 Test Classes:');
+    testClasses.forEach((cls) => {
+      console.log(`   - ${cls.name}`);
     });
     console.log();
   }
@@ -216,8 +257,8 @@ async function cleanup() {
   // Confirm deletion
   console.log('⚠️  WARNING: This will permanently delete all test data!');
   console.log('   Press Ctrl+C to cancel, or wait 5 seconds to continue...');
-  
-  await new Promise(resolve => setTimeout(resolve, 5000));
+
+  await new Promise((resolve) => setTimeout(resolve, 5000));
   console.log();
 
   // Delete users and their data
@@ -239,6 +280,11 @@ async function cleanup() {
     await deleteOrphanedInvitations(testInvitations);
   }
 
+  // Delete test classes
+  if (testClasses.length > 0) {
+    await deleteTestClasses(testClasses);
+  }
+
   // Final summary
   console.log('='.repeat(60));
   console.log('✅ CLEANUP COMPLETE');
@@ -246,13 +292,14 @@ async function cleanup() {
   console.log(`   Users deleted: ${successCount}/${testUsers.length}`);
   console.log(`   Failed deletions: ${failCount}`);
   console.log(`   Invitations cleaned: ${testInvitations.length}`);
+  console.log(`   Classes deleted: ${testClasses.length}`);
   console.log('='.repeat(60));
 }
 
 // Run cleanup
 cleanup()
   .then(() => process.exit(0))
-  .catch(err => {
+  .catch((err) => {
     console.error('❌ Fatal error:', err);
     process.exit(1);
   });

@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
-import { 
-  fetchMembershipPlans, 
-  createMembershipPlan, 
-  updateMembershipPlan, 
-  deleteMembershipPlan,
-  MembershipPlanDB,
-  MembershipPlanInput 
-} from '../services/supabaseService';
 import { showConfirmDialog } from '../utils/confirmDialog';
 import './MembershipManager.css';
 import './MembershipManager-additions.css';
@@ -120,48 +112,53 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   }, []);
 
   // Helper function to generate metadata from plan fields (no database metadata column needed)
-  const generatePlanMetadata = (dbPlan: any) => {
-    // Infer plan type from name and visit_quota
-    let type: 'single' | 'monthly-limited' | 'monthly-unlimited' | 'company' = 'single';
-    let description = dbPlan.name;
-    let features: string[] = [];
-    let limitations: string[] = [];
-    let isPopular = false;
-    
-    if (dbPlan.name.toLowerCase().includes('single')) {
-      type = 'single';
-      description = 'Single gym visit - pay as you go';
-      features = ['One-time gym access', 'Access to all equipment', 'Valid for 1 day'];
-      limitations = ['No class bookings', 'Single visit only'];
-    } else if (dbPlan.name.toLowerCase().includes('unlimited')) {
-      type = 'monthly-unlimited';
-      description = 'Unlimited access - best value for dedicated members';
-      features = ['Unlimited gym access', 'All classes included', `Valid for ${dbPlan.duration_days} days`, 'Best value for money'];
-      limitations = [];
-      isPopular = true;
-    } else if (dbPlan.name.toLowerCase().includes('company')) {
-      type = 'company';
-      description = 'Corporate membership plan with unlimited access';
-      features = ['Unlimited gym access', 'All classes included', 'Corporate rates', `Valid for ${dbPlan.duration_days} days`];
-      limitations = ['Requires company contract'];
-    } else if (dbPlan.visit_quota && dbPlan.visit_quota > 1) {
-      type = 'monthly-limited';
-      description = `${dbPlan.visit_quota} visits per month - perfect for regular members`;
-      features = [`${dbPlan.visit_quota} gym visits per month`, 'Class bookings included', `Valid for ${dbPlan.duration_days} days`];
-      limitations = [`Maximum ${dbPlan.visit_quota} visits per month`, 'No unused visits rollover'];
-      isPopular = true;
-    }
-
-    return { type, description, features, limitations, isPopular };
-  };
-
-  // Load plans from Supabase database
+  // Load plans from backend API (replaced direct Supabase access)
   const loadPlansFromDatabase = async () => {
-    const { plans, error } = await fetchMembershipPlans();
-    
-    if (error) {
-      console.error('Failed to load plans from database:', error);
-      // Fallback to localStorage
+    try {
+      const response = await fetch('http://localhost:4001/api/plans');
+      const result = await response.json();
+      
+      if (!result.success || !result.data) {
+        console.error('Failed to load plans from backend:', result.error);
+        // Fallback to localStorage
+        const savedPlans = localStorage.getItem('viking-membership-plans');
+        if (savedPlans) {
+          try {
+            const parsed = JSON.parse(savedPlans);
+            setMembershipPlans(parsed);
+          } catch (e) {
+            console.error('Failed to parse saved plans:', e);
+          }
+        }
+        return;
+      }
+
+      console.log('✅ Loaded plans from backend API:', result.data);
+
+      // Backend already returns properly formatted plans with metadata
+      const formattedPlans: MembershipPlan[] = result.data.map((plan: any) => ({
+        id: plan.id,
+        name: plan.name,
+        type: plan.type,
+        price: plan.price,
+        currency: plan.currency,
+        description: plan.description,
+        features: plan.features || [],
+        limitations: plan.limitations || [],
+        duration: plan.duration,
+        entryLimit: plan.entryLimit,
+        isActive: plan.isActive,
+        isPopular: plan.isPopular,
+        discountPercentage: plan.discountPercentage || 0,
+        createdAt: plan.createdAt,
+        updatedAt: plan.createdAt,
+      }));
+
+      console.log('✅ Formatted plans for display:', formattedPlans);
+      setMembershipPlans(formattedPlans);
+    } catch (error) {
+      console.error('Error fetching plans from backend:', error);
+      // Fallback to localStorage on network error
       const savedPlans = localStorage.getItem('viking-membership-plans');
       if (savedPlans) {
         try {
@@ -171,36 +168,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
           console.error('Failed to parse saved plans:', e);
         }
       }
-      return;
     }
-
-    console.log('✅ Loaded plans from database:', plans);
-
-    // Convert database plans to component format (NO METADATA COLUMN - generate from basic fields)
-    const convertedPlans: MembershipPlan[] = plans.map(dbPlan => {
-      const metadata = generatePlanMetadata(dbPlan);
-      
-      return {
-        id: dbPlan.id.toString(),
-        name: dbPlan.name,
-        type: metadata.type,
-        price: dbPlan.price_cents / 100,
-        currency: 'AZN',
-        description: metadata.description,
-        features: metadata.features,
-        limitations: metadata.limitations,
-        duration: `${dbPlan.duration_days} days`,
-        entryLimit: dbPlan.visit_quota || undefined,
-        isActive: true,
-        isPopular: metadata.isPopular,
-        discountPercentage: dbPlan.name.toLowerCase().includes('company') ? 10 : 0,
-        createdAt: dbPlan.created_at,
-        updatedAt: dbPlan.created_at,
-      };
-    });
-
-    console.log('✅ Converted plans for display:', convertedPlans);
-    setMembershipPlans(convertedPlans);
   };
 
   // Load subscriptions from backend API
@@ -322,8 +290,8 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     const cleanedFeatures = (newPlan.features || []).filter(f => f && f.trim());
     const cleanedLimitations = (newPlan.limitations || []).filter(l => l && l.trim());
     
-    // Prepare plan data for Supabase
-    const planInput: MembershipPlanInput = {
+    // Prepare plan data for backend API
+    const planData = {
       name: newPlan.name.trim(),
       type: newPlan.type || 'single',
       price: newPlan.price,
@@ -339,15 +307,26 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     };
     
     try {
+      // Get authentication token (assuming you have it in localStorage or context)
+      const token = localStorage.getItem('authToken') || '';
+      
       if (editingPlanId) {
-        // Update existing plan in database
-        const planId = parseInt(editingPlanId);
-        const { plan, error } = await updateMembershipPlan(planId, planInput);
+        // Update existing plan via backend API
+        const response = await fetch(`http://localhost:4001/api/plans/${editingPlanId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(planData)
+        });
         
-        if (error) {
+        const result = await response.json();
+        
+        if (!result.success) {
           await showConfirmDialog({
             title: '❌ Update Failed',
-            message: `Failed to update plan: ${error}\n\nPlease check your connection and try again.`,
+            message: `Failed to update plan: ${result.error}\n\nPlease check your connection and try again.`,
             confirmText: 'OK',
             cancelText: '',
             type: 'danger'
@@ -355,22 +334,36 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
           return;
         }
         
+        // Show warning if metadata not saved (column doesn't exist yet)
+        if (result.warning) {
+          console.warn('⚠️ ', result.warning);
+        }
+        
         await showConfirmDialog({
           title: '✅ Success',
-          message: 'Plan updated successfully in database!',
+          message: 'Plan updated successfully!',
           confirmText: 'OK',
           cancelText: '',
           type: 'success'
         });
         setEditingPlanId(null);
       } else {
-        // Create new plan in database
-        const { plan, error } = await createMembershipPlan(planInput);
+        // Create new plan via backend API
+        const response = await fetch('http://localhost:4001/api/plans', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(planData)
+        });
         
-        if (error) {
+        const result = await response.json();
+        
+        if (!result.success) {
           await showConfirmDialog({
             title: '❌ Creation Failed',
-            message: `Failed to create plan: ${error}\n\nPlease check your connection and try again.`,
+            message: `Failed to create plan: ${result.error}\n\nPlease check your connection and try again.`,
             confirmText: 'OK',
             cancelText: '',
             type: 'danger'
@@ -378,21 +371,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
           return;
         }
         
+        // Show warning if metadata not saved (column doesn't exist yet)
+        if (result.warning) {
+          console.warn('⚠️ ', result.warning);
+        }
+        
         await showConfirmDialog({
           title: '✅ Success',
-          message: 'Plan created successfully in database!',
+          message: 'Plan created successfully!',
           confirmText: 'OK',
           cancelText: '',
           type: 'success'
         });
       }
       
-      // Reload plans from database
+      // Reload plans from backend
       await loadPlansFromDatabase();
       
     } catch (error) {
       console.error('Unexpected error saving plan:', error);
-      alert('❌ An unexpected error occurred. Please try again.');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred. Please try again.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
       return;
     }
     
@@ -488,13 +492,24 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (!confirmed) return;
 
     try {
-      const planIdNum = parseInt(planId);
-      const { success, error } = await deleteMembershipPlan(planIdNum);
+      // Get authentication token
+      const token = localStorage.getItem('authToken') || '';
       
-      if (error) {
+      // Delete via backend API
+      const response = await fetch(`http://localhost:4001/api/plans/${planId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
         await showConfirmDialog({
           title: '❌ Delete Failed',
-          message: `Failed to delete plan: ${error}`,
+          message: `Failed to delete plan: ${result.error}`,
           confirmText: 'OK',
           cancelText: '',
           type: 'danger'
@@ -504,13 +519,13 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       
       await showConfirmDialog({
         title: '✅ Success',
-        message: 'Plan deleted successfully from database!',
+        message: 'Plan deleted successfully!',
         confirmText: 'OK',
         cancelText: '',
         type: 'success'
       });
       
-      // Reload plans from database
+      // Reload plans from backend
       await loadPlansFromDatabase();
       
     } catch (error) {
@@ -557,17 +572,35 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       const result = await response.json();
       
       if (result.success) {
-        alert('✅ Subscription updated successfully!');
+        await showConfirmDialog({
+          title: '✅ Success',
+          message: 'Subscription updated successfully!',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
         await loadSubscriptionsFromDatabase();
         setShowEditSubscriptionModal(false);
         setEditingSubscriptionId(null);
         setEditingSubscription({});
       } else {
-        alert(`❌ Failed to update: ${result.error}`);
+        await showConfirmDialog({
+          title: '❌ Update Failed',
+          message: `Failed to update subscription:\n\n${result.error}`,
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'danger'
+        });
       }
     } catch (error) {
       console.error('Error updating subscription:', error);
-      alert('❌ Error updating subscription');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred while updating the subscription.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
     }
   };
 
@@ -594,14 +627,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       const result = await response.json();
       
       if (result.success) {
-        alert('✅ Subscription renewed successfully!');
+        await showConfirmDialog({
+          title: '✅ Renewal Complete',
+          message: 'Subscription renewed successfully!\n\nThe subscription period has been extended.',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
-        alert(`❌ Failed to renew: ${result.error}`);
+        await showConfirmDialog({
+          title: '❌ Renewal Failed',
+          message: `Failed to renew subscription:\n\n${result.error}`,
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'danger'
+        });
       }
     } catch (error) {
       console.error('Error renewing subscription:', error);
-      alert('❌ Error renewing subscription');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred while renewing the subscription.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
     }
   };
 
@@ -628,14 +679,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       const result = await response.json();
       
       if (result.success) {
-        alert('✅ Subscription suspended successfully!');
+        await showConfirmDialog({
+          title: '✅ Suspended',
+          message: 'Subscription suspended successfully!\n\nThe member will not be able to access gym facilities until reactivated.',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
-        alert(`❌ Failed to suspend: ${result.error}`);
+        await showConfirmDialog({
+          title: '❌ Suspend Failed',
+          message: `Failed to suspend subscription:\n\n${result.error}`,
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'danger'
+        });
       }
     } catch (error) {
       console.error('Error suspending subscription:', error);
-      alert('❌ Error suspending subscription');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred while suspending the subscription.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
     }
   };
 
@@ -662,14 +731,32 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       const result = await response.json();
       
       if (result.success) {
-        alert('✅ Subscription cancelled successfully!');
+        await showConfirmDialog({
+          title: '✅ Cancelled',
+          message: 'Subscription cancelled successfully!\n\nThe member no longer has access to gym facilities.',
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'success'
+        });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
-        alert(`❌ Failed to cancel: ${result.error}`);
+        await showConfirmDialog({
+          title: '❌ Cancellation Failed',
+          message: `Failed to cancel subscription:\n\n${result.error}`,
+          confirmText: 'OK',
+          cancelText: '',
+          type: 'danger'
+        });
       }
     } catch (error) {
       console.error('Error cancelling subscription:', error);
-      alert('❌ Error cancelling subscription');
+      await showConfirmDialog({
+        title: '❌ Error',
+        message: 'An unexpected error occurred while cancelling the subscription.',
+        confirmText: 'OK',
+        cancelText: '',
+        type: 'danger'
+      });
     }
   };
 

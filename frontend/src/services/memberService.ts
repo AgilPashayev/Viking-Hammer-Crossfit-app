@@ -74,7 +74,9 @@ export interface UpdateMemberData {
  */
 export async function getAllMembers(): Promise<Member[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/members`, {
+    // FIXED: Changed from /members to /users to get ALL users regardless of role
+    // The /members endpoint only returns users with role='member', causing instructors to disappear
+    const response = await fetch(`${API_BASE_URL}/users`, {
       headers: getAuthHeaders(),
     });
     
@@ -84,13 +86,32 @@ export async function getAllMembers(): Promise<Member[]> {
     }
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch members: ${response.statusText}`);
+      let errorMessage = 'Failed to fetch members';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      if (response.status === 403) {
+        throw new Error('You do not have permission to view members');
+      } else if (response.status >= 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error fetching members:', error);
+    
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+    }
+    
     throw error;
   }
 }
@@ -154,18 +175,42 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
     
     if (response.status === 401) {
       handle401Error();
-      throw new Error('Session expired');
+      throw new Error('Your session has expired. Please log in again.');
     }
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to create member: ${response.statusText}`);
+      let errorMessage = 'Failed to create member';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        // If response is not JSON, use status text
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      if (response.status === 400) {
+        throw new Error(errorMessage || 'Invalid member information provided');
+      } else if (response.status === 403) {
+        throw new Error('You do not have permission to add members');
+      } else if (response.status === 409) {
+        throw new Error('A member with this email already exists');
+      } else if (response.status >= 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error creating member:', error);
+    
+    // Provide more user-friendly error messages
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+    }
+    
     throw error;
   }
 }
@@ -202,18 +247,40 @@ export async function updateMember(id: string, updates: UpdateMemberData): Promi
     
     if (response.status === 401) {
       handle401Error();
-      throw new Error('Session expired');
+      throw new Error('Your session has expired. Please log in again.');
     }
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to update member: ${response.statusText}`);
+      let errorMessage = 'Failed to update member';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      if (response.status === 400) {
+        throw new Error(errorMessage || 'Invalid member information provided');
+      } else if (response.status === 403) {
+        throw new Error('You do not have permission to update this member');
+      } else if (response.status === 404) {
+        throw new Error('Member not found');
+      } else if (response.status >= 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      throw new Error(errorMessage);
     }
     
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error updating member:', error);
+    
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+    }
+    
     throw error;
   }
 }
@@ -230,15 +297,35 @@ export async function deleteMember(id: string): Promise<void> {
     
     if (response.status === 401) {
       handle401Error();
-      throw new Error('Session expired');
+      throw new Error('Your session has expired. Please log in again.');
     }
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to delete member: ${response.statusText}`);
+      let errorMessage = 'Failed to delete member';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorMessage;
+      } catch {
+        errorMessage = response.statusText || errorMessage;
+      }
+      
+      if (response.status === 403) {
+        throw new Error('You do not have permission to delete members');
+      } else if (response.status === 404) {
+        throw new Error('Member not found');
+      } else if (response.status >= 500) {
+        throw new Error('Server error. Please try again later.');
+      }
+      
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Error deleting member:', error);
+    
+    if (error instanceof TypeError && error.message === 'Failed to fetch') {
+      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+    }
+    
     throw error;
   }
 }

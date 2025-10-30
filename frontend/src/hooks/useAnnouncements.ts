@@ -201,6 +201,38 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
     }, 500);
   };
 
+  // Dismiss/hide announcement for current user
+  const dismissAnnouncement = async (announcementId: string): Promise<boolean> => {
+    if (!userId) {
+      console.error('❌ Cannot dismiss: No user ID');
+      return false;
+    }
+
+    console.log(`🗑️ [${role.toUpperCase()}] Dismissing announcement #${announcementId} for user ${userId}`);
+
+    try {
+      // First mark as read in backend
+      const marked = await markAnnouncementAsRead(announcementId);
+      
+      if (!marked) {
+        throw new Error('Failed to mark as read');
+      }
+
+      // Save to localStorage cache
+      addDismissedId(announcementId);
+
+      // Remove from local announcements list (UI update)
+      setAnnouncements(prev => prev.filter(ann => ann.id !== announcementId));
+      setUnreadAnnouncements(prev => prev.filter(ann => ann.id !== announcementId));
+
+      console.log(`✅ [${role.toUpperCase()}] Announcement #${announcementId} dismissed successfully`);
+      return true;
+    } catch (error) {
+      console.error(`❌ [${role.toUpperCase()}] Failed to dismiss #${announcementId}:`, error);
+      return false;
+    }
+  };
+
   // Load on mount and set up refresh interval
   useEffect(() => {
     if (userId && enabled) {
@@ -219,6 +251,7 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
     isLoading,
     isMarking,
     handleClosePopup,
+    dismissAnnouncement,
     refreshAnnouncements: loadAnnouncements,
   };
 };

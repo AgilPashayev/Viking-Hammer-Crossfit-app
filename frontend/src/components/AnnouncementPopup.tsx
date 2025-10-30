@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDate } from '../utils/dateFormatter';
 import './AnnouncementPopup.css';
 
 interface Announcement {
@@ -50,7 +51,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({
               <div className="announcement-header">
                 <h3>{announcement.title}</h3>
                 <span className="announcement-date">
-                  {new Date(announcement.date).toLocaleDateString()}
+                  {formatDate(announcement.date)}
                 </span>
               </div>
               <p className="announcement-message">{announcement.message}</p>

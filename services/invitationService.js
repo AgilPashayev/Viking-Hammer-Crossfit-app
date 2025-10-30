@@ -165,17 +165,31 @@ Click the link to complete your registration: ${appUrl}/register/${token}`;
         // Mark invitation as sent
         await markInvitationAsSent(token);
         console.log(`✅ Invitation created and email sent to ${email}`);
+        return { data, error: null, emailSent: true };
       } else {
-        console.warn(`⚠️  Invitation created but email failed: ${emailResult.error}`);
+        console.error(`❌ Invitation created but email failed: ${emailResult.error}`);
         // Update status to failed
         await supabase
           .from('invitations')
-          .update({ status: 'failed' })
+          .update({ status: 'failed', failed_reason: emailResult.error })
           .eq('invitation_token', token);
+
+        // Check if it's the Resend test mode limitation
+        const isResendTestMode =
+          emailResult.error &&
+          emailResult.error.includes('testing emails to your own email address');
+
+        return {
+          data,
+          error: null,
+          emailSent: false,
+          emailError: emailResult.error,
+          isTestModeRestriction: isResendTestMode,
+        };
       }
     }
 
-    return { data, error: null };
+    return { data, error: null, emailSent: false };
   } catch (error) {
     console.error('Error creating invitation:', error);
     return { data: null, error: error.message };

@@ -17,7 +17,7 @@ async function createCheckIn(checkInData) {
     // Verify user exists and has active membership
     const { data: user, error: userError } = await supabase
       .from('users_profile')
-      .select('id, name, membership_status')
+      .select('id, name, status')
       .eq('id', userId)
       .single();
 
@@ -25,7 +25,7 @@ async function createCheckIn(checkInData) {
       return { data: null, error: 'User not found', status: 404 };
     }
 
-    if (user.membership_status !== 'active') {
+    if (user.status !== 'active') {
       return {
         data: null,
         error: 'Cannot check-in. Membership is not active.',
@@ -35,14 +35,14 @@ async function createCheckIn(checkInData) {
 
     // Create check-in record
     const { data: checkIn, error: insertError } = await supabase
-      .from('check_ins')
+      .from('checkins')
       .insert([
         {
           user_id: userId,
-          check_in_time: new Date().toISOString(),
-          qr_code_used: qrCode || null,
+          ts: new Date().toISOString(),
+          method: 'QR',
           location_id: locationId || null,
-          status: 'completed',
+          notes: qrCode ? `QR Code: ${qrCode}` : null,
         },
       ])
       .select()
@@ -74,25 +74,25 @@ async function createCheckIn(checkInData) {
 async function getAllCheckIns(filters = {}) {
   try {
     let query = supabase
-      .from('check_ins')
+      .from('checkins')
       .select(
         `
   *,
   users_profile!inner(id, name, email)
       `,
       )
-      .order('check_in_time', { ascending: false });
+      .order('ts', { ascending: false });
 
     if (filters.userId) {
       query = query.eq('user_id', filters.userId);
     }
 
     if (filters.startDate) {
-      query = query.gte('check_in_time', filters.startDate);
+      query = query.gte('ts', filters.startDate);
     }
 
     if (filters.endDate) {
-      query = query.lte('check_in_time', filters.endDate);
+      query = query.lte('ts', filters.endDate);
     }
 
     if (filters.locationId) {
@@ -124,18 +124,18 @@ async function getUserCheckIns(userId, options = {}) {
     const { limit = 50, startDate, endDate } = options;
 
     let query = supabase
-      .from('check_ins')
+      .from('checkins')
       .select('*')
       .eq('user_id', userId)
-      .order('check_in_time', { ascending: false })
+      .order('ts', { ascending: false })
       .limit(limit);
 
     if (startDate) {
-      query = query.gte('check_in_time', startDate);
+      query = query.gte('ts', startDate);
     }
 
     if (endDate) {
-      query = query.lte('check_in_time', endDate);
+      query = query.lte('ts', endDate);
     }
 
     const { data, error } = await query;
@@ -159,18 +159,18 @@ async function getUserCheckIns(userId, options = {}) {
  */
 async function getCheckInStatistics(filters = {}) {
   try {
-    let query = supabase.from('check_ins').select('id, user_id, check_in_time');
+    let query = supabase.from('checkins').select('id, user_id, ts');
 
     if (filters.userId) {
       query = query.eq('user_id', filters.userId);
     }
 
     if (filters.startDate) {
-      query = query.gte('check_in_time', filters.startDate);
+      query = query.gte('ts', filters.startDate);
     }
 
     if (filters.endDate) {
-      query = query.lte('check_in_time', filters.endDate);
+      query = query.lte('ts', filters.endDate);
     }
 
     const { data, error } = await query;
@@ -186,7 +186,7 @@ async function getCheckInStatistics(filters = {}) {
     // Group by hour for peak time analysis
     const hourCounts = {};
     data.forEach((ci) => {
-      const hour = new Date(ci.check_in_time).getHours();
+      const hour = new Date(ci.ts).getHours();
       hourCounts[hour] = (hourCounts[hour] || 0) + 1;
     });
 

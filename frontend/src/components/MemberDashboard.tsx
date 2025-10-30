@@ -4,6 +4,7 @@ import { useData } from '../contexts/DataContext';
 import { classService, GymClass } from '../services/classManagementService';
 import { bookingService } from '../services/bookingService';
 import ClassDetailsModal from './ClassDetailsModal';
+import { formatDate } from '../utils/dateFormatter';
 import {
   generateQRCodeData,
   generateQRCodeImage,
@@ -63,7 +64,7 @@ interface MemberDashboardProps {
 }
 
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
-  const { getMemberVisitsThisMonth, getMemberTotalVisits, classes } = useData();
+  const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
   
   // Debug logging
   console.log('MemberDashboard rendering, user:', user);
@@ -86,9 +87,17 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const [selectedClass, setSelectedClass] = useState<GymClass | null>(null);
   const [selectedClassDate, setSelectedClassDate] = useState<string>('');
   const [selectedClassTime, setSelectedClassTime] = useState<string>('');
+  const [selectedClassDayOfWeek, setSelectedClassDayOfWeek] = useState<number | undefined>(undefined);
   const [isBooking, setIsBooking] = useState(false);
   const [userBookings, setUserBookings] = useState<string[]>([]);
   const [bookingMessage, setBookingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  
+  // Confirmation modal state for announcement dismiss
+  const [dismissConfirmModal, setDismissConfirmModal] = useState<{
+    show: boolean;
+    announcementId: string;
+    title: string;
+  }>({ show: false, announcementId: '', title: '' });
 
   // Load user bookings
   useEffect(() => {
@@ -126,6 +135,46 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     return () => clearInterval(pollInterval);
   }, []);  // Empty dependency - only load on mount and poll
 
+  // Sync localClasses with DataContext classes when they change
+  useEffect(() => {
+    setLocalClasses(classes);
+  }, [classes]);
+
+  // Helper function to get instructor name by ID or from class data
+  const getInstructorName = (instructorId: string, classData?: any): string => {
+    // First try to find instructor in members data (available for admins)
+    const instructor = members.find(member => 
+      member.id === instructorId && member.role === 'instructor'
+    );
+    
+    if (instructor) {
+      return `${instructor.firstName} ${instructor.lastName}`;
+    }
+    
+    // Try to get instructor name from class data if available
+    if (classData && classData.instructorNames && classData.instructorNames.length > 0) {
+      const instructorIndex = classData.instructors?.indexOf(instructorId) ?? -1;
+      if (instructorIndex >= 0 && classData.instructorNames[instructorIndex]) {
+        return classData.instructorNames[instructorIndex];
+      }
+      // If instructor ID not found in array, return the first instructor name
+      return classData.instructorNames[0];
+    }
+    
+    // Fallback for regular members: return a user-friendly placeholder
+    if (instructorId && instructorId.length > 10) {
+      return 'Instructor'; // Generic placeholder for valid instructor IDs
+    }
+    
+    return instructorId || 'TBA';
+  };
+
+  // Helper function to get full member data including status
+  const getFullMemberData = () => {
+    if (!user?.id) return null;
+    return members.find(member => member.id === user.id);
+  };
+
   // Update user profile when user data changes OR when visits change
   useEffect(() => {
     if (user) {
@@ -139,7 +188,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || prev.avatar,
       }));
     }
-  }, [user, getMemberVisitsThisMonth, getMemberTotalVisits]);
+  }, [user, getMemberVisitsThisMonth, getMemberTotalVisits, checkIns, members]);
 
   // Transform classes to ClassBooking format with real-time updates
   const upcomingClasses: ClassBooking[] = localClasses
@@ -188,7 +237,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         const booking: ClassBooking = {
           id: cls.id,
           className: cls.name,
-          instructor: cls.instructors && cls.instructors.length > 0 ? cls.instructors[0] : 'TBA',
+          instructor: cls.instructors && cls.instructors.length > 0 ? getInstructorName(cls.instructors[0], cls) : 'TBA',
           date: nextDate.toISOString().split('T')[0],
           time: nextSchedule.startTime,
           status: 'upcoming',
@@ -215,6 +264,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     showPopup: showAnnouncementPopup,
     isMarking: isMarkingAnnouncements,
     handleClosePopup: handleCloseAnnouncementPopup,
+    dismissAnnouncement,
   } = useAnnouncements({
     userId: user?.id,
     role: 'member',
@@ -289,6 +339,17 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       setSelectedClass(gymClass);
       setSelectedClassDate(classItem.date);
       setSelectedClassTime(classItem.time);
+      
+      // Calculate dayOfWeek from the date to ensure correct matching with database
+      const calculatedDayOfWeek = new Date(classItem.date).getDay();
+      setSelectedClassDayOfWeek(calculatedDayOfWeek);
+      
+      console.log('🔍 Class Details Modal - Setting:', {
+        date: classItem.date,
+        time: classItem.time,
+        calculatedDayOfWeek,
+        dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][calculatedDayOfWeek]
+      });
     }
   };
 
@@ -296,6 +357,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     setSelectedClass(null);
     setSelectedClassDate('');
     setSelectedClassTime('');
+    setSelectedClassDayOfWeek(undefined);
     setBookingMessage(null);
   };
 
@@ -335,7 +397,8 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           selectedClass.id,
           user.id,
           selectedClassDate,
-          selectedClassTime
+          selectedClassTime,
+          selectedClassDayOfWeek  // Pass the pre-calculated dayOfWeek
         );
 
         if (result.success) {
@@ -466,7 +529,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             <h1>Welcome back, {userProfile.name}!</h1>
             <p className="membership-info">
               {userProfile.membershipType} • Member since{' '}
-              {new Date(userProfile.joinDate).toLocaleDateString()}
+              {formatDate(userProfile.joinDate)}
             </p>
           </div>
         </div>
@@ -507,7 +570,11 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         <div className="stat-card">
           <div className="stat-icon">🎯</div>
           <div className="stat-content">
-            <h3>Active</h3>
+            <h3>{(() => {
+              const memberData = getFullMemberData();
+              const status = memberData?.status || 'active';
+              return status.charAt(0).toUpperCase() + status.slice(1);
+            })()}</h3>
             <p>Membership Status</p>
           </div>
         </div>
@@ -520,7 +587,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           <div className="section-header">
             <h2>🗓️ Upcoming Classes</h2>
             {isLoadingClasses && <span className="loading-indicator">🔄 Refreshing...</span>}
-            <button className="btn btn-link">
+            <button className="btn btn-link" onClick={() => onNavigate?.('classes')}>
               View All
             </button>
           </div>
@@ -579,17 +646,38 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             <h2>📢 Gym News & Announcements</h2>
           </div>
           <div className="announcements-list">
-            {announcementsList.map((announcement: Announcement) => (
-              <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
-                <div className="announcement-header">
-                  <h4>{announcement.title}</h4>
-                  <span className="announcement-date">
-                    {new Date(announcement.date).toLocaleDateString()}
-                  </span>
-                </div>
-                <p>{announcement.message}</p>
+            {announcementsList.length === 0 ? (
+              <div className="empty-state">
+                <p>📭 No announcements at the moment. Check back later!</p>
               </div>
-            ))}
+            ) : (
+              announcementsList.map((announcement: Announcement) => (
+                <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
+                  <div className="announcement-header">
+                    <h4>{announcement.title}</h4>
+                    <div className="announcement-actions">
+                      <span className="announcement-date">
+                        {formatDate(announcement.date)}
+                      </span>
+                      <button
+                        className="btn-dismiss"
+                        onClick={() => {
+                          setDismissConfirmModal({
+                            show: true,
+                            announcementId: announcement.id,
+                            title: announcement.title
+                          });
+                        }}
+                        title="Dismiss announcement"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                  <p>{announcement.message}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -630,7 +718,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 <p className="qr-id">ID: {quickStats.qrCode}</p>
                 {qrCodeData && (
                   <div className="qr-details">
-                    <p>Expires: {new Date(qrCodeData.expiresAt).toLocaleDateString()}</p>
+                    <p>Expires: {formatDate(qrCodeData.expiresAt)}</p>
                     <p>Generated: {new Date(qrCodeData.timestamp).toLocaleString()}</p>
                   </div>
                 )}
@@ -679,6 +767,51 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           onClose={handleCloseAnnouncementPopup}
           isLoading={isMarkingAnnouncements}
         />
+      )}
+
+      {/* Dismiss Announcement Confirmation Modal */}
+      {dismissConfirmModal.show && (
+        <div className="modal-overlay" onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📢 Dismiss Announcement</h3>
+              <button 
+                className="modal-close-btn" 
+                onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-message">
+                Are you sure you want to dismiss "<strong>{dismissConfirmModal.title}</strong>"?
+              </p>
+              <p className="modal-submessage">
+                This announcement will be marked as read and removed from your dashboard.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+              >
+                Cancel
+              </button>
+              <button 
+                className="btn btn-primary"
+                onClick={async () => {
+                  const success = await dismissAnnouncement(dismissConfirmModal.announcementId);
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' });
+                  if (!success) {
+                    alert('❌ Failed to dismiss announcement. Please try again.');
+                  }
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
