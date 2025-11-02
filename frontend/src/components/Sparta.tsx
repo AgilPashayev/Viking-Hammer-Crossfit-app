@@ -44,26 +44,25 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   };
 
   // Format activity messages with bold names and actions
-  const formatActivityMessage = (message: string, updatedBy?: { name: string; role: string }): React.ReactElement => {
+  const formatActivityMessage = (
+    message: string,
+    updatedBy?: { name: string; role: string },
+  ): React.ReactElement => {
     // Patterns to match:
     // "John Doe checked in" -> <strong>John Doe</strong> checked in
     // "New member: Jane Smith" -> New member: <strong>Jane Smith</strong>
     // "Class created: CrossFit 101" -> <strong>Class created:</strong> CrossFit 101
     // "Membership changed from X to Y" -> <strong>Membership changed</strong> from X to Y
-    
-    // Pattern 1: Name at the start (e.g., "John Doe checked in" or "John Doe profile updated")
-    const nameAtStartMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (checked in|profile updated|birthday upcoming)/i);
-    if (nameAtStartMatch) {
-      const [, name, action] = nameAtStartMatch;
-      const formattedAction = action.toLowerCase() === 'profile updated' ? 'profile updated' : action;
-      
+
+    // Pattern 0: Special case for "Member profile updated" or "Unknown Member profile updated"
+    if (message.match(/^(Member|Unknown Member) profile updated$/i)) {
       return (
         <span>
-          <strong>{name}</strong> {formattedAction}
-          {updatedBy && action.toLowerCase() === 'profile updated' && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+          <strong style={{ color: '#60a5fa' }}>Member</strong> profile updated
+          {updatedBy && (
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -71,18 +70,44 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
+
+    // Pattern 1: Name at the start (e.g., "John Doe checked in" or "John Doe profile updated")
+    const nameAtStartMatch = message.match(
+      /^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (checked in|profile updated|birthday upcoming)/i,
+    );
+    if (nameAtStartMatch) {
+      const [, name, action] = nameAtStartMatch;
+      const formattedAction =
+        action.toLowerCase() === 'profile updated' ? 'profile updated' : action;
+
+      return (
+        <span>
+          <strong style={{ color: '#60a5fa' }}>{name}</strong> {formattedAction}
+          {updatedBy && action.toLowerCase() === 'profile updated' && (
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
+    }
+
     // Pattern 2: "Action: Name" (e.g., "New member: John Doe")
-    const actionNameMatch = message.match(/^(New member|New class added|Class updated|Instructor added|Instructor updated|Schedule created|Schedule updated): (.+)$/i);
+    const actionNameMatch = message.match(
+      /^(New member|New class added|Class updated|Instructor added|Instructor updated|Schedule created|Schedule updated): (.+)$/i,
+    );
     if (actionNameMatch) {
       const [, action, name] = actionNameMatch;
       return (
         <span>
-          <strong>{action}:</strong> {name}
+          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {name}
           {updatedBy && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -90,18 +115,20 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
+
     // Pattern 3: "Announcement X" (e.g., "Announcement created: Title")
-    const announcementMatch = message.match(/^(Announcement (?:created|published|deleted)): (.+)$/i);
+    const announcementMatch = message.match(
+      /^(Announcement (?:created|published|deleted)): (.+)$/i,
+    );
     if (announcementMatch) {
       const [, action, title] = announcementMatch;
       return (
         <span>
-          <strong>{action}:</strong> {title}
+          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {title}
           {updatedBy && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -109,18 +136,20 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
-    // Pattern 4: "Membership changed" patterns
-    const membershipMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (membership changed to .+)$/i);
+
+    // Pattern 4: "Membership changed" patterns - enhanced to catch more variations
+    const membershipMatch = message.match(/^(.+?) (membership changed to .+)$/i);
     if (membershipMatch) {
       const [, name, action] = membershipMatch;
+      // Only process if name looks like a real name (not just "Member")
+      const displayName = name.trim() !== 'Member' && name.trim() !== '' ? name : 'Member';
       return (
         <span>
-          <strong>{name}</strong> {action}
+          <strong style={{ color: '#60a5fa' }}>{displayName}</strong> {action}
           {updatedBy && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -128,18 +157,20 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
+
     // Pattern 5: Delete actions (e.g., "Class deleted: CrossFit 101")
-    const deleteMatch = message.match(/^(Class deleted|Instructor deleted|Schedule deleted): (.+)$/i);
+    const deleteMatch = message.match(
+      /^(Class deleted|Instructor deleted|Schedule deleted): (.+)$/i,
+    );
     if (deleteMatch) {
       const [, action, name] = deleteMatch;
       return (
         <span>
-          <strong>{action}:</strong> {name}
+          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {name}
           {updatedBy && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -147,7 +178,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
+
     // Default: try to bold any names (capitalized words at start)
     const defaultMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*)/);
     if (defaultMatch) {
@@ -155,11 +186,12 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
       const rest = message.slice(name.length);
       return (
         <span>
-          <strong>{name}</strong>{rest}
+          <strong style={{ color: '#60a5fa' }}>{name}</strong>
+          {rest}
           {updatedBy && (
-            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
-              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
             </span>
@@ -167,31 +199,59 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         </span>
       );
     }
-    
-    // Fallback: return as-is
-    return <span>{message}</span>;
+
+    // Fallback: return as-is with light color for dark background
+    return <span style={{ color: '#e2e8f0' }}>{message}</span>;
   };
 
   const iconFor = (type: Activity['type']) => {
     switch (type) {
-      case 'checkin': return { icon: '✅', cls: 'success' };
-      case 'member_added': return { icon: '👤', cls: 'info' };
-      case 'member_updated': return { icon: '🛠️', cls: 'info' };
-      case 'membership_changed': return { icon: '💳', cls: 'warning' };
-      case 'announcement_created': return { icon: '📝', cls: 'info' };
-      case 'announcement_published': return { icon: '📢', cls: 'success' };
-      case 'announcement_deleted': return { icon: '🗑️', cls: 'warning' };
-      case 'birthday_upcoming': return { icon: '🎂', cls: 'birthday' };
-      default: return { icon: 'ℹ️', cls: 'info' };
+      case 'checkin':
+        return { icon: '✅', cls: 'success' };
+      case 'member_added':
+        return { icon: '👤', cls: 'info' };
+      case 'member_updated':
+        return { icon: '🛠️', cls: 'info' };
+      case 'membership_changed':
+        return { icon: '💳', cls: 'warning' };
+      case 'announcement_created':
+        return { icon: '📝', cls: 'info' };
+      case 'announcement_published':
+        return { icon: '📢', cls: 'success' };
+      case 'announcement_deleted':
+        return { icon: '🗑️', cls: 'warning' };
+      case 'birthday_upcoming':
+        return { icon: '🎂', cls: 'birthday' };
+      default:
+        return { icon: 'ℹ️', cls: 'info' };
     }
   };
 
-  const buildActivityFeed = (): Array<{ id: string; type: Activity['type']; message: string; timestamp: string; updatedBy?: { name: string; role: string } }> => {
-    const base: Array<{ id: string; type: Activity['type']; message: string; timestamp: string; memberId?: string; updatedBy?: { name: string; role: string } }>
-      = activities.map(a => ({ id: a.id, type: a.type, message: a.message, timestamp: a.timestamp, memberId: a.memberId, updatedBy: a.updatedBy }));
+  const buildActivityFeed = (): Array<{
+    id: string;
+    type: Activity['type'];
+    message: string;
+    timestamp: string;
+    updatedBy?: { name: string; role: string };
+  }> => {
+    const base: Array<{
+      id: string;
+      type: Activity['type'];
+      message: string;
+      timestamp: string;
+      memberId?: string;
+      updatedBy?: { name: string; role: string };
+    }> = activities.map((a) => ({
+      id: a.id,
+      type: a.type,
+      message: a.message,
+      timestamp: a.timestamp,
+      memberId: a.memberId,
+      updatedBy: a.updatedBy,
+    }));
     // Synthesize upcoming birthday activities (next 7 days)
     const bdays = getUpcomingBirthdays();
-    const bdayActs = bdays.map(m => {
+    const bdayActs = bdays.map((m) => {
       const msg = `${m.firstName} ${m.lastName} birthday upcoming`;
       const today = new Date();
       const dob = new Date(m.dateOfBirth as string);
@@ -229,7 +289,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
       setStream(mediaStream);
       setCameraActive(true);
       setScanResult(null);
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
         // Start continuous scanning when video starts playing
@@ -311,7 +371,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   const processScan = async (qrData: string) => {
     setIsScanning(true);
     stopCamera(); // Stop camera immediately when QR detected
-    
+
     try {
       // Call backend API to verify QR code with membership limits
       const token = localStorage.getItem('token');
@@ -319,7 +379,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ qrCode: qrData }),
       });
@@ -366,7 +426,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId: scannedMemberData.userId,
@@ -429,9 +489,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     return (
       <div className="sparta-dashboard">
         <div className="sparta-welcome">
-          <div className="sparta-avatar">
-            ⚔️
-          </div>
+          <div className="sparta-avatar">⚔️</div>
           <div className="welcome-text">
             <h1>Sparta Dashboard</h1>
             <p className="subtitle">This is a SPARTAAA!!!</p>
@@ -544,7 +602,9 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                   <div key={activity.id} className={`activity-item ${cls}`}>
                     <div className="activity-icon">{icon}</div>
                     <div className="activity-content">
-                      <p className="activity-message">{formatActivityMessage(activity.message, activity.updatedBy)}</p>
+                      <p className="activity-message">
+                        {formatActivityMessage(activity.message, activity.updatedBy)}
+                      </p>
                       <span className="activity-time">{timeAgo(activity.timestamp)}</span>
                     </div>
                   </div>
@@ -590,9 +650,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
               <div className="scanner-content">
                 {scanResult ? (
                   <div className={`scan-result ${scanResult.success ? 'success' : 'error'}`}>
-                    <div className="result-icon">
-                      {scanResult.success ? '✅' : '❌'}
-                    </div>
+                    <div className="result-icon">{scanResult.success ? '✅' : '❌'}</div>
                     <h4>{scanResult.message}</h4>
                     <button
                       className="capture-btn"
@@ -610,8 +668,17 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                     <canvas ref={canvasRef} style={{ display: 'none' }} />
                     <div className="scanner-overlay">
                       <div className="scan-frame"></div>
-                      <p style={{ color: '#2ecc71', fontWeight: 'bold', marginTop: '10px', textAlign: 'center' }}>
-                        {isScanning ? '🔄 Scanning for QR codes...' : '📱 Scanning automatically...'}
+                      <p
+                        style={{
+                          color: '#2ecc71',
+                          fontWeight: 'bold',
+                          marginTop: '10px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        {isScanning
+                          ? '🔄 Scanning for QR codes...'
+                          : '📱 Scanning automatically...'}
                       </p>
                     </div>
                   </>
@@ -635,15 +702,25 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                 <div className="member-review-card">
                   {scannedMemberData.avatarUrl && (
                     <div className="member-photo">
-                      <img 
-                        src={scannedMemberData.avatarUrl} 
+                      <img
+                        src={scannedMemberData.avatarUrl}
                         alt={`${scannedMemberData.firstName}`}
-                        style={{ width: '120px', height: '120px', borderRadius: '50%', objectFit: 'cover', margin: '0 auto 20px', display: 'block' }}
+                        style={{
+                          width: '120px',
+                          height: '120px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          margin: '0 auto 20px',
+                          display: 'block',
+                        }}
                       />
                     </div>
                   )}
-                  
-                  <div className="member-details" style={{ textAlign: 'center', marginBottom: '20px' }}>
+
+                  <div
+                    className="member-details"
+                    style={{ textAlign: 'center', marginBottom: '20px' }}
+                  >
                     <h2 style={{ margin: '10px 0', color: '#2c3e50' }}>
                       {scannedMemberData.firstName} {scannedMemberData.lastName}
                     </h2>
@@ -652,36 +729,106 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                     </p>
                   </div>
 
-                  <div className="membership-info" style={{ background: '#f8f9fa', padding: '20px', borderRadius: '8px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                  <div
+                    className="membership-info"
+                    style={{
+                      background: '#f8f9fa',
+                      padding: '20px',
+                      borderRadius: '8px',
+                      marginBottom: '20px',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '12px',
+                      }}
+                    >
                       <span style={{ fontWeight: '600', color: '#2c3e50' }}>Membership Type:</span>
-                      <span style={{ color: '#3498db', fontWeight: '600' }}>{scannedMemberData.membershipType || 'N/A'}</span>
-                    </div>
-                    
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>Status:</span>
-                      <span style={{ color: scannedMemberData.membershipStatus === 'active' ? '#27ae60' : '#e74c3c', fontWeight: '600' }}>
-                        {scannedMemberData.membershipStatus === 'active' ? '✓ Active' : '✗ Inactive'}
+                      <span style={{ color: '#3498db', fontWeight: '600' }}>
+                        {scannedMemberData.membershipType || 'N/A'}
                       </span>
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>Visits This Month:</span>
-                      <span style={{ color: '#34495e', fontWeight: '600' }}>{scannedMemberData.monthlyCheckInCount || 0}</span>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>Status:</span>
+                      <span
+                        style={{
+                          color:
+                            scannedMemberData.membershipStatus === 'active' ? '#27ae60' : '#e74c3c',
+                          fontWeight: '600',
+                        }}
+                      >
+                        {scannedMemberData.membershipStatus === 'active'
+                          ? '✓ Active'
+                          : '✗ Inactive'}
+                      </span>
                     </div>
 
-                    {scannedMemberData.remainingVisits !== null && scannedMemberData.remainingVisits !== -1 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <span style={{ fontWeight: '600', color: '#2c3e50' }}>Remaining Visits:</span>
-                        <span style={{ color: scannedMemberData.remainingVisits > 3 ? '#27ae60' : '#e67e22', fontWeight: '600' }}>
-                          {scannedMemberData.remainingVisits}
-                        </span>
-                      </div>
-                    )}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        marginBottom: '12px',
+                      }}
+                    >
+                      <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                        Visits This Month:
+                      </span>
+                      <span style={{ color: '#34495e', fontWeight: '600' }}>
+                        {scannedMemberData.monthlyCheckInCount || 0}
+                      </span>
+                    </div>
+
+                    {scannedMemberData.remainingVisits !== null &&
+                      scannedMemberData.remainingVisits !== -1 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            marginBottom: '12px',
+                          }}
+                        >
+                          <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                            Remaining Visits:
+                          </span>
+                          <span
+                            style={{
+                              color: scannedMemberData.remainingVisits > 3 ? '#27ae60' : '#e67e22',
+                              fontWeight: '600',
+                            }}
+                          >
+                            {scannedMemberData.remainingVisits}
+                          </span>
+                        </div>
+                      )}
 
                     {scannedMemberData.limitMessage && (
-                      <div style={{ marginTop: '15px', padding: '12px', background: scannedMemberData.canCheckIn ? '#d4edda' : '#f8d7da', borderRadius: '6px', borderLeft: `4px solid ${scannedMemberData.canCheckIn ? '#28a745' : '#dc3545'}` }}>
-                        <p style={{ margin: 0, fontSize: '14px', color: scannedMemberData.canCheckIn ? '#155724' : '#721c24' }}>
+                      <div
+                        style={{
+                          marginTop: '15px',
+                          padding: '12px',
+                          background: scannedMemberData.canCheckIn ? '#d4edda' : '#f8d7da',
+                          borderRadius: '6px',
+                          borderLeft: `4px solid ${
+                            scannedMemberData.canCheckIn ? '#28a745' : '#dc3545'
+                          }`,
+                        }}
+                      >
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '14px',
+                            color: scannedMemberData.canCheckIn ? '#155724' : '#721c24',
+                          }}
+                        >
                           {scannedMemberData.limitMessage}
                         </p>
                       </div>
@@ -690,21 +837,38 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
 
                   <div className="modal-actions" style={{ display: 'flex', gap: '10px' }}>
                     {scannedMemberData.canCheckIn ? (
-                      <button 
-                        className="capture-btn" 
+                      <button
+                        className="capture-btn"
                         onClick={handleConfirmCheckIn}
-                        style={{ flex: 1, padding: '12px 24px', fontSize: '16px', fontWeight: '600', background: '#28a745' }}
+                        style={{
+                          flex: 1,
+                          padding: '12px 24px',
+                          fontSize: '16px',
+                          fontWeight: '600',
+                          background: '#28a745',
+                        }}
                       >
                         ✓ Confirm Check-In
                       </button>
                     ) : (
-                      <div style={{ flex: 1, padding: '12px', background: '#fff3cd', border: '2px solid #ffc107', borderRadius: '6px', textAlign: 'center' }}>
+                      <div
+                        style={{
+                          flex: 1,
+                          padding: '12px',
+                          background: '#fff3cd',
+                          border: '2px solid #ffc107',
+                          borderRadius: '6px',
+                          textAlign: 'center',
+                        }}
+                      >
                         <strong style={{ color: '#856404' }}>⚠️ Cannot Check-In</strong>
-                        <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#856404' }}>Monthly limit reached or membership expired</p>
+                        <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#856404' }}>
+                          Monthly limit reached or membership expired
+                        </p>
                       </div>
                     )}
-                    <button 
-                      className="close-btn" 
+                    <button
+                      className="close-btn"
                       onClick={handleCancelCheckIn}
                       style={{ flex: 1, padding: '12px 24px', fontSize: '16px' }}
                     >
@@ -727,24 +891,14 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   return (
     <div className="sparta">
       {activeSection === 'dashboard' && renderDashboard()}
-      {activeSection === 'members' && (
-        <MemberManagement onBack={handleBackToDashboard} />
-      )}
-      {activeSection === 'classes' && (
-        <ClassManagement onBack={handleBackToDashboard} />
-      )}
-      {activeSection === 'history' && (
-        <CheckInHistory onBack={handleBackToDashboard} />
-      )}
+      {activeSection === 'members' && <MemberManagement onBack={handleBackToDashboard} />}
+      {activeSection === 'classes' && <ClassManagement onBack={handleBackToDashboard} />}
+      {activeSection === 'history' && <CheckInHistory onBack={handleBackToDashboard} />}
       {activeSection === 'announcements' && (
         <AnnouncementManager onBack={handleBackToDashboard} user={user} />
       )}
-      {activeSection === 'memberships' && (
-        <MembershipManager onBack={handleBackToDashboard} />
-      )}
-      {activeSection === 'birthdays' && (
-        <UpcomingBirthdays onBack={handleBackToDashboard} />
-      )}
+      {activeSection === 'memberships' && <MembershipManager onBack={handleBackToDashboard} />}
+      {activeSection === 'birthdays' && <UpcomingBirthdays onBack={handleBackToDashboard} />}
     </div>
   );
 };

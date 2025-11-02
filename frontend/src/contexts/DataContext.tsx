@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from 'react';
 import {
   getAllMembers as fetchAllMembers,
   createMember as apiCreateMember,
@@ -11,7 +18,12 @@ import {
 import { isAuthenticated, isAdmin } from '../services/authService';
 
 // Default membership types - these should match the plans in database
-const DEFAULT_MEMBERSHIP_TYPES = ['Single Session', 'Monthly Limited', 'Monthly Unlimited', 'Company Basic'];
+const DEFAULT_MEMBERSHIP_TYPES = [
+  'Single Session',
+  'Monthly Limited',
+  'Monthly Unlimited',
+  'Company Basic',
+];
 
 export interface Member {
   id: string;
@@ -222,11 +234,22 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   const transformApiMember = useCallback(
     (apiMember: ApiMember): Member => {
-      const rawName = (apiMember.name || '').trim();
-      const nameParts = rawName ? rawName.split(' ') : [];
-      const fallbackName = apiMember.email?.split('@')[0] || 'Member';
-      const firstName = nameParts[0] || fallbackName;
-      const lastName = nameParts.slice(1).join(' ');
+      // Backend now returns firstName and lastName directly
+      // If not available, parse from name field as fallback
+      let firstName = (apiMember as any).firstName || '';
+      let lastName = (apiMember as any).lastName || '';
+
+      if (!firstName && !lastName && apiMember.name) {
+        const rawName = apiMember.name.trim();
+        const nameParts = rawName.split(' ');
+        firstName = nameParts[0] || '';
+        lastName = nameParts.slice(1).join(' ') || '';
+      }
+
+      // Final fallback to email if no name is available
+      if (!firstName && apiMember.email) {
+        firstName = apiMember.email.split('@')[0];
+      }
 
       const membershipType = apiMember.membership_type || membershipTypes[0] || 'Monthly Unlimited';
       const joinDateSource = apiMember.join_date || apiMember.created_at;
@@ -234,7 +257,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         ? new Date(joinDateSource).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0];
 
-      const lastCheckIn = apiMember.last_check_in ? new Date(apiMember.last_check_in).toISOString() : undefined;
+      const lastCheckIn = apiMember.last_check_in
+        ? new Date(apiMember.last_check_in).toISOString()
+        : undefined;
 
       const normalizedStatus = (apiMember.status as Member['status']) || 'active';
       const normalizedRole = (apiMember.role as Member['role']) || 'member';
@@ -251,7 +276,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         lastCheckIn,
         role: normalizedRole,
         company: apiMember.company || undefined,
-        dateOfBirth: apiMember.dob ? new Date(apiMember.dob).toISOString().split('T')[0] : undefined,
+        dateOfBirth: apiMember.dob
+          ? new Date(apiMember.dob).toISOString().split('T')[0]
+          : undefined,
         gender: undefined, // Not available in users_profile table
         emergencyContact: undefined, // Not available in users_profile table
         address: undefined, // Not available in users_profile table
@@ -269,9 +296,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       setMembersLoading(true);
       setMembersError(null);
       const apiMembers = await fetchAllMembers();
-      const normalized = Array.isArray(apiMembers)
-        ? apiMembers.map(transformApiMember)
-        : [];
+      const normalized = Array.isArray(apiMembers) ? apiMembers.map(transformApiMember) : [];
       setMembers(normalized);
     } catch (error) {
       console.error('Failed to load members:', error);
@@ -286,7 +311,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     if (isAuthenticated() && isAdmin()) {
       loadMembers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run once on mount
 
   // Calculate real-time stats whenever members or checkIns change
@@ -332,9 +356,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       return birthdayThisYear >= new Date() && birthdayThisYear <= nextWeek;
     }).length;
 
-  // Values from other modules (kept from current stats, updated by their modules)
-  const activeClasses = stats.activeClasses;
-  const plansCount = stats.plansCount;
+    // Values from other modules (kept from current stats, updated by their modules)
+    const activeClasses = stats.activeClasses;
+    const plansCount = stats.plansCount;
     const expiringMemberships = Math.floor(totalMembers * 0.1); // 10% of members with expiring memberships
 
     setStats({
@@ -376,19 +400,21 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     const currentTime = now.toTimeString().slice(0, 5); // HH:MM format
 
     // Filter active classes that are upcoming
-    return classes.filter(cls => {
-      if (cls.status !== 'active') return false;
-      
-      // Check if class has upcoming schedule
-      return cls.schedule.some(sch => {
-        // If class is today and hasn't started yet, or it's on a future day this week
-        if (sch.dayOfWeek === currentDay) {
-          return sch.startTime > currentTime;
-        }
-        // Future days this week
-        return sch.dayOfWeek > currentDay;
-      });
-    }).slice(0, 5); // Return max 5 upcoming classes
+    return classes
+      .filter((cls) => {
+        if (cls.status !== 'active') return false;
+
+        // Check if class has upcoming schedule
+        return cls.schedule.some((sch) => {
+          // If class is today and hasn't started yet, or it's on a future day this week
+          if (sch.dayOfWeek === currentDay) {
+            return sch.startTime > currentTime;
+          }
+          // Future days this week
+          return sch.dayOfWeek > currentDay;
+        });
+      })
+      .slice(0, 5); // Return max 5 upcoming classes
   };
 
   const addClass = (classData: Omit<GymClass, 'id'>) => {
@@ -396,71 +422,69 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       ...classData,
       id: `class_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     };
-    setClasses(prev => [...prev, newClass]);
-    
+    setClasses((prev) => [...prev, newClass]);
+
     // Update active classes count
     if (newClass.status === 'active') {
-      setActiveClassesCount(classes.filter(c => c.status === 'active').length + 1);
+      setActiveClassesCount(classes.filter((c) => c.status === 'active').length + 1);
     }
-    
+
     // Log activity
     logActivity({
       type: 'member_added', // Using existing type as proxy
       message: `New class added: ${newClass.name}`,
-      metadata: { classId: newClass.id, className: newClass.name }
+      metadata: { classId: newClass.id, className: newClass.name },
     });
   };
 
   const updateClass = (id: string, updates: Partial<GymClass>) => {
-    setClasses(prev => {
-      const updated = prev.map(cls => 
-        cls.id === id ? { ...cls, ...updates } : cls
-      );
-      
+    setClasses((prev) => {
+      const updated = prev.map((cls) => (cls.id === id ? { ...cls, ...updates } : cls));
+
       // Update active classes count if status changed
-      const activeCount = updated.filter(c => c.status === 'active').length;
+      const activeCount = updated.filter((c) => c.status === 'active').length;
       setActiveClassesCount(activeCount);
-      
+
       return updated;
     });
-    
+
     // Log activity
-    const updatedClass = classes.find(c => c.id === id);
+    const updatedClass = classes.find((c) => c.id === id);
     if (updatedClass) {
       logActivity({
         type: 'member_updated', // Using existing type as proxy
         message: `Class updated: ${updatedClass.name}`,
-        metadata: { classId: id, updates }
+        metadata: { classId: id, updates },
       });
     }
   };
 
   const deleteClass = (id: string) => {
-    const classToDelete = classes.find(c => c.id === id);
-    setClasses(prev => {
-      const filtered = prev.filter(cls => cls.id !== id);
-      
+    const classToDelete = classes.find((c) => c.id === id);
+    setClasses((prev) => {
+      const filtered = prev.filter((cls) => cls.id !== id);
+
       // Update active classes count
-      const activeCount = filtered.filter(c => c.status === 'active').length;
+      const activeCount = filtered.filter((c) => c.status === 'active').length;
       setActiveClassesCount(activeCount);
-      
+
       return filtered;
     });
-    
+
     // Log activity
     if (classToDelete) {
       logActivity({
         type: 'announcement_deleted', // Using existing type as proxy
         message: `Class deleted: ${classToDelete.name}`,
-        metadata: { classId: id, className: classToDelete.name }
+        metadata: { classId: id, className: classToDelete.name },
       });
     }
   };
 
   // Update stats when classes change
   useEffect(() => {
-    const activeCount = classes.filter(c => c.status === 'active').length;
-    setStats(prev => ({ ...prev, activeClasses: activeCount }));
+    const activeCount = classes.filter((c) => c.status === 'active').length;
+    setStats((prev) => ({ ...prev, activeClasses: activeCount }));
   }, [classes]);
 
   // Classes will be loaded from database only - no mock data
@@ -544,8 +568,40 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         const transformed = transformApiMember(updated);
         setMembers((prev) => prev.map((member) => (member.id === id ? transformed : member)));
 
-        const memberName = `${transformed.firstName} ${transformed.lastName}`.trim();
-        logActivity({ type: 'member_updated', message: `${memberName} profile updated`, memberId: id });
+        // Construct member name with multiple fallback strategies
+        // 1. Try transformed data (from API response)
+        const firstName = transformed.firstName?.trim() || '';
+        const lastName = transformed.lastName?.trim() || '';
+        let fullName = `${firstName} ${lastName}`.trim();
+
+        // 2. If transformed name is empty, try to get from before (existing member data)
+        if (!fullName && before) {
+          const beforeFirstName = before.firstName?.trim() || '';
+          const beforeLastName = before.lastName?.trim() || '';
+          fullName = `${beforeFirstName} ${beforeLastName}`.trim();
+        }
+
+        // 3. Final fallback to email or 'Unknown Member'
+        const memberName = fullName || transformed.email || before?.email || 'Unknown Member';
+
+        console.log(
+          'Member update - API firstName:',
+          transformed.firstName,
+          'API lastName:',
+          transformed.lastName,
+          'Before firstName:',
+          before?.firstName,
+          'Before lastName:',
+          before?.lastName,
+          'Final memberName:',
+          memberName,
+        );
+
+        logActivity({
+          type: 'member_updated',
+          message: `${memberName} profile updated`,
+          memberId: id,
+        });
 
         if (before && transformed.membershipType !== before.membershipType) {
           logActivity({
@@ -569,37 +625,34 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     [members, transformApiMember],
   );
 
-  const deleteMember = useCallback(
-    async (id: string): Promise<void> => {
-      if (!isAuthenticated() || !isAdmin()) {
-        throw new Error('You are not authorized to delete members');
-      }
+  const deleteMember = useCallback(async (id: string): Promise<void> => {
+    if (!isAuthenticated() || !isAdmin()) {
+      throw new Error('You are not authorized to delete members');
+    }
 
-      setMembersSaving(true);
-      setMembersError(null);
+    setMembersSaving(true);
+    setMembersError(null);
 
-      try {
-        await apiDeleteMember(id);
-        setMembers((prev) => prev.filter((member) => member.id !== id));
-      } catch (error) {
-        console.error('Failed to delete member:', error);
-        const message = error instanceof Error ? error.message : 'Failed to delete member';
-        setMembersError(message);
-        throw error;
-      } finally {
-        setMembersSaving(false);
-      }
-    },
-    [],
-  );
+    try {
+      await apiDeleteMember(id);
+      setMembers((prev) => prev.filter((member) => member.id !== id));
+    } catch (error) {
+      console.error('Failed to delete member:', error);
+      const message = error instanceof Error ? error.message : 'Failed to delete member';
+      setMembersError(message);
+      throw error;
+    } finally {
+      setMembersSaving(false);
+    }
+  }, []);
 
   const checkInMember = (id: string) => {
     const today = new Date().toISOString().split('T')[0];
-    const member = members.find(m => m.id === id);
+    const member = members.find((m) => m.id === id);
     if (member) {
       // Update member's last check-in
       updateMember(id, { lastCheckIn: today });
-      
+
       // Add new check-in record
       const newCheckIn: CheckIn = {
         id: `checkin_${Date.now()}`,
@@ -611,7 +664,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         checkInTime: new Date().toISOString(),
         role: member.role,
       };
-      setCheckIns(prev => [newCheckIn, ...prev]);
+      setCheckIns((prev) => [newCheckIn, ...prev]);
 
       // Log activity
       logActivity({
@@ -626,21 +679,21 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   // Get weekly check-ins (Monday 2am to Sunday 11:59pm)
   const getWeeklyCheckIns = (): number => {
     const now = new Date();
-    
+
     // Calculate Monday 2am of current week
     const currentDay = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
     const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
     const monday = new Date(now);
     monday.setDate(now.getDate() + daysToMonday);
     monday.setHours(2, 0, 0, 0);
-    
+
     // If it's Monday before 2am, go back to previous Monday
     if (currentDay === 1 && now.getHours() < 2) {
       monday.setDate(monday.getDate() - 7);
     }
-    
+
     // Count check-ins since Monday 2am
-    return checkIns.filter(checkIn => {
+    return checkIns.filter((checkIn) => {
       const checkInDate = new Date(checkIn.checkInTime);
       return checkInDate >= monday;
     }).length;
@@ -652,8 +705,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    return checkIns.filter(checkIn => {
+
+    return checkIns.filter((checkIn) => {
       const checkInDate = new Date(checkIn.checkInTime);
       return checkInDate >= today && checkInDate < tomorrow;
     });
@@ -664,8 +717,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     const now = new Date();
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     firstDayOfMonth.setHours(0, 0, 0, 0);
-    
-    return checkIns.filter(checkIn => {
+
+    return checkIns.filter((checkIn) => {
       const checkInDate = new Date(checkIn.checkInTime);
       return checkIn.memberId === memberId && checkInDate >= firstDayOfMonth;
     }).length;
@@ -673,19 +726,29 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   // Get member total visits
   const getMemberTotalVisits = (memberId: string): number => {
-    return checkIns.filter(checkIn => checkIn.memberId === memberId).length;
+    return checkIns.filter((checkIn) => checkIn.memberId === memberId).length;
   };
 
   // Activity helpers
-  const logActivity = (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => {
+  const logActivity = async (
+    entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string },
+  ) => {
     // Get current user info from localStorage
-    let updatedBy: { name: string; role: string } | undefined;
+    let updatedBy: { name: string; role: string; userId?: string } | undefined;
+    let currentUserId: string | undefined;
+
     try {
-      const userData = localStorage.getItem('userData') || localStorage.getItem('viking_remembered_user');
+      const authToken = localStorage.getItem('authToken');
+      const userData =
+        localStorage.getItem('userData') || localStorage.getItem('viking_remembered_user');
+
       if (userData) {
         const user = JSON.parse(userData);
+        currentUserId = user.id;
+
         if (user.firstName && user.lastName) {
           updatedBy = {
+            userId: user.id,
             name: `${user.firstName} ${user.lastName}`,
             role: user.role || 'member',
           };
@@ -695,6 +758,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       console.error('Failed to get user info for activity log:', error);
     }
 
+    // Create activity object
     const activity: Activity = {
       id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       timestamp: entry.timestamp || new Date().toISOString(),
@@ -704,8 +768,100 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       metadata: entry.metadata,
       updatedBy: entry.updatedBy || updatedBy,
     };
-    setActivities((prev) => [activity, ...prev].slice(0, 200)); // keep last 200
+
+    // Add to local state immediately for instant feedback
+    setActivities((prev) => [activity, ...prev].slice(0, 200));
+
+    // Persist to backend
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) {
+        console.warn('No auth token, skipping activity persistence');
+        return;
+      }
+
+      const response = await fetch('http://localhost:4001/api/activities', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          type: activity.type,
+          message: activity.message,
+          memberId: activity.memberId,
+          metadata: activity.metadata,
+          updatedBy: updatedBy
+            ? {
+                userId: updatedBy.userId,
+                name: updatedBy.name,
+                role: updatedBy.role,
+              }
+            : null,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to persist activity:', await response.text());
+      }
+    } catch (error) {
+      console.error('Error persisting activity to backend:', error);
+      // Activity is already in local state, so user still sees it
+    }
   };
+
+  // Load activities from backend
+  const loadActivities = useCallback(async () => {
+    if (!isAuthenticated() || !isAdmin()) {
+      return;
+    }
+
+    try {
+      const authToken = localStorage.getItem('authToken');
+      if (!authToken) return;
+
+      const response = await fetch('http://localhost:4001/api/activities?limit=200', {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to load activities');
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Transform backend data to frontend format
+        const transformedActivities: Activity[] = result.data.map((act: any) => ({
+          id: act.id,
+          timestamp: act.timestamp,
+          type: act.type,
+          message: act.message,
+          memberId: act.member_id,
+          metadata: act.metadata,
+          updatedBy: act.updated_by_name
+            ? {
+                name: act.updated_by_name,
+                role: act.updated_by_role,
+              }
+            : undefined,
+        }));
+
+        setActivities(transformedActivities);
+      }
+    } catch (error) {
+      console.error('Failed to load activities:', error);
+    }
+  }, []);
+
+  // Load activities on mount
+  useEffect(() => {
+    if (isAuthenticated() && isAdmin()) {
+      loadActivities();
+    }
+  }, [loadActivities]);
 
   const getUpcomingBirthdays = (): Member[] => {
     const today = new Date();

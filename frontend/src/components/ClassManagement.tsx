@@ -430,58 +430,96 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
   };
 
   const handleAddClass = async () => {
-    if (newClass.name && newClass.description) {
-      try {
-        if (editingClass) {
-          // Update existing class
-          const result = await classService.update(editingClass.id, newClass);
-          if (result.success) {
-            setClasses(classes.map((c) => (c.id === editingClass.id ? result.data! : c)));
-            logActivity({
-              type: 'class_updated',
-              message: `Class updated: ${result.data!.name}`,
-            });
-          }
-        } else {
-          // Create new class
-          const classToAdd = {
-            ...newClass,
-            currentEnrollment: 0,
-            status: newClass.status || 'active',
-          };
-          const result = await classService.create(classToAdd);
-          if (result.success) {
-            setClasses([...classes, result.data!]);
-            logActivity({
-              type: 'class_created',
-              message: `Class created: ${result.data!.name}`,
-            });
-          }
-        }
+    // Enhanced validation with user-friendly error notifications
+    if (!newClass.name || newClass.name.trim() === '') {
+      showNotification('Please enter class name', 'error');
+      return;
+    }
 
-        // Reset form
-        setNewClass({
-          name: '',
-          description: '',
-          duration: 60,
-          maxCapacity: 20,
-          instructors: [],
-          schedule: [
-            { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }, // Monday
-            { dayOfWeek: 3, startTime: '09:00', endTime: '10:00' }, // Wednesday
-            { dayOfWeek: 5, startTime: '09:00', endTime: '10:00' }, // Friday
-          ],
-          equipment: [],
-          difficulty: 'Beginner',
-          category: 'Mixed',
-          price: 0,
-          status: 'active',
-        });
-        setEditingClass(null);
-        setShowAddClassModal(false);
-      } catch (error) {
-        console.error('Error adding/updating class:', error);
+    if (!newClass.description || newClass.description.trim() === '') {
+      showNotification('Please enter class description', 'error');
+      return;
+    }
+
+    if (!newClass.duration || newClass.duration <= 0) {
+      showNotification('Please enter a valid duration', 'error');
+      return;
+    }
+
+    if (!newClass.maxCapacity || newClass.maxCapacity <= 0) {
+      showNotification('Please enter a valid max capacity', 'error');
+      return;
+    }
+
+    try {
+      if (editingClass) {
+        // Update existing class
+        const result = await classService.update(editingClass.id, newClass);
+        if (result.success) {
+          setClasses(classes.map((c) => (c.id === editingClass.id ? result.data! : c)));
+          logActivity({
+            type: 'class_updated',
+            message: `Class updated: ${result.data!.name}`,
+          });
+          showNotification(
+            `Class "${result.data!.name}" has been updated successfully!`,
+            'success',
+          );
+        } else {
+          const errorMsg = result.message || 'Failed to update class';
+          console.error('Update class error:', result);
+          showNotification(`Update failed: ${errorMsg}`, 'error');
+        }
+      } else {
+        // Create new class
+        const classToAdd = {
+          ...newClass,
+          currentEnrollment: 0,
+          status: newClass.status || 'active',
+        };
+        const result = await classService.create(classToAdd);
+        if (result.success) {
+          setClasses([...classes, result.data!]);
+          logActivity({
+            type: 'class_created',
+            message: `Class created: ${result.data!.name}`,
+          });
+          showNotification(
+            `Class "${result.data!.name}" has been created successfully!`,
+            'success',
+          );
+        } else {
+          const errorMsg = result.message || 'Failed to create class';
+          console.error('Create class error:', result);
+          showNotification(`Creation failed: ${errorMsg}`, 'error');
+        }
       }
+
+      // Reset form
+      setNewClass({
+        name: '',
+        description: '',
+        duration: 60,
+        maxCapacity: 20,
+        instructors: [],
+        schedule: [
+          { dayOfWeek: 1, startTime: '09:00', endTime: '10:00' }, // Monday
+          { dayOfWeek: 3, startTime: '09:00', endTime: '10:00' }, // Wednesday
+          { dayOfWeek: 5, startTime: '09:00', endTime: '10:00' }, // Friday
+        ],
+        equipment: [],
+        difficulty: 'Beginner',
+        category: 'Mixed',
+        price: 0,
+        status: 'active',
+      });
+      setEditingClass(null);
+      setShowAddClassModal(false);
+    } catch (error: any) {
+      console.error('Error adding/updating class:', error);
+      const errorMsg =
+        error.message || 'An unexpected error occurred while processing your request';
+      showNotification(`System Error: ${errorMsg}`, 'error');
     }
   };
 

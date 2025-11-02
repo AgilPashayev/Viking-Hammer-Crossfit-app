@@ -27,6 +27,8 @@ function toIsoString(value?: string | Date): string | undefined {
 export interface Member {
   id: string;
   name: string;
+  firstName?: string; // Added: Backend now returns firstName/lastName
+  lastName?: string; // Added: Backend now returns firstName/lastName
   email: string;
   phone?: string;
   dob?: string;
@@ -79,12 +81,12 @@ export async function getAllMembers(): Promise<Member[]> {
     const response = await fetch(`${API_BASE_URL}/users`, {
       headers: getAuthHeaders(),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       return [];
     }
-    
+
     if (!response.ok) {
       let errorMessage = 'Failed to fetch members';
       try {
@@ -93,25 +95,25 @@ export async function getAllMembers(): Promise<Member[]> {
       } catch {
         errorMessage = response.statusText || errorMessage;
       }
-      
+
       if (response.status === 403) {
         throw new Error('You do not have permission to view members');
       } else if (response.status >= 500) {
         throw new Error('Server error. Please try again later.');
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error fetching members:', error);
-    
+
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+      throw new Error('Connection error. Please try again in a moment.');
     }
-    
+
     throw error;
   }
 }
@@ -124,16 +126,16 @@ export async function getMemberById(id: string): Promise<Member> {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       headers: getAuthHeaders(),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       throw new Error('Session expired');
     }
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch member: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -172,12 +174,12 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       throw new Error('Your session has expired. Please log in again.');
     }
-    
+
     if (!response.ok) {
       let errorMessage = 'Failed to create member';
       try {
@@ -187,7 +189,7 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
         // If response is not JSON, use status text
         errorMessage = response.statusText || errorMessage;
       }
-      
+
       if (response.status === 400) {
         throw new Error(errorMessage || 'Invalid member information provided');
       } else if (response.status === 403) {
@@ -197,20 +199,20 @@ export async function createMember(memberData: CreateMemberData): Promise<Member
       } else if (response.status >= 500) {
         throw new Error('Server error. Please try again later.');
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error creating member:', error);
-    
+
     // Provide more user-friendly error messages
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+      throw new Error('Connection error. Please try again in a moment.');
     }
-    
+
     throw error;
   }
 }
@@ -244,12 +246,12 @@ export async function updateMember(id: string, updates: UpdateMemberData): Promi
       headers: getAuthHeaders(),
       body: JSON.stringify(payload),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       throw new Error('Your session has expired. Please log in again.');
     }
-    
+
     if (!response.ok) {
       let errorMessage = 'Failed to update member';
       try {
@@ -258,7 +260,7 @@ export async function updateMember(id: string, updates: UpdateMemberData): Promi
       } catch {
         errorMessage = response.statusText || errorMessage;
       }
-      
+
       if (response.status === 400) {
         throw new Error(errorMessage || 'Invalid member information provided');
       } else if (response.status === 403) {
@@ -268,19 +270,19 @@ export async function updateMember(id: string, updates: UpdateMemberData): Promi
       } else if (response.status >= 500) {
         throw new Error('Server error. Please try again later.');
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
     console.error('Error updating member:', error);
-    
+
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+      throw new Error('Connection error. Please try again in a moment.');
     }
-    
+
     throw error;
   }
 }
@@ -294,12 +296,12 @@ export async function deleteMember(id: string): Promise<void> {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
-    
+
     if (response.status === 401) {
       handle401Error();
       throw new Error('Your session has expired. Please log in again.');
     }
-    
+
     if (!response.ok) {
       let errorMessage = 'Failed to delete member';
       try {
@@ -308,7 +310,7 @@ export async function deleteMember(id: string): Promise<void> {
       } catch {
         errorMessage = response.statusText || errorMessage;
       }
-      
+
       if (response.status === 403) {
         throw new Error('You do not have permission to delete members');
       } else if (response.status === 404) {
@@ -316,16 +318,16 @@ export async function deleteMember(id: string): Promise<void> {
       } else if (response.status >= 500) {
         throw new Error('Server error. Please try again later.');
       }
-      
+
       throw new Error(errorMessage);
     }
   } catch (error) {
     console.error('Error deleting member:', error);
-    
+
     if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      throw new Error('Unable to connect to server. Please check your internet connection and ensure the backend server is running.');
+      throw new Error('Connection error. Please try again in a moment.');
     }
-    
+
     throw error;
   }
 }
@@ -333,10 +335,12 @@ export async function deleteMember(id: string): Promise<void> {
 /**
  * Register member with password (for authentication)
  */
-export async function registerMember(memberData: CreateMemberData & { password: string }): Promise<{ user: Member; token: string }> {
+export async function registerMember(
+  memberData: CreateMemberData & { password: string },
+): Promise<{ user: Member; token: string }> {
   try {
     const { firstName, lastName, email, password, phone } = memberData;
-    
+
     const response = await fetch(`${API_BASE_URL}/auth/signup`, {
       method: 'POST',
       headers: {
@@ -348,15 +352,15 @@ export async function registerMember(memberData: CreateMemberData & { password: 
         firstName: firstName?.trim(),
         lastName: lastName?.trim(),
         phone,
-        role: 'member'
+        role: 'member',
       }),
     });
-    
+
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(errorData.error || `Failed to register member: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -371,7 +375,7 @@ export const memberService = {
   createMember,
   updateMember,
   deleteMember,
-  registerMember
+  registerMember,
 };
 
 export default memberService;

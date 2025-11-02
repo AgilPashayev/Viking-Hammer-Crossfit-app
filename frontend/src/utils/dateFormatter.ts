@@ -6,8 +6,13 @@
  * @param dateValue - Date string (ISO format, YYYY-MM-DD, etc.) or Date object
  * @returns Formatted date string like "Oct 23, 2025"
  */
-export const formatDate = (dateValue: string | Date): string => {
+export const formatDate = (dateValue: string | Date | null | undefined): string => {
   try {
+    // Handle null or undefined
+    if (!dateValue) {
+      return 'N/A';
+    }
+
     let date: Date;
 
     // Handle date strings in YYYY-MM-DD format to avoid timezone issues
@@ -26,7 +31,7 @@ export const formatDate = (dateValue: string | Date): string => {
     }
 
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (!date || isNaN(date.getTime())) {
       return 'Invalid date';
     }
 
@@ -48,12 +53,17 @@ export const formatDate = (dateValue: string | Date): string => {
  * @param dateValue - Date string (ISO format, YYYY-MM-DD, etc.) or Date object
  * @returns Formatted date string like "October 23, 2025"
  */
-export const formatDateLong = (dateValue: string | Date): string => {
+export const formatDateLong = (dateValue: string | Date | null | undefined): string => {
   try {
+    // Handle null or undefined
+    if (!dateValue) {
+      return 'N/A';
+    }
+
     const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
 
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (!date || isNaN(date.getTime())) {
       return 'Invalid date';
     }
 
@@ -75,12 +85,17 @@ export const formatDateLong = (dateValue: string | Date): string => {
  * @param dateOfBirth - Date of birth string or Date object
  * @returns Formatted birthday string like "Oct 23"
  */
-export const formatBirthday = (dateOfBirth: string | Date): string => {
+export const formatBirthday = (dateOfBirth: string | Date | null | undefined): string => {
   try {
+    // Handle null or undefined
+    if (!dateOfBirth) {
+      return 'N/A';
+    }
+
     const date = typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
 
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (!date || isNaN(date.getTime())) {
       return 'Invalid date';
     }
 
@@ -101,12 +116,17 @@ export const formatBirthday = (dateOfBirth: string | Date): string => {
  * @param dateOfBirth - Date of birth string or Date object
  * @returns Formatted birthday string like "October 23"
  */
-export const formatBirthdayLong = (dateOfBirth: string | Date): string => {
+export const formatBirthdayLong = (dateOfBirth: string | Date | null | undefined): string => {
   try {
+    // Handle null or undefined
+    if (!dateOfBirth) {
+      return 'N/A';
+    }
+
     const date = typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
 
     // Check if date is valid
-    if (isNaN(date.getTime())) {
+    if (!date || isNaN(date.getTime())) {
       return 'Invalid date';
     }
 

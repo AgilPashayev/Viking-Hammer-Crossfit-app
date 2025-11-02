@@ -28,6 +28,7 @@ const invitationService = require('./services/invitationService');
 const resetService = require('./services/resetService');
 const qrService = require('./services/qrService');
 const checkInService = require('./services/checkInService');
+const activityService = require('./services/activityService');
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -2115,6 +2116,77 @@ app.get(
     }
 
     res.json({ success: true, data: result.data });
+  }),
+);
+
+// ==================== ACTIVITIES ====================
+
+/**
+ * POST /api/activities - Create new activity log entry
+ */
+app.post(
+  '/api/activities',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const activityData = {
+      type: req.body.type,
+      message: req.body.message,
+      memberId: req.body.memberId || null,
+      updatedByUserId: req.body.updatedBy?.userId || null,
+      updatedByName: req.body.updatedBy?.name || null,
+      updatedByRole: req.body.updatedBy?.role || null,
+      metadata: req.body.metadata || null,
+    };
+
+    const result = await activityService.createActivity(activityData);
+    res.status(201).json({ success: true, data: result });
+  }),
+);
+
+/**
+ * GET /api/activities - Get recent activities with pagination
+ */
+app.get(
+  '/api/activities',
+  authenticate,
+  isAdmin,
+  asyncHandler(async (req, res) => {
+    const limit = parseInt(req.query.limit) || 200;
+    const offset = parseInt(req.query.offset) || 0;
+
+    const result = await activityService.getActivities(limit, offset);
+    res.json({ success: true, data: result.activities, total: result.total });
+  }),
+);
+
+/**
+ * GET /api/activities/member/:memberId - Get activities for specific member
+ */
+app.get(
+  '/api/activities/member/:memberId',
+  authenticate,
+  asyncHandler(async (req, res) => {
+    const { memberId } = req.params;
+    const limit = parseInt(req.query.limit) || 50;
+
+    const result = await activityService.getActivitiesByMember(memberId, limit);
+    res.json({ success: true, data: result });
+  }),
+);
+
+/**
+ * GET /api/activities/type/:type - Get activities by type
+ */
+app.get(
+  '/api/activities/type/:type',
+  authenticate,
+  isAdmin,
+  asyncHandler(async (req, res) => {
+    const { type } = req.params;
+    const limit = parseInt(req.query.limit) || 100;
+
+    const result = await activityService.getActivitiesByType(type, limit);
+    res.json({ success: true, data: result });
   }),
 );
 
