@@ -76,6 +76,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const [editingSubscriptionId, setEditingSubscriptionId] = useState<string | null>(null);
   const [editingSubscription, setEditingSubscription] = useState<Partial<Subscription>>({});
+  const [expandedSubscriptions, setExpandedSubscriptions] = useState<Set<string>>(new Set());
 
   // New plan form state
   const [newPlan, setNewPlan] = useState<Partial<MembershipPlan>>({
@@ -943,6 +944,19 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     return colors[status as keyof typeof colors] || '#6c757d';
   };
 
+  // Toggle subscription expand/collapse
+  const toggleSubscription = (id: string) => {
+    setExpandedSubscriptions((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   const renderPlansTab = () => (
     <div className="tab-content">
       <div className="section-header">
@@ -1055,66 +1069,57 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         </button>
       </div>
 
-      <div className="subscriptions-list">
+      <div className="subscriptions-list-view">
         {getFilteredSubscriptions().map((subscription) => {
           const daysLeft = calculateDaysLeft(subscription.endDate);
           const daysLeftColor = getDaysLeftColor(daysLeft);
+          const isExpanded = expandedSubscriptions.has(subscription.id);
 
           return (
-            <div key={subscription.id} className="subscription-card">
-              <div className="subscription-header">
-                <div className="member-info">
-                  <h4 className="member-name">{subscription.memberName}</h4>
-                  <p className="member-email">{subscription.memberEmail}</p>
-                  {subscription.companyName && (
-                    <span className="company-tag">🏢 {subscription.companyName}</span>
-                  )}
+            <div
+              key={subscription.id}
+              className={`subscription-list-item ${isExpanded ? 'expanded' : 'collapsed'}`}
+            >
+              {/* Clickable Header Row */}
+              <div
+                className="subscription-list-header"
+                onClick={() => toggleSubscription(subscription.id)}
+              >
+                <div className="expand-icon">{isExpanded ? '▼' : '▶'}</div>
+
+                <div className="header-member-info">
+                  <span className="member-name-text">{subscription.memberName}</span>
+                  <span className="member-email-text">{subscription.memberEmail}</span>
                 </div>
-                <div className="subscription-status">
+
+                <div className="header-plan-info">
+                  <span className="plan-name-text">{subscription.planName}</span>
+                </div>
+
+                <div className="header-status-info">
                   <span
-                    className="status-badge"
+                    className="status-badge-mini"
                     style={{ backgroundColor: getStatusColor(subscription.status) }}
                   >
                     {subscription.status}
                   </span>
                   {daysLeft !== null && (
                     <span
-                      className="countdown-badge"
+                      className="countdown-badge-mini"
                       style={{
                         backgroundColor: daysLeftColor,
                         color: '#fff',
-                        padding: '4px 12px',
-                        borderRadius: '12px',
-                        fontSize: '0.85rem',
-                        fontWeight: 'bold',
-                        marginLeft: '8px',
                       }}
                     >
-                      {daysLeft < 0
-                        ? '⚠️ EXPIRED'
-                        : `⏱️ ${daysLeft} day${daysLeft !== 1 ? 's' : ''} left`}
+                      {daysLeft < 0 ? '⚠️ EXPIRED' : `⏱️ ${daysLeft}d`}
                     </span>
                   )}
                 </div>
-              </div>
 
-              <div className="subscription-details">
-                <div className="detail-row">
-                  <span className="detail-label">Plan:</span>
-                  <span className="detail-value">{subscription.planName}</span>
-                </div>
-                <div className="detail-row">
-                  <span className="detail-label">Period:</span>
-                  <span className="detail-value">
-                    {formatDate(subscription.startDate)} -{' '}
-                    {subscription.endDate ? formatDate(subscription.endDate) : 'Ongoing'}
-                  </span>
-                </div>
-                {subscription.remainingEntries !== undefined && (
-                  <div className="detail-row">
-                    <span className="detail-label">Visits Left:</span>
+                <div className="header-visits-info">
+                  {subscription.remainingEntries !== undefined && (
                     <span
-                      className="detail-value"
+                      className="visits-text"
                       style={{
                         fontWeight: 'bold',
                         color:
@@ -1125,44 +1130,148 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                             : '#28a745',
                       }}
                     >
-                      {subscription.remainingEntries} / {subscription.totalEntries} remaining
+                      {subscription.remainingEntries} / {subscription.totalEntries}
                     </span>
-                  </div>
-                )}
-                {subscription.nextPaymentDate && (
-                  <div className="detail-row">
-                    <span className="detail-label">Next Payment:</span>
-                    <span className="detail-value">{formatDate(subscription.nextPaymentDate)}</span>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
 
-              <div className="subscription-actions">
-                <button
-                  className="edit-btn"
-                  onClick={() => handleEditSubscription(subscription.id)}
-                >
-                  ✏️ Edit
-                </button>
-                <button
-                  className="renew-btn"
-                  onClick={() => handleRenewSubscription(subscription.id)}
-                >
-                  🔄 Renew
-                </button>
-                <button
-                  className="suspend-btn"
-                  onClick={() => handleSuspendSubscription(subscription.id)}
-                >
-                  ⏸️ Suspend
-                </button>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleCancelSubscription(subscription.id)}
-                >
-                  🗑️ Cancel
-                </button>
-              </div>
+              {/* Expandable Details Section */}
+              {isExpanded && (
+                <div className="subscription-expanded-details">
+                  <div className="details-grid">
+                    <div className="detail-section">
+                      <h5>👤 Member Information</h5>
+                      <div className="detail-row">
+                        <span className="detail-label">Name:</span>
+                        <span className="detail-value">{subscription.memberName}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Email:</span>
+                        <span className="detail-value">{subscription.memberEmail}</span>
+                      </div>
+                      {subscription.companyName && (
+                        <div className="detail-row">
+                          <span className="detail-label">Company:</span>
+                          <span className="detail-value">🏢 {subscription.companyName}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="detail-section">
+                      <h5>📋 Subscription Details</h5>
+                      <div className="detail-row">
+                        <span className="detail-label">Plan:</span>
+                        <span className="detail-value">{subscription.planName}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Start Date:</span>
+                        <span className="detail-value">{formatDate(subscription.startDate)}</span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">End Date:</span>
+                        <span className="detail-value">
+                          {subscription.endDate ? formatDate(subscription.endDate) : 'Ongoing'}
+                        </span>
+                      </div>
+                      <div className="detail-row">
+                        <span className="detail-label">Status:</span>
+                        <span
+                          className="status-badge"
+                          style={{ backgroundColor: getStatusColor(subscription.status) }}
+                        >
+                          {subscription.status}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="detail-section">
+                      <h5>📊 Usage Statistics</h5>
+                      {subscription.remainingEntries !== undefined && (
+                        <>
+                          <div className="detail-row">
+                            <span className="detail-label">Total Visits:</span>
+                            <span className="detail-value">{subscription.totalEntries}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Remaining Visits:</span>
+                            <span
+                              className="detail-value"
+                              style={{
+                                fontWeight: 'bold',
+                                color:
+                                  subscription.remainingEntries <= 3
+                                    ? '#ff6b35'
+                                    : subscription.remainingEntries <= 6
+                                    ? '#ffc107'
+                                    : '#28a745',
+                              }}
+                            >
+                              {subscription.remainingEntries}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">Used Visits:</span>
+                            <span className="detail-value">
+                              {subscription.totalEntries - subscription.remainingEntries}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                      {subscription.nextPaymentDate && (
+                        <div className="detail-row">
+                          <span className="detail-label">Next Payment:</span>
+                          <span className="detail-value">
+                            {formatDate(subscription.nextPaymentDate)}
+                          </span>
+                        </div>
+                      )}
+                      {daysLeft !== null && daysLeft >= 0 && (
+                        <div className="detail-row">
+                          <span className="detail-label">Days Remaining:</span>
+                          <span
+                            className="detail-value"
+                            style={{
+                              fontWeight: 'bold',
+                              color: daysLeftColor,
+                            }}
+                          >
+                            {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="subscription-actions">
+                    <button
+                      className="edit-btn"
+                      onClick={() => handleEditSubscription(subscription.id)}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button
+                      className="renew-btn"
+                      onClick={() => handleRenewSubscription(subscription.id)}
+                    >
+                      🔄 Renew
+                    </button>
+                    <button
+                      className="suspend-btn"
+                      onClick={() => handleSuspendSubscription(subscription.id)}
+                    >
+                      ⏸️ Suspend
+                    </button>
+                    <button
+                      className="delete-btn"
+                      onClick={() => handleCancelSubscription(subscription.id)}
+                    >
+                      🗑️ Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
