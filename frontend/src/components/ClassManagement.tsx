@@ -208,6 +208,31 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         `Loaded ${classesData.length} classes, ${instructorsData.length} instructors, ${scheduleData.length} schedule slots, ${membersData.length} members`,
       );
     } catch (error: any) {
+      // Function to refresh instructors list from backend
+      const refreshInstructors = async () => {
+        try {
+          const instructorsData = await instructorService.getAll();
+          if (Array.isArray(instructorsData)) {
+            setInstructors(instructorsData);
+            console.log(`✅ Refreshed ${instructorsData.length} instructors`);
+          }
+        } catch (error) {
+          console.error('Error refreshing instructors:', error);
+        }
+      };
+
+      // Function to refresh classes list from backend
+      const refreshClasses = async () => {
+        try {
+          const classesData = await classService.getAll();
+          if (Array.isArray(classesData)) {
+            setClasses(classesData);
+            console.log(`✅ Refreshed ${classesData.length} classes`);
+          }
+        } catch (error) {
+          console.error('Error refreshing classes:', error);
+        }
+      };
       console.error('Error loading data:', error);
       setError(error.message || 'Failed to load data. Please try again.');
       // Show user-friendly error
@@ -456,7 +481,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         // Update existing class
         const result = await classService.update(editingClass.id, newClass);
         if (result.success) {
-          setClasses(classes.map((c) => (c.id === editingClass.id ? result.data! : c)));
+          // Refresh classes list from backend
+          await refreshClasses();
+
           logActivity({
             type: 'class_updated',
             message: `Class updated: ${result.data!.name}`,
@@ -479,7 +506,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         };
         const result = await classService.create(classToAdd);
         if (result.success) {
-          setClasses([...classes, result.data!]);
+          // Refresh classes list from backend
+          await refreshClasses();
+
           logActivity({
             type: 'class_created',
             message: `Class created: ${result.data!.name}`,
@@ -553,9 +582,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         // Update existing instructor
         const result = await instructorService.update(editingInstructor.id, newInstructor);
         if (result.success) {
-          setInstructors(
-            instructors.map((i) => (i.id === editingInstructor.id ? result.data! : i)),
-          );
+          // Refresh instructors list from backend
+          await refreshInstructors();
+
           logActivity({
             type: 'instructor_updated',
             message: `Instructor updated: ${result.data!.name}`,
@@ -588,7 +617,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         const result = await instructorService.create(instructorToAdd);
 
         if (result.success) {
-          setInstructors([...instructors, result.data!]);
+          // Refresh instructors list from backend
+          await refreshInstructors();
+
           logActivity({
             type: 'instructor_created',
             message: `Instructor created: ${result.data!.name}`,
@@ -739,7 +770,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       const result = await classService.delete(classToDelete.id, forceDelete);
 
       if (result.success) {
-        setClasses(classes.filter((c) => c.id !== classToDelete.id));
+        // Refresh classes list from backend
+        await refreshClasses();
+
         logActivity({
           type: 'class_deleted',
           message: `Class ${forceDelete ? 'force-' : ''}deleted: ${classToDelete.name}`,
@@ -787,7 +820,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     try {
       const result = await instructorService.delete(instructorToDelete.id);
       if (result.success) {
-        setInstructors(instructors.filter((i) => i.id !== instructorToDelete.id));
+        // Refresh instructors list from backend
+        await refreshInstructors();
 
         // Also remove from any assigned classes
         for (const gymClass of classes) {
