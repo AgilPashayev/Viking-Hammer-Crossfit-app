@@ -234,6 +234,24 @@ export default function App() {
   };
 
   const handleNavigate = (page: string) => {
+    // Role-based access control
+    const userRole = user?.role || 'member';
+
+    // Check permissions before navigation
+    if (page === 'reception') {
+      // Only sparta and reception roles can access Reception
+      if (userRole !== 'sparta' && userRole !== 'reception') {
+        console.warn('⛔ Access denied: Reception page requires sparta or reception role');
+        return;
+      }
+    } else if (page === 'sparta') {
+      // Only sparta role can access Sparta
+      if (userRole !== 'sparta') {
+        console.warn('⛔ Access denied: Sparta page requires sparta role');
+        return;
+      }
+    }
+
     if (page === 'home') {
       setCurrentPage('home');
     } else if (page === 'dashboard') {
@@ -399,18 +417,22 @@ export default function App() {
                       >
                         🏋️ Go to Dashboard
                       </button>
-                      <button
-                        className="cta-button secondary"
-                        onClick={() => setCurrentPage('reception')}
-                      >
-                        🏢 Reception Panel
-                      </button>
-                      <button
-                        className="cta-button secondary"
-                        onClick={() => setCurrentPage('sparta')}
-                      >
-                        ⚔️ Sparta Panel
-                      </button>
+                      {(user.role === 'sparta' || user.role === 'reception') && (
+                        <button
+                          className="cta-button secondary"
+                          onClick={() => setCurrentPage('reception')}
+                        >
+                          🏢 Reception Panel
+                        </button>
+                      )}
+                      {user.role === 'sparta' && (
+                        <button
+                          className="cta-button secondary"
+                          onClick={() => setCurrentPage('sparta')}
+                        >
+                          ⚔️ Sparta Panel
+                        </button>
+                      )}
                     </>
                   )}
                 </div>
@@ -427,12 +449,16 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
-              <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                🏢 Reception
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                ⚔️ Sparta
-              </button>
+              {(user?.role === 'sparta' || user?.role === 'reception') && (
+                <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+                  🏢 Reception
+                </button>
+              )}
+              {user?.role === 'sparta' && (
+                <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                  ⚔️ Sparta
+                </button>
+              )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
                 🚪 Logout
               </button>
@@ -452,9 +478,11 @@ export default function App() {
                 👤 Profile
               </button>
               <button className="nav-btn active">🏢 Reception</button>
-              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                ⚔️ Sparta
-              </button>
+              {user?.role === 'sparta' && (
+                <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                  ⚔️ Sparta
+                </button>
+              )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
                 🚪 Logout
               </button>
@@ -493,12 +521,16 @@ export default function App() {
                 📊 Dashboard
               </button>
               <button className="nav-btn active">👤 Profile</button>
-              <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                🏢 Reception
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                ⚔️ Sparta
-              </button>
+              {(user?.role === 'sparta' || user?.role === 'reception') && (
+                <button className="nav-btn" onClick={() => handleNavigate('reception')}>
+                  🏢 Reception
+                </button>
+              )}
+              {user?.role === 'sparta' && (
+                <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
+                  ⚔️ Sparta
+                </button>
+              )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
                 🚪 Logout
               </button>

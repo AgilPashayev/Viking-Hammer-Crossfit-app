@@ -28,6 +28,52 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const scanIntervalRef = useRef<number | null>(null);
 
+  // 🔒 ROLE-BASED ACCESS CONTROL
+  const userRole = user?.role || 'member';
+  const hasAccess = userRole === 'sparta';
+
+  // If user doesn't have access, show access denied
+  if (!hasAccess) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <div
+          style={{
+            maxWidth: '600px',
+            margin: '0 auto',
+            padding: '40px',
+            background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+            borderRadius: '12px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>⚔️🔒</div>
+          <h2 style={{ color: '#1a237e', marginBottom: '16px' }}>Access Denied</h2>
+          <p style={{ color: '#666', marginBottom: '8px' }}>
+            You don't have permission to access the Sparta Dashboard.
+          </p>
+          <p style={{ color: '#666' }}>This area is restricted to Sparta staff only.</p>
+          {onNavigate && (
+            <button
+              onClick={() => onNavigate('dashboard')}
+              style={{
+                marginTop: '24px',
+                padding: '12px 24px',
+                background: '#1a237e',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+              }}
+            >
+              ← Back to Dashboard
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   // activity rendering utils
   const timeAgo = (ts: string) => {
     const now = new Date().getTime();
