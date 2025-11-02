@@ -8,6 +8,43 @@ const { supabase } = require('../supabaseClient');
 const SALT_ROUNDS = 10;
 const JWT_SECRET = process.env.JWT_SECRET || 'viking-hammer-secret-key-change-in-production';
 
+/**
+ * Transform user data for frontend compatibility
+ * Parses name into firstName/lastName and maps database fields
+ */
+function transformUserForFrontend(user) {
+  if (!user) return user;
+
+  // Parse name into firstName and lastName
+  if (user.name && !user.firstName && !user.lastName) {
+    const nameParts = user.name.trim().split(' ');
+    user.firstName = nameParts[0] || '';
+    user.lastName = nameParts.slice(1).join(' ') || '';
+  }
+
+  // Map database fields to frontend-expected fields
+  if (user.dob && !user.dateOfBirth) {
+    user.dateOfBirth = user.dob;
+  }
+  if (user.membership_type && !user.membershipType) {
+    user.membershipType = user.membership_type;
+  }
+  if (user.join_date && !user.joinDate) {
+    user.joinDate = user.join_date;
+  }
+  if (user.emergency_contact_name && !user.emergencyContactName) {
+    user.emergencyContactName = user.emergency_contact_name;
+  }
+  if (user.emergency_contact_phone && !user.emergencyContactPhone) {
+    user.emergencyContactPhone = user.emergency_contact_phone;
+  }
+  if (user.emergency_contact_country_code && !user.emergencyContactCountryCode) {
+    user.emergencyContactCountryCode = user.emergency_contact_country_code;
+  }
+
+  return user;
+}
+
 async function signUp(userData) {
   try {
     const { email, password, firstName, lastName, phone, role = 'member', dateOfBirth } = userData;
@@ -152,10 +189,13 @@ async function signIn(email, password) {
     // Return user data without password hash
     const { password_hash, ...userWithoutPassword } = user;
 
+    // Transform user data for frontend compatibility
+    const transformedUser = transformUserForFrontend(userWithoutPassword);
+
     return {
       success: true,
       data: {
-        user: userWithoutPassword,
+        user: transformedUser,
         token,
       },
     };

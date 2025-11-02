@@ -4,6 +4,43 @@
 const { supabase, supabaseAdmin } = require('../supabaseClient');
 
 /**
+ * Transform user data to include firstName and lastName from name field
+ * for frontend compatibility
+ */
+function transformUserData(user) {
+  if (!user) return user;
+
+  // Parse name into firstName and lastName if they don't exist
+  if (user.name && !user.firstName && !user.lastName) {
+    const nameParts = user.name.trim().split(' ');
+    user.firstName = nameParts[0] || '';
+    user.lastName = nameParts.slice(1).join(' ') || '';
+  }
+
+  // Map database fields to frontend-expected fields
+  if (user.dob && !user.dateOfBirth) {
+    user.dateOfBirth = user.dob;
+  }
+  if (user.membership_type && !user.membershipType) {
+    user.membershipType = user.membership_type;
+  }
+  if (user.join_date && !user.joinDate) {
+    user.joinDate = user.join_date;
+  }
+  if (user.emergency_contact_name && !user.emergencyContactName) {
+    user.emergencyContactName = user.emergency_contact_name;
+  }
+  if (user.emergency_contact_phone && !user.emergencyContactPhone) {
+    user.emergencyContactPhone = user.emergency_contact_phone;
+  }
+  if (user.emergency_contact_country_code && !user.emergencyContactCountryCode) {
+    user.emergencyContactCountryCode = user.emergency_contact_country_code;
+  }
+
+  return user;
+}
+
+/**
  * Get all users/members with optional filters
  */
 async function getAllUsers(filters = {}) {
@@ -28,8 +65,8 @@ async function getAllUsers(filters = {}) {
       return { error: 'Failed to fetch users', status: 500 };
     }
 
-    // Remove password hashes from response
-    const usersWithoutPasswords = data.map(({ password_hash, ...user }) => user);
+    // Remove password hashes from response and transform user data
+    const usersWithoutPasswords = data.map(({ password_hash, ...user }) => transformUserData(user));
 
     return { success: true, data: usersWithoutPasswords };
   } catch (error) {
@@ -56,7 +93,10 @@ async function getUserById(userId) {
     // Remove password hash
     const { password_hash, ...userWithoutPassword } = data;
 
-    return { success: true, data: userWithoutPassword };
+    // Transform user data for frontend compatibility
+    const transformedUser = transformUserData(userWithoutPassword);
+
+    return { success: true, data: transformedUser };
   } catch (error) {
     console.error('Get user by ID error:', error);
     return { error: 'Internal server error', status: 500 };
