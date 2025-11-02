@@ -18,7 +18,8 @@ async function getAllClasses(filters = {}) {
         class_instructors (
           instructor:instructors (
             id,
-            name,
+            first_name,
+            last_name,
             email
           )
         ),
@@ -89,7 +90,8 @@ async function getClassById(classId) {
         class_instructors (
           instructor:instructors (
             id,
-            name,
+            first_name,
+            last_name,
             email,
             specialties
           )
