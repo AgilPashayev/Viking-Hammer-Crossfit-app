@@ -5,17 +5,20 @@
 The profile photo upload feature was unstable and photos were being lost after page refresh. The root cause was identified as:
 
 ### Root Cause
+
 **localStorage was not being synced with the backend database after profile photo uploads**, causing data loss on page refresh.
 
 ### Detailed Analysis
 
 1. **Upload Flow Was Working:**
+
    - User uploads photo
    - Backend saves photo to Supabase Storage
    - Backend updates `avatar_url` in database
    - Response sent back to frontend with new `avatar_url`
 
 2. **Problem Occurred Here:**
+
    - Frontend updated component state ✅
    - Frontend attempted to update localStorage BUT used outdated method ❌
    - localStorage contained stale user data without new `avatar_url`
@@ -28,6 +31,7 @@ The profile photo upload feature was unstable and photos were being lost after p
 ## Solution Implemented
 
 ### 1. Created `refreshUserProfile()` Function
+
 **File:** `frontend/src/services/authService.ts`
 
 ```typescript
@@ -41,7 +45,7 @@ export async function refreshUserProfile(): Promise<any | null> {
     if (!token) return null;
 
     console.log('🔄 [AuthService] Fetching fresh user profile from backend...');
-    
+
     const response = await fetch(`${API_BASE_URL}/users/me`, {
       headers: getAuthHeaders(),
     });
@@ -49,16 +53,19 @@ export async function refreshUserProfile(): Promise<any | null> {
     if (!response.ok) return null;
 
     const freshUser = await response.json();
-    
+
     // Update BOTH localStorage keys for compatibility
     localStorage.setItem('userData', JSON.stringify(freshUser));
-    localStorage.setItem('viking_remembered_user', JSON.stringify({
-      ...freshUser,
-      isAuthenticated: true
-    }));
-    
+    localStorage.setItem(
+      'viking_remembered_user',
+      JSON.stringify({
+        ...freshUser,
+        isAuthenticated: true,
+      }),
+    );
+
     console.log('💾 [AuthService] Updated localStorage with fresh profile data');
-    
+
     return freshUser;
   } catch (error) {
     console.error('❌ [AuthService] Error refreshing profile:', error);
@@ -68,9 +75,11 @@ export async function refreshUserProfile(): Promise<any | null> {
 ```
 
 ### 2. Updated App.tsx to Sync on Load
+
 **File:** `frontend/src/App.tsx`
 
 When user is authenticated on page load, the app now:
+
 1. Loads cached data from localStorage (fast initial render)
 2. **Fetches fresh profile from backend** (ensures data consistency)
 3. Updates user state with fresh data (includes latest `avatar_url`)
@@ -83,13 +92,13 @@ if (isAuthenticated()) {
     const parsed = JSON.parse(stored);
     setUser(parsed);
     setCurrentPage('dashboard');
-    
+
     // 🔄 CRITICAL FIX: Fetch fresh profile from backend
     (async () => {
       const freshProfile = await refreshUserProfile();
       if (freshProfile) {
         console.log('🔄 [App] Synced profile from backend');
-        setUser(prev => prev ? { ...prev, ...freshProfile, isAuthenticated: true } : null);
+        setUser((prev) => (prev ? { ...prev, ...freshProfile, isAuthenticated: true } : null));
       }
     })();
   }
@@ -97,9 +106,11 @@ if (isAuthenticated()) {
 ```
 
 ### 3. Updated MyProfile.tsx Photo Upload
+
 **File:** `frontend/src/components/MyProfile.tsx`
 
 After successful photo upload, the component now:
+
 1. Updates local state immediately (instant UI feedback)
 2. **Calls `refreshUserProfile()`** to sync with backend
 3. Updates parent component with fresh data
@@ -108,7 +119,7 @@ After successful photo upload, the component now:
 ```typescript
 if (result.success && result.user && result.user.avatar_url) {
   setProfilePhoto(result.user.avatar_url);
-  
+
   // 🔄 CRITICAL FIX: Refresh profile from backend
   const freshProfile = await refreshUserProfile();
   if (freshProfile) {
@@ -116,7 +127,7 @@ if (result.success && result.user && result.user.avatar_url) {
     if (onUserUpdate) {
       onUserUpdate({
         ...freshProfile,
-        isAuthenticated: true
+        isAuthenticated: true,
       });
     }
   }
@@ -126,16 +137,19 @@ if (result.success && result.user && result.user.avatar_url) {
 ## Benefits of This Fix
 
 ### ✅ Stability Guaranteed
+
 - **Single Source of Truth:** Backend database is the authoritative source
 - **Automatic Sync:** localStorage automatically syncs with backend on load and after updates
 - **No Data Loss:** Profile photo persists across page refreshes
 
 ### ✅ Improved User Experience
+
 - **Fast Initial Render:** Cached data loads immediately
 - **Fresh Data:** Background sync ensures up-to-date information
 - **Seamless Updates:** Photo changes reflect immediately and persist
 
 ### ✅ Future-Proof Architecture
+
 - **Centralized Logic:** All profile refresh logic in one function
 - **Easy to Maintain:** Clear separation of concerns
 - **Reusable:** Can be used for any profile update (not just photos)
@@ -145,26 +159,31 @@ if (result.success && result.user && result.user.avatar_url) {
 ### User Flow Example
 
 1. **User uploads new profile photo:**
+
    ```
    MyProfile.tsx → Backend API → Supabase Storage → Database
    ```
 
 2. **Backend responds with updated user data:**
+
    ```
    Backend → MyProfile.tsx (result.user.avatar_url)
    ```
 
 3. **Frontend syncs with backend:**
+
    ```
    MyProfile.tsx → refreshUserProfile() → Backend /api/users/me
    ```
 
 4. **localStorage updated:**
+
    ```
    refreshUserProfile() → localStorage.setItem('userData', freshProfile)
    ```
 
 5. **Parent component updated:**
+
    ```
    onUserUpdate() → App.tsx setUser() → Re-render with new photo
    ```
@@ -193,6 +212,7 @@ if (result.success && result.user && result.user.avatar_url) {
 ### Console Logs to Watch For
 
 **On Page Load:**
+
 ```
 ✅ Valid JWT token found
 🔄 [AuthService] Fetching fresh user profile from backend...
@@ -202,6 +222,7 @@ if (result.success && result.user && result.user.avatar_url) {
 ```
 
 **After Photo Upload:**
+
 ```
 📸 Starting photo upload...
 ✅ Photo uploaded successfully: { avatar_url: "..." }
@@ -212,6 +233,7 @@ if (result.success && result.user && result.user.avatar_url) {
 ### Troubleshooting
 
 **If photo is lost after refresh:**
+
 1. Check browser console for error messages
 2. Verify backend server is running (port 4001)
 3. Check if `refreshUserProfile()` is being called
@@ -219,8 +241,9 @@ if (result.success && result.user && result.user.avatar_url) {
 5. Verify Supabase Storage has the photo file
 
 **If photo upload fails:**
+
 1. Check file size (must be < 5MB)
-2. Check file type (must be image/*)
+2. Check file type (must be image/\*)
 3. Verify auth token is valid
 4. Check backend logs for upload errors
 5. Verify Supabase Storage bucket permissions
@@ -237,6 +260,7 @@ if (result.success && result.user && result.user.avatar_url) {
 ✅ **PRODUCTION READY**
 
 This fix ensures profile photo stability by maintaining synchronization between:
+
 - Frontend localStorage (cache)
 - Frontend component state (UI)
 - Backend API (business logic)

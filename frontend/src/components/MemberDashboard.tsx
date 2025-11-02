@@ -104,6 +104,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     title: string;
   }>({ show: false, announcementId: '', title: '' });
 
+  // Announcements collapse state - show only last 3 by default
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+
   // Helper function to normalize time format to HH:MM:SS for consistent comparison
   const normalizeTime = (time: string): string => {
     if (!time) return '';
@@ -778,6 +781,17 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         <div className="content-section full-width">
           <div className="section-header">
             <h2>📢 Gym News & Announcements</h2>
+            {announcementsList.length > 3 && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowAllAnnouncements(!showAllAnnouncements)}
+                style={{ marginLeft: 'auto' }}
+              >
+                {showAllAnnouncements
+                  ? '📤 Show Less'
+                  : `📥 Show All (${announcementsList.length})`}
+              </button>
+            )}
           </div>
           <div className="announcements-list">
             {announcementsList.length === 0 ? (
@@ -785,30 +799,32 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 <p>📭 No announcements at the moment. Check back later!</p>
               </div>
             ) : (
-              announcementsList.map((announcement: Announcement) => (
-                <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
-                  <div className="announcement-header">
-                    <h4>{announcement.title}</h4>
-                    <div className="announcement-actions">
-                      <span className="announcement-date">{formatDate(announcement.date)}</span>
-                      <button
-                        className="btn-dismiss"
-                        onClick={() => {
-                          setDismissConfirmModal({
-                            show: true,
-                            announcementId: announcement.id,
-                            title: announcement.title,
-                          });
-                        }}
-                        title="Dismiss announcement"
-                      >
-                        ✕
-                      </button>
+              (showAllAnnouncements ? announcementsList : announcementsList.slice(0, 3)).map(
+                (announcement: Announcement) => (
+                  <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
+                    <div className="announcement-header">
+                      <h4>{announcement.title}</h4>
+                      <div className="announcement-actions">
+                        <span className="announcement-date">{formatDate(announcement.date)}</span>
+                        <button
+                          className="btn-dismiss"
+                          onClick={() => {
+                            setDismissConfirmModal({
+                              show: true,
+                              announcementId: announcement.id,
+                              title: announcement.title,
+                            });
+                          }}
+                          title="Dismiss announcement"
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
+                    <p>{announcement.message}</p>
                   </div>
-                  <p>{announcement.message}</p>
-                </div>
-              ))
+                ),
+              )
             )}
           </div>
         </div>
