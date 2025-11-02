@@ -54,6 +54,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState<string | null>(null);
   const [showPhotoSuccessModal, setShowPhotoSuccessModal] = useState(false);
+  const [expandedHistoryItems, setExpandedHistoryItems] = useState<Set<string>>(new Set());
 
   // Custom notification modal state
   const [notificationModal, setNotificationModal] = useState<{
@@ -251,6 +252,19 @@ const MyProfile: React.FC<MyProfileProps> = ({
   // Check if current user can edit names
   const canEditNames =
     currentUserRole === 'admin' || currentUserRole === 'reception' || currentUserRole === 'sparta';
+
+  // Toggle expand/collapse for history items
+  const toggleHistoryItem = (id: string) => {
+    setExpandedHistoryItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
 
   // Helper function to show user-friendly notification modals
   const showNotification = (
@@ -1328,138 +1342,233 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <p>You don't have any membership records yet.</p>
                 </div>
               ) : (
-                <div className="history-timeline">
-                  {membershipHistory.map((record) => (
-                    <div key={record.id} className={`history-card ${record.status}`}>
-                      <div className="history-header">
-                        <div className="plan-info">
-                          <h3>{record.plan_name}</h3>
-                          <span className="plan-type">{record.plan_type.toUpperCase()}</span>
-                        </div>
-                        <span className={`status-badge ${record.status}`}>
-                          {record.status === 'active' && '✅ Active'}
-                          {record.status === 'expired' && '⏰ Expired'}
-                          {record.status === 'completed' && '✔️ Completed'}
-                          {record.status === 'cancelled' && '❌ Cancelled'}
-                          {record.status === 'pending' && '⏳ Pending'}
-                        </span>
+                <>
+                  {/* Summary Statistics */}
+                  <div className="history-summary">
+                    <div className="summary-card">
+                      <span className="summary-icon">📊</span>
+                      <div className="summary-content">
+                        <span className="summary-value">{membershipHistory.length}</span>
+                        <span className="summary-label">Total Records</span>
                       </div>
+                    </div>
+                    <div className="summary-card">
+                      <span className="summary-icon">✅</span>
+                      <div className="summary-content">
+                        <span className="summary-value">
+                          {membershipHistory.filter((r) => r.status === 'active').length}
+                        </span>
+                        <span className="summary-label">Active</span>
+                      </div>
+                    </div>
+                    <div className="summary-card">
+                      <span className="summary-icon">📅</span>
+                      <div className="summary-content">
+                        <span className="summary-value">
+                          {formatDate(membershipHistory[membershipHistory.length - 1]?.created_at)}
+                        </span>
+                        <span className="summary-label">Member Since</span>
+                      </div>
+                    </div>
+                    <div className="summary-card">
+                      <span className="summary-icon">🏋️</span>
+                      <div className="summary-content">
+                        <span className="summary-value">
+                          {membershipHistory.reduce((total, r) => {
+                            const used = r.class_limit ? r.class_limit - (r.class_limit || 0) : 0;
+                            return total + used;
+                          }, 0)}
+                        </span>
+                        <span className="summary-label">Classes Used</span>
+                      </div>
+                    </div>
+                  </div>
 
-                      <div className="history-grid">
-                        {/* Date Information */}
-                        <div className="info-group">
-                          <div className="info-item">
-                            <span className="info-icon">📅</span>
-                            <div className="info-content">
-                              <span className="info-label">Start Date</span>
-                              <span className="info-value">{formatDate(record.start_date)}</span>
+                  {/* History Timeline */}
+                  <div className="history-timeline">
+                    {membershipHistory.map((record) => {
+                      const isExpanded = expandedHistoryItems.has(record.id);
+                      return (
+                        <div
+                          key={record.id}
+                          className={`history-card ${record.status} ${
+                            isExpanded ? 'expanded' : 'collapsed'
+                          }`}
+                        >
+                          <div
+                            className="history-header clickable"
+                            onClick={() => toggleHistoryItem(record.id)}
+                          >
+                            <div className="plan-info">
+                              <h3>{record.plan_name}</h3>
+                              <span className="plan-type">{record.plan_type.toUpperCase()}</span>
+                            </div>
+                            <div className="header-right">
+                              <span className={`status-badge ${record.status}`}>
+                                {record.status === 'active' && '✅ Active'}
+                                {record.status === 'expired' && '⏰ Expired'}
+                                {record.status === 'completed' && '✔️ Completed'}
+                                {record.status === 'cancelled' && '❌ Cancelled'}
+                                {record.status === 'pending' && '⏳ Pending'}
+                              </span>
+                              <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
                             </div>
                           </div>
 
-                          {record.end_date ? (
-                            <div className="info-item">
-                              <span className="info-icon">📅</span>
-                              <div className="info-content">
-                                <span className="info-label">End Date</span>
-                                <span className="info-value">{formatDate(record.end_date)}</span>
+                          {/* Always visible summary */}
+                          <div className="history-summary-row">
+                            <span className="summary-item">
+                              📅 {formatDate(record.start_date)} -{' '}
+                              {record.end_date ? formatDate(record.end_date) : 'Ongoing'}
+                            </span>
+                            <span className="summary-item">
+                              💰 {record.currency} {record.amount.toFixed(2)}
+                            </span>
+                            <span className="summary-item">
+                              🏋️{' '}
+                              {record.class_limit ? `${record.class_limit} classes` : 'Unlimited'}
+                            </span>
+                          </div>
+
+                          {/* Expandable Details */}
+                          {isExpanded && (
+                            <div className="history-grid">
+                              {/* Date Information */}
+                              <div className="info-group">
+                                <div className="info-item">
+                                  <span className="info-icon">📅</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Start Date</span>
+                                    <span className="info-value">
+                                      {formatDate(record.start_date)}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {record.end_date ? (
+                                  <div className="info-item">
+                                    <span className="info-icon">📅</span>
+                                    <div className="info-content">
+                                      <span className="info-label">End Date</span>
+                                      <span className="info-value">
+                                        {formatDate(record.end_date)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="info-item">
+                                    <span className="info-icon">∞</span>
+                                    <div className="info-content">
+                                      <span className="info-label">Duration</span>
+                                      <span className="info-value ongoing">Ongoing</span>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ) : (
-                            <div className="info-item">
-                              <span className="info-icon">∞</span>
-                              <div className="info-content">
-                                <span className="info-label">Duration</span>
-                                <span className="info-value ongoing">Ongoing</span>
+
+                              {/* Financial Information */}
+                              <div className="info-group">
+                                <div className="info-item">
+                                  <span className="info-icon">💰</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Amount</span>
+                                    <span className="info-value amount">
+                                      {record.amount > 0
+                                        ? `${record.currency} ${record.amount.toFixed(2)}`
+                                        : 'Free'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="info-item">
+                                  <span className="info-icon">💳</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Payment Method</span>
+                                    <span className="info-value">
+                                      {record.payment_method
+                                        .replace('_', ' ')
+                                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
+
+                              {/* Membership Details */}
+                              <div className="info-group">
+                                <div className="info-item">
+                                  <span className="info-icon">🔄</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Renewal Type</span>
+                                    <span className="info-value">
+                                      {record.renewal_type
+                                        .replace('_', ' ')
+                                        .replace(/\b\w/g, (l) => l.toUpperCase())}
+                                      {record.auto_renew && ' 🔁'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="info-item">
+                                  <span className="info-icon">🏋️</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Class Access</span>
+                                    <span className="info-value">
+                                      {record.class_limit
+                                        ? `${record.class_limit} per month`
+                                        : 'Unlimited'}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Registration Date */}
+                              <div className="info-group">
+                                <div className="info-item">
+                                  <span className="info-icon">📝</span>
+                                  <div className="info-content">
+                                    <span className="info-label">Registered On</span>
+                                    <span className="info-value">
+                                      {formatDate(record.created_at)}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Additional Information */}
+                              {record.next_billing_date && record.status === 'active' && (
+                                <div className="info-group highlight">
+                                  <div className="info-item">
+                                    <span className="info-icon">📆</span>
+                                    <div className="info-content">
+                                      <span className="info-label">Next Billing Date</span>
+                                      <span className="info-value next-billing">
+                                        {formatDate(record.next_billing_date)}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
+                              {record.cancellation_reason && (
+                                <div className="info-group warning">
+                                  <div className="info-item full-width">
+                                    <span className="info-icon">ℹ️</span>
+                                    <div className="info-content">
+                                      <span className="info-label">Notes</span>
+                                      <span className="info-value">
+                                        {record.cancellation_reason}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-
-                        {/* Financial Information */}
-                        <div className="info-group">
-                          <div className="info-item">
-                            <span className="info-icon">💰</span>
-                            <div className="info-content">
-                              <span className="info-label">Amount</span>
-                              <span className="info-value amount">
-                                {record.amount > 0
-                                  ? `${record.currency} ${record.amount.toFixed(2)}`
-                                  : 'Free'}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="info-item">
-                            <span className="info-icon">💳</span>
-                            <div className="info-content">
-                              <span className="info-label">Payment Method</span>
-                              <span className="info-value">
-                                {record.payment_method
-                                  .replace('_', ' ')
-                                  .replace(/\b\w/g, (l) => l.toUpperCase())}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Membership Details */}
-                        <div className="info-group">
-                          <div className="info-item">
-                            <span className="info-icon">🔄</span>
-                            <div className="info-content">
-                              <span className="info-label">Renewal Type</span>
-                              <span className="info-value">
-                                {record.renewal_type
-                                  .replace('_', ' ')
-                                  .replace(/\b\w/g, (l) => l.toUpperCase())}
-                                {record.auto_renew && ' 🔁'}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="info-item">
-                            <span className="info-icon">🏋️</span>
-                            <div className="info-content">
-                              <span className="info-label">Class Access</span>
-                              <span className="info-value">
-                                {record.class_limit
-                                  ? `${record.class_limit} per month`
-                                  : 'Unlimited'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Additional Information */}
-                        {record.next_billing_date && record.status === 'active' && (
-                          <div className="info-group highlight">
-                            <div className="info-item">
-                              <span className="info-icon">📆</span>
-                              <div className="info-content">
-                                <span className="info-label">Next Billing Date</span>
-                                <span className="info-value next-billing">
-                                  {formatDate(record.next_billing_date)}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {record.cancellation_reason && (
-                          <div className="info-group warning">
-                            <div className="info-item full-width">
-                              <span className="info-icon">ℹ️</span>
-                              <div className="info-content">
-                                <span className="info-label">Cancellation Reason</span>
-                                <span className="info-value">{record.cancellation_reason}</span>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
+                </>
               )}
             </div>
             <div className="modal-footer">

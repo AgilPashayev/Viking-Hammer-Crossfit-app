@@ -16,6 +16,7 @@ import {
   UpdateMemberData as ApiUpdateMemberData,
 } from '../services/memberService';
 import { isAuthenticated, isAdmin } from '../services/authService';
+import { formatDate } from '../utils/dateFormatter';
 
 // Default membership types - these should match the plans in database
 const DEFAULT_MEMBERSHIP_TYPES = [
@@ -540,7 +541,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
                   userId: transformed.id,
                   planId: matchingPlan.id,
                   startDate: memberData.joinDate || new Date().toISOString().split('T')[0],
-                  notes: `Initial subscription created on ${new Date().toLocaleDateString()}`,
+                  notes: `Initial subscription created on ${formatDate(new Date())}`,
                 };
 
                 const subResponse = await fetch('http://localhost:4001/api/subscriptions', {
@@ -709,9 +710,9 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
                     userId: id,
                     planId: matchingPlan.id,
                     startDate: new Date().toISOString().split('T')[0],
-                    notes: `Membership updated from ${
-                      before.membershipType
-                    } on ${new Date().toLocaleDateString()}`,
+                    notes: `Membership updated from ${before.membershipType} on ${formatDate(
+                      new Date(),
+                    )}`,
                   };
 
                   const subResponse = await fetch('http://localhost:4001/api/subscriptions', {
