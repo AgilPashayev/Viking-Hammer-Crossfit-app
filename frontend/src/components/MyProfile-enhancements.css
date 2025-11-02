@@ -944,3 +944,185 @@
     font-size: 0.95rem;
   }
 }
+
+/* ============================================
+   MEMBERSHIP HISTORY ENHANCEMENTS
+   ============================================ */
+
+/* Summary Statistics Cards */
+.history-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 0 5px;
+}
+
+.summary-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.summary-card:nth-child(2) {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.summary-card:nth-child(3) {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.summary-card:nth-child(4) {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.summary-icon {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+.summary-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.summary-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.95;
+  margin-top: 2px;
+}
+
+/* Collapsible History Cards */
+.history-card {
+  transition: all 0.3s ease;
+}
+
+.history-card.collapsed {
+  background: #f8f9fa;
+}
+
+.history-card.expanded {
+  background: white;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+.history-header.clickable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.history-header.clickable:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px 8px 0 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.expand-icon {
+  font-size: 1rem;
+  color: #6c757d;
+  transition: transform 0.3s ease, color 0.3s ease;
+  font-weight: bold;
+}
+
+.history-card.expanded .expand-icon {
+  transform: rotate(90deg);
+  color: #667eea;
+}
+
+/* Summary Row (Always Visible) */
+.history-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 12px 20px;
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-top: 1px solid #e9ecef;
+  font-size: 0.9rem;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* History Grid (Expanded Details) */
+.history-grid {
+  animation: slideDown 0.3s ease;
+  margin-top: 10px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design for Summary Cards */
+@media (max-width: 768px) {
+  .history-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .summary-card {
+    padding: 15px;
+  }
+
+  .summary-icon {
+    font-size: 2rem;
+  }
+
+  .summary-value {
+    font-size: 1.5rem;
+  }
+
+  .summary-label {
+    font-size: 0.75rem;
+  }
+
+  .history-summary-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .history-summary {
+    grid-template-columns: 1fr;
+  }
+}
+

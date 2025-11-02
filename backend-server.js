@@ -1077,6 +1077,91 @@ app.delete(
   }),
 );
 
+/**
+ * GET /api/subscriptions/user/:userId/history - Get membership history for a user
+ */
+app.get(
+  '/api/subscriptions/user/:userId/history',
+  asyncHandler(async (req, res) => {
+    try {
+      console.log('📊 Fetching membership history for user:', req.params.userId);
+
+      // Query memberships with plan details
+      const { data, error } = await supabase
+        .from('memberships')
+        .select(
+          `
+          id,
+          user_id,
+          start_date,
+          end_date,
+          status,
+          remaining_visits,
+          notes,
+          created_at,
+          plans (
+            id,
+            name,
+            sku,
+            price_cents,
+            duration_days,
+            visit_quota
+          )
+        `,
+        )
+        .eq('user_id', req.params.userId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('❌ Database error:', error);
+        return res.status(500).json({
+          success: false,
+          error: 'Unable to retrieve membership history',
+        });
+      }
+
+      // Transform data
+      const transformedData = data.map((record) => {
+        const plan = record.plans;
+        return {
+          id: record.id.toString(),
+          user_id: record.user_id,
+          plan_name: plan?.name || 'Unknown Plan',
+          plan_type: 'membership',
+          start_date: record.start_date,
+          end_date: record.end_date,
+          duration_months: plan?.duration_days ? Math.round(plan.duration_days / 30) : null,
+          status: record.status,
+          amount: plan?.price_cents ? plan.price_cents / 100 : 0,
+          currency: 'AZN',
+          payment_method: 'cash',
+          payment_status: 'paid',
+          renewal_type: 'manual',
+          auto_renew: false,
+          next_billing_date: null,
+          class_limit: plan?.visit_quota || null,
+          created_at: record.created_at,
+          cancelled_at:
+            record.status === 'cancelled' || record.status === 'expired' ? record.end_date : null,
+          cancellation_reason: record.notes || null,
+        };
+      });
+
+      console.log('✅ Retrieved', transformedData.length, 'membership records');
+      res.json({
+        success: true,
+        data: transformedData,
+      });
+    } catch (error) {
+      console.error('❌ Unexpected error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'An unexpected error occurred',
+      });
+    }
+  }),
+);
+
 // ==================== NOTIFICATIONS ====================
 
 /**

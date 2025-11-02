@@ -48,41 +48,43 @@ export const getUserMembershipHistory = async (
   try {
     console.log('📊 Fetching membership history for user:', userId);
 
-    // Fetch from memberships table with plan details
-    const { data, error } = await supabase
-      .from('memberships')
-      .select(
-        `
-        id,
-        user_id,
-        start_date,
-        end_date,
-        status,
-        remaining_visits,
-        notes,
-        created_at,
-        plans (
-          id,
-          name,
-          sku,
-          price_cents,
-          duration_days,
-          visit_quota
-        )
-      `,
-      )
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+    // Call backend API instead of direct Supabase query
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      console.error('❌ No auth token found');
+      return {
+        success: false,
+        error: 'Please log in to view your membership history.',
+      };
+    }
 
-    if (error) {
-      console.error('❌ Supabase error:', error);
+    const response = await fetch(`http://localhost:4001/api/subscriptions/user/${userId}/history`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.error('❌ API error:', response.status, response.statusText);
       return {
         success: false,
         error: 'Unable to retrieve membership history. Please try again later.',
       };
     }
 
-    if (!data || data.length === 0) {
+    const result = await response.json();
+
+    if (!result.success) {
+      console.error('❌ API returned error:', result.error);
+      return {
+        success: false,
+        error: result.error || 'Unable to retrieve membership history.',
+      };
+    }
+
+    if (!result.data || result.data.length === 0) {
       console.log('ℹ️ No membership history found for user');
       return {
         success: true,
@@ -90,37 +92,10 @@ export const getUserMembershipHistory = async (
       };
     }
 
-    // Transform data to match interface
-    const transformedData: MembershipRecord[] = data.map((record: any) => {
-      const plan = record.plans;
-      return {
-        id: record.id.toString(),
-        user_id: record.user_id,
-        plan_name: plan?.name || 'Unknown Plan',
-        plan_type: 'membership',
-        start_date: record.start_date,
-        end_date: record.end_date,
-        duration_months: plan?.duration_days ? Math.round(plan.duration_days / 30) : null,
-        status: record.status,
-        amount: plan?.price_cents ? plan.price_cents / 100 : 0,
-        currency: 'AZN',
-        payment_method: 'cash',
-        payment_status: 'paid' as const,
-        renewal_type: 'manual',
-        auto_renew: false,
-        next_billing_date: null,
-        class_limit: plan?.visit_quota || null,
-        created_at: record.created_at,
-        cancelled_at:
-          record.status === 'cancelled' || record.status === 'expired' ? record.end_date : null,
-        cancellation_reason: record.notes || null,
-      };
-    });
-
-    console.log('✅ Retrieved', transformedData.length, 'membership records');
+    console.log('✅ Retrieved', result.data.length, 'membership records');
     return {
       success: true,
-      data: transformedData,
+      data: result.data as MembershipRecord[],
     };
   } catch (error: any) {
     console.error('❌ Exception in getUserMembershipHistory:', error);
