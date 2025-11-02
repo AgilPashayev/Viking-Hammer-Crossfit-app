@@ -162,6 +162,58 @@ export function getCurrentUser(): any | null {
 }
 
 /**
+ * Fetch fresh user profile from backend and update localStorage
+ * Call this after profile updates to keep data in sync
+ */
+export async function refreshUserProfile(): Promise<any | null> {
+  try {
+    const token = getToken();
+    if (!token) {
+      console.warn('⚠️ [AuthService] No token found, cannot refresh profile');
+      return null;
+    }
+
+    console.log('🔄 [AuthService] Fetching fresh user profile from backend...');
+
+    const response = await fetch(`${API_BASE_URL}/users/me`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (response.status === 401) {
+      handle401Error();
+      return null;
+    }
+
+    if (!response.ok) {
+      console.error('❌ [AuthService] Failed to fetch profile:', response.status);
+      return null;
+    }
+
+    const freshUser = await response.json();
+    console.log('✅ [AuthService] Fresh profile fetched:', freshUser);
+
+    // Update localStorage with fresh data
+    localStorage.setItem('userData', JSON.stringify(freshUser));
+
+    // Also update legacy key for compatibility
+    localStorage.setItem(
+      'viking_remembered_user',
+      JSON.stringify({
+        ...freshUser,
+        isAuthenticated: true,
+      }),
+    );
+
+    console.log('💾 [AuthService] Updated localStorage with fresh profile data');
+
+    return freshUser;
+  } catch (error) {
+    console.error('❌ [AuthService] Error refreshing profile:', error);
+    return null;
+  }
+}
+
+/**
  * Check if user is authenticated (has valid token)
  */
 export function isAuthenticated(): boolean {
@@ -242,6 +294,7 @@ export default {
   getToken,
   getAuthHeaders,
   getCurrentUser,
+  refreshUserProfile,
   isAuthenticated,
   logout,
   handle401Error,

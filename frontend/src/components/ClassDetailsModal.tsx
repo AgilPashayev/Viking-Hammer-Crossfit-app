@@ -57,7 +57,10 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
         <div className="modal-header">
           <div className="modal-category">{gymClass.category}</div>
           <h2>{gymClass.name}</h2>
-          <div className="modal-difficulty" style={{ color: getDifficultyColor(gymClass.difficulty) }}>
+          <div
+            className="modal-difficulty"
+            style={{ color: getDifficultyColor(gymClass.difficulty) }}
+          >
             {gymClass.difficulty}
           </div>
         </div>
@@ -83,11 +86,15 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
           <div className="modal-section">
             <h3>👨‍🏫 Instructors</h3>
             <div className="instructors-list">
-              {gymClass.instructors.map((instructor, index) => (
-                <div key={index} className="instructor-badge">
-                  {instructor}
-                </div>
-              ))}
+              {gymClass.instructorNames && gymClass.instructorNames.length > 0 ? (
+                gymClass.instructorNames.map((name, index) => (
+                  <div key={index} className="instructor-badge">
+                    {name}
+                  </div>
+                ))
+              ) : (
+                <p className="text-muted">No instructors assigned</p>
+              )}
             </div>
           </div>
 

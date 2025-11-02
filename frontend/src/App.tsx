@@ -38,7 +38,17 @@ interface UserData {
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'dashboard' | 'profile' | 'reception' | 'sparta' | 'classes' | 'auth' | 'verify-email' | 'invite-register' | 'register' | 'forgot-password' | 'reset-password'
+    | 'home'
+    | 'dashboard'
+    | 'profile'
+    | 'reception'
+    | 'sparta'
+    | 'auth'
+    | 'verify-email'
+    | 'invite-register'
+    | 'register'
+    | 'forgot-password'
+    | 'reset-password'
   >('home');
   const [user, setUser] = useState<UserData | null>(null);
   const [invitationToken, setInvitationToken] = useState<string | null>(null);
@@ -50,7 +60,7 @@ export default function App() {
       // Check URL for special routes
       const urlParams = new URLSearchParams(window.location.search);
       const path = window.location.pathname;
-      
+
       // Check for registration token in URL (/register/TOKEN)
       if (path.startsWith('/register/')) {
         const token = path.split('/register/')[1];
@@ -60,7 +70,7 @@ export default function App() {
           return;
         }
       }
-      
+
       // Check for reset password token in URL (/reset-password/TOKEN)
       if (path.startsWith('/reset-password/')) {
         const token = path.split('/reset-password/')[1];
@@ -70,7 +80,7 @@ export default function App() {
           return;
         }
       }
-      
+
       // Check if user is on invitation registration page (old format)
       const invToken = urlParams.get('invitation');
       if (invToken) {
@@ -78,13 +88,13 @@ export default function App() {
         setCurrentPage('invite-register');
         return;
       }
-      
+
       // Check if user is on email verification page
       if (path === '/verify-email' || urlParams.get('token')) {
         setCurrentPage('verify-email');
         return;
       }
-      
+
       // ========== JWT TOKEN VALIDATION ==========
       // Check if user has valid JWT token
       if (isAuthenticated()) {
@@ -93,12 +103,25 @@ export default function App() {
         const userData = localStorage.getItem('userData');
         const rememberedUser = localStorage.getItem('viking_remembered_user');
         const stored = userData || rememberedUser;
-        
+
         if (stored) {
           const parsed: UserData = JSON.parse(stored);
           if (parsed?.isAuthenticated || parsed?.id) {
             setUser(parsed);
             setCurrentPage('dashboard');
+
+            // 🔄 CRITICAL FIX: Fetch fresh profile from backend to sync avatar_url
+            // This ensures profile photo is always up-to-date after page refresh
+            (async () => {
+              const { refreshUserProfile } = await import('./services/authService');
+              const freshProfile = await refreshUserProfile();
+              if (freshProfile) {
+                console.log('🔄 [App] Synced profile from backend, updating user state...');
+                setUser((prev) =>
+                  prev ? { ...prev, ...freshProfile, isAuthenticated: true } : null,
+                );
+              }
+            })();
           }
         }
       } else {
@@ -108,24 +131,28 @@ export default function App() {
         setUser(null);
         setCurrentPage('home');
       }
-      
+
       // Clean up old demo users with string IDs (pre-UUID fix)
       const demoUsers = localStorage.getItem('viking_demo_users');
       if (demoUsers) {
         try {
           const users = JSON.parse(demoUsers);
           let cleaned = false;
-          
+
           // Remove only users with old string ID format
-          Object.keys(users).forEach(email => {
+          Object.keys(users).forEach((email) => {
             const user = users[email];
-            if (user?.profile?.id && typeof user.profile.id === 'string' && user.profile.id.startsWith('demo-')) {
+            if (
+              user?.profile?.id &&
+              typeof user.profile.id === 'string' &&
+              user.profile.id.startsWith('demo-')
+            ) {
               console.log('🧹 Removing old demo user:', email, 'ID:', user.profile.id);
               delete users[email];
               cleaned = true;
             }
           });
-          
+
           // Save cleaned users back or clear if empty
           if (cleaned) {
             if (Object.keys(users).length > 0) {
@@ -135,7 +162,7 @@ export default function App() {
               localStorage.removeItem('viking_demo_users');
               console.log('🧹 All demo users were old format, cleared storage');
             }
-            
+
             // Also check if current user needs to be logged out
             const currentUser = localStorage.getItem('viking_current_user');
             if (currentUser) {
@@ -146,7 +173,9 @@ export default function App() {
                   localStorage.removeItem('viking_remembered_user');
                   console.log('🔓 Logged out old demo user');
                 }
-              } catch {}
+              } catch {
+                // Ignore parsing errors
+              }
             }
           }
         } catch {
@@ -169,13 +198,13 @@ export default function App() {
     authLogout(); // Clear JWT token and all auth data
     setCurrentPage('home');
   };
-  
+
   const handleUserUpdate = (updatedUser: any) => {
     console.log('🔄 [App] Updating user data:', updatedUser);
-    
+
     // Update user state with new data (e.g., profile photo)
-    setUser(prev => prev ? { ...prev, ...updatedUser } : null);
-    
+    setUser((prev) => (prev ? { ...prev, ...updatedUser } : null));
+
     // Update BOTH localStorage keys to prevent data loss on refresh
     try {
       // Update userData (used by JWT auth system)
@@ -186,7 +215,7 @@ export default function App() {
         localStorage.setItem('userData', JSON.stringify(updated));
         console.log('✅ [App] Updated userData in localStorage');
       }
-      
+
       // Also update viking_remembered_user (legacy support)
       const remembered = localStorage.getItem('viking_remembered_user');
       if (remembered) {
@@ -209,8 +238,6 @@ export default function App() {
       setCurrentPage('home');
     } else if (page === 'dashboard') {
       setCurrentPage('dashboard');
-    } else if (page === 'classes') {
-      setCurrentPage('classes');
     } else if (page === 'profile') {
       setCurrentPage('profile');
     } else if (page === 'reception') {
@@ -262,9 +289,7 @@ export default function App() {
   if (currentPage === 'forgot-password') {
     return (
       <DataProvider>
-        <ForgotPassword
-          onBack={() => setCurrentPage('auth')}
-        />
+        <ForgotPassword onBack={() => setCurrentPage('auth')} />
       </DataProvider>
     );
   }
@@ -399,9 +424,6 @@ export default function App() {
                 🏠 Home
               </button>
               <button className="nav-btn active">📊 Dashboard</button>
-              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
-                🏋️ Classes
-              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -426,9 +448,6 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
               </button>
-              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
-                🏋️ Classes
-              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -451,9 +470,6 @@ export default function App() {
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
               </button>
-              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
-                🏋️ Classes
-              </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
                 👤 Profile
               </button>
@@ -467,31 +483,6 @@ export default function App() {
             </div>
             <Sparta onNavigate={handleNavigate} user={user} />
           </div>
-        ) : currentPage === 'classes' ? (
-          <div>
-            <div className="navigation-bar">
-              <button className="nav-btn" onClick={() => handleNavigate('home')}>
-                🏠 Home
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
-                📊 Dashboard
-              </button>
-              <button className="nav-btn active">🏋️ Classes</button>
-              <button className="nav-btn" onClick={() => handleNavigate('profile')}>
-                👤 Profile
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                🏢 Reception
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                ⚔️ Sparta
-              </button>
-              <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                🚪 Logout
-              </button>
-            </div>
-            <ClassList onNavigate={handleNavigate} user={user} />
-          </div>
         ) : (
           <div>
             <div className="navigation-bar">
@@ -500,9 +491,6 @@ export default function App() {
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
                 📊 Dashboard
-              </button>
-              <button className="nav-btn" onClick={() => handleNavigate('classes')}>
-                🏋️ Classes
               </button>
               <button className="nav-btn active">👤 Profile</button>
               <button className="nav-btn" onClick={() => handleNavigate('reception')}>
@@ -515,9 +503,9 @@ export default function App() {
                 🚪 Logout
               </button>
             </div>
-            <MyProfile 
-              onNavigate={handleNavigate} 
-              user={user} 
+            <MyProfile
+              onNavigate={handleNavigate}
+              user={user}
               currentUserRole={user?.role as any}
               onUserUpdate={handleUserUpdate}
             />

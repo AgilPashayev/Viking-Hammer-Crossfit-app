@@ -107,13 +107,18 @@ async function bookClassSlot(userId, scheduleSlotIdOrData, bookingDate) {
     }
 
     // Check if user already booked this slot for this date
-    const existingBooking = slot.bookings.find(
+    const existingConfirmedBooking = slot.bookings.find(
       (b) => b.user_id === userId && b.booking_date === bookingDate && b.status === 'confirmed',
     );
 
-    if (existingBooking) {
+    if (existingConfirmedBooking) {
       return { error: 'You are already booked for this class', status: 400 };
     }
+
+    // Check for cancelled booking that we can reuse (to avoid unique constraint violation)
+    const cancelledBooking = slot.bookings.find(
+      (b) => b.user_id === userId && b.booking_date === bookingDate && b.status === 'cancelled',
+    );
 
     // Check capacity
     const confirmedBookings = slot.bookings.filter(
@@ -126,32 +131,75 @@ async function bookClassSlot(userId, scheduleSlotIdOrData, bookingDate) {
       return { error: 'This class is full', status: 400 };
     }
 
-    // Create booking
-    const { data: newBooking, error: bookingError } = await supabase
-      .from('class_bookings')
-      .insert({
-        user_id: userId,
-        schedule_slot_id: scheduleSlotId,
-        booking_date: bookingDate,
-        status: 'confirmed',
-      })
-      .select(
-        `
-        *,
-        slot:schedule_slots (
+    let newBooking;
+    let bookingError;
+
+    if (cancelledBooking) {
+      // Reuse cancelled booking - update status back to confirmed
+      console.log('♻️  Reusing cancelled booking:', cancelledBooking.id);
+      const result = await supabase
+        .from('class_bookings')
+        .update({
+          status: 'confirmed',
+          booked_at: new Date().toISOString(),
+        })
+        .eq('id', cancelledBooking.id)
+        .select(
+          `
           *,
-          class:classes (name, duration_minutes),
-          instructor:instructors (first_name, last_name)
-        ),
-  user:users_profile (id, name, email)
-      `,
-      )
-      .single();
+          slot:schedule_slots (
+            *,
+            class:classes (name, duration_minutes),
+            instructor:instructors (first_name, last_name)
+          ),
+          user:users_profile (id, name, email)
+        `,
+        )
+        .single();
+
+      newBooking = result.data;
+      bookingError = result.error;
+    } else {
+      // Create new booking
+      console.log('📝 Creating booking with data:');
+      console.log('  user_id:', userId);
+      console.log('  schedule_slot_id:', scheduleSlotId);
+      console.log('  booking_date:', bookingDate);
+
+      const result = await supabase
+        .from('class_bookings')
+        .insert({
+          user_id: userId,
+          schedule_slot_id: scheduleSlotId,
+          booking_date: bookingDate,
+          status: 'confirmed',
+        })
+        .select(
+          `
+          *,
+          slot:schedule_slots (
+            *,
+            class:classes (name, duration_minutes),
+            instructor:instructors (first_name, last_name)
+          ),
+          user:users_profile (id, name, email)
+        `,
+        )
+        .single();
+
+      newBooking = result.data;
+      bookingError = result.error;
+    }
 
     if (bookingError) {
-      console.error('Error creating booking:', bookingError);
+      console.error('❌ Error creating booking:', bookingError);
+      console.error('  Code:', bookingError.code);
+      console.error('  Message:', bookingError.message);
+      console.error('  Details:', bookingError.details);
       return { error: 'Failed to create booking', status: 500 };
     }
+
+    console.log('✅ Booking created successfully:', newBooking.id);
 
     const rosterResult = await getScheduleSlotRoster(scheduleSlotId);
 
@@ -174,6 +222,10 @@ async function bookClassSlot(userId, scheduleSlotIdOrData, bookingDate) {
  */
 async function cancelBooking(bookingId, userId) {
   try {
+    console.log('🚫 Backend cancelBooking called:');
+    console.log('  bookingId:', bookingId);
+    console.log('  userId:', userId);
+
     // Get booking
     const { data: booking, error: fetchError } = await supabase
       .from('class_bookings')
@@ -184,7 +236,6 @@ async function cancelBooking(bookingId, userId) {
           id,
           start_time,
           day_of_week,
-          booking_date,
           class:classes (name, max_capacity)
         )
       `,
@@ -192,9 +243,17 @@ async function cancelBooking(bookingId, userId) {
       .eq('id', bookingId)
       .single();
 
-    if (fetchError || !booking) {
+    if (fetchError) {
+      console.error('  ❌ Error fetching booking:', fetchError);
       return { error: 'Booking not found', status: 404 };
     }
+
+    if (!booking) {
+      console.error('  ❌ Booking not found in database');
+      return { error: 'Booking not found', status: 404 };
+    }
+
+    console.log('  ✅ Found booking:', booking.id, 'status:', booking.status);
 
     // Verify booking belongs to user (or allow admin/reception/sparta to cancel)
     if (userId && booking.user_id !== userId) {
@@ -206,15 +265,18 @@ async function cancelBooking(bookingId, userId) {
         .single();
 
       if (!requester || !['admin', 'reception', 'sparta'].includes(requester.role)) {
+        console.error('  ❌ Unauthorized - user does not own booking');
         return { error: 'Unauthorized to cancel this booking', status: 403 };
       }
     }
 
     if (booking.status === 'cancelled') {
+      console.log('  ⚠️ Booking already cancelled');
       return { error: 'Booking is already cancelled', status: 400 };
     }
 
     // Cancel booking
+    console.log('  Updating booking to cancelled status...');
     const { error: cancelError } = await supabase
       .from('class_bookings')
       .update({
@@ -224,9 +286,11 @@ async function cancelBooking(bookingId, userId) {
       .eq('id', bookingId);
 
     if (cancelError) {
-      console.error('Error cancelling booking:', cancelError);
+      console.error('  ❌ Error cancelling booking:', cancelError);
       return { error: 'Failed to cancel booking', status: 500 };
     }
+
+    console.log('  ✅ Booking cancelled successfully');
 
     const rosterResult = booking.schedule_slot_id
       ? await getScheduleSlotRoster(booking.schedule_slot_id)

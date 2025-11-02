@@ -404,18 +404,24 @@ app.put(
 
 /**
  * DELETE /api/classes/:id - Delete class (Sparta only)
+ * Query params: ?force=true for force delete with dependencies
  */
 app.delete(
   '/api/classes/:id',
   authenticate,
   isSpartaOnly,
   asyncHandler(async (req, res) => {
-    const result = await classService.deleteClass(req.params.id);
+    const forceDelete = req.query.force === 'true';
+    console.log(`🔥 DELETE CLASS API: ${req.params.id}, force: ${forceDelete}`);
+
+    const result = await classService.deleteClass(req.params.id, forceDelete);
 
     if (result.error) {
+      console.log(`❌ DELETE CLASS ERROR: ${result.error}`);
       return res.status(result.status || 500).json({ error: result.error });
     }
 
+    console.log(`✅ DELETE CLASS SUCCESS: ${result.message}`);
     res.json(result);
   }),
 );
@@ -689,19 +695,34 @@ app.post(
  */
 app.post(
   '/api/bookings/:id/cancel',
+  (req, res, next) => {
+    console.log('🔥🔥🔥 CANCEL ROUTE HIT! 🔥🔥🔥');
+    console.log('  URL:', req.url);
+    console.log('  Params:', req.params);
+    console.log('  Body:', req.body);
+    next();
+  },
   asyncHandler(async (req, res) => {
+    console.log('🚫 CANCEL BOOKING REQUEST RECEIVED:');
+    console.log('  Booking ID:', req.params.id);
+    console.log('  Request Body:', req.body);
+
     const { userId } = req.body;
 
     if (!userId) {
+      console.log('  ❌ ERROR: Missing userId in request body');
       return res.status(400).json({ error: 'Missing required field: userId' });
     }
 
+    console.log('  Calling bookingService.cancelBooking...');
     const result = await bookingService.cancelBooking(req.params.id, userId);
 
     if (result.error) {
+      console.log('  ❌ ERROR from bookingService:', result.error);
       return res.status(result.status || 500).json({ error: result.error });
     }
 
+    console.log('  ✅ SUCCESS: Booking cancelled');
     res.json(result);
   }),
 );

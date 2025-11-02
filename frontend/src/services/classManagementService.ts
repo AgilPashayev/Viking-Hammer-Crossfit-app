@@ -87,18 +87,18 @@ export const classService = {
       const response = await fetch(`${API_BASE_URL}/classes`, {
         headers: getAuthHeaders(),
       });
-      
+
       // Handle 401 Unauthorized
       if (response.status === 401) {
         handle401Error();
         return [];
       }
-      
+
       const result = await response.json();
-      
+
       // Handle both response formats for backward compatibility
-      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
-      
+      const data = result.success ? result.data : Array.isArray(result) ? result : [];
+
       // Transform each class from API format to frontend format
       return data.map(transformClassFromAPI);
     } catch (error) {
@@ -113,12 +113,12 @@ export const classService = {
       const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return null;
       }
-      
+
       const result = await response.json();
       const data = result.success ? result.data : result;
       return data ? transformClassFromAPI(data) : null;
@@ -129,7 +129,9 @@ export const classService = {
   },
 
   // Create new class
-  async create(gymClass: Partial<GymClass>): Promise<{ success: boolean; data?: GymClass; message?: string }> {
+  async create(
+    gymClass: Partial<GymClass>,
+  ): Promise<{ success: boolean; data?: GymClass; message?: string }> {
     try {
       const apiData = transformClassToAPI(gymClass);
       const response = await fetch(`${API_BASE_URL}/classes`, {
@@ -137,14 +139,14 @@ export const classService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success || result.id) {
         const classData = result.data || result;
         return {
@@ -152,7 +154,7 @@ export const classService = {
           data: transformClassFromAPI(classData),
         };
       }
-      
+
       return { success: false, message: result.message || 'Failed to create class' };
     } catch (error) {
       console.error('Error creating class:', error);
@@ -161,19 +163,22 @@ export const classService = {
   },
 
   // Update class
-  async update(id: string, gymClass: Partial<GymClass>): Promise<{ success: boolean; data?: GymClass; message?: string }> {
+  async update(
+    id: string,
+    gymClass: Partial<GymClass>,
+  ): Promise<{ success: boolean; data?: GymClass; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(gymClass),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -182,20 +187,27 @@ export const classService = {
     }
   },
 
-  // Delete class
-  async delete(id: string): Promise<{ success: boolean; message?: string }> {
+  // Delete class with optional force delete
+  async delete(id: string, forceDelete = false): Promise<{ success: boolean; message?: string }> {
     try {
-      const response = await fetch(`${API_BASE_URL}/classes/${id}`, {
+      const url = forceDelete
+        ? `${API_BASE_URL}/classes/${id}?force=true`
+        : `${API_BASE_URL}/classes/${id}`;
+
+      console.log(`🔥 Frontend DELETE request: ${url}`);
+
+      const response = await fetch(url, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
+      console.log(`🔥 Frontend DELETE response:`, data);
       return data;
     } catch (error) {
       console.error('Error deleting class:', error);
@@ -213,14 +225,14 @@ export const instructorService = {
       const response = await fetch(`${API_BASE_URL}/instructors`, {
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return [];
       }
-      
+
       const result = await response.json();
-      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
+      const data = result.success ? result.data : Array.isArray(result) ? result : [];
       return data.map(transformInstructorFromAPI);
     } catch (error) {
       console.error('Error fetching instructors:', error);
@@ -234,12 +246,12 @@ export const instructorService = {
       const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return null;
       }
-      
+
       const data = await response.json();
       return data.success ? data.data : null;
     } catch (error) {
@@ -249,7 +261,9 @@ export const instructorService = {
   },
 
   // Create new instructor
-  async create(instructor: Partial<Instructor>): Promise<{ success: boolean; data?: Instructor; message?: string }> {
+  async create(
+    instructor: Partial<Instructor>,
+  ): Promise<{ success: boolean; data?: Instructor; message?: string }> {
     try {
       const apiData = transformInstructorToAPI(instructor);
       const response = await fetch(`${API_BASE_URL}/instructors`, {
@@ -257,14 +271,14 @@ export const instructorService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success || result.id) {
         const instructorData = result.data || result;
         return {
@@ -272,7 +286,7 @@ export const instructorService = {
           data: transformInstructorFromAPI(instructorData),
         };
       }
-      
+
       return { success: false, message: result.message || 'Failed to create instructor' };
     } catch (error) {
       console.error('Error creating instructor:', error);
@@ -281,7 +295,10 @@ export const instructorService = {
   },
 
   // Update instructor
-  async update(id: string, instructor: Partial<Instructor>): Promise<{ success: boolean; data?: Instructor; message?: string }> {
+  async update(
+    id: string,
+    instructor: Partial<Instructor>,
+  ): Promise<{ success: boolean; data?: Instructor; message?: string }> {
     try {
       const apiData = transformInstructorToAPI(instructor);
       const response = await fetch(`${API_BASE_URL}/instructors/${id}`, {
@@ -289,14 +306,14 @@ export const instructorService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success || result.id) {
         const instructorData = result.data || result;
         return {
@@ -304,7 +321,7 @@ export const instructorService = {
           data: transformInstructorFromAPI(instructorData),
         };
       }
-      
+
       return { success: false, message: result.message || 'Failed to update instructor' };
     } catch (error) {
       console.error('Error updating instructor:', error);
@@ -319,12 +336,12 @@ export const instructorService = {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -338,24 +355,28 @@ export const instructorService = {
 
 export const scheduleService = {
   // Get all schedule slots
-  async getAll(filters?: { date?: string; classId?: string; instructorId?: string }): Promise<ScheduleSlot[]> {
+  async getAll(filters?: {
+    date?: string;
+    classId?: string;
+    instructorId?: string;
+  }): Promise<ScheduleSlot[]> {
     try {
       const params = new URLSearchParams();
       if (filters?.date) params.append('date', filters.date);
       if (filters?.classId) params.append('classId', filters.classId);
       if (filters?.instructorId) params.append('instructorId', filters.instructorId);
-      
+
       const response = await fetch(`${API_BASE_URL}/schedule?${params.toString()}`, {
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return [];
       }
-      
+
       const result = await response.json();
-      const data = result.success ? result.data : (Array.isArray(result) ? result : []);
+      const data = result.success ? result.data : Array.isArray(result) ? result : [];
       return data.map(transformScheduleFromAPI);
     } catch (error) {
       console.error('Error fetching schedule:', error);
@@ -370,12 +391,12 @@ export const scheduleService = {
       const response = await fetch(`${API_BASE_URL}/schedule/weekly${params}`, {
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return {};
       }
-      
+
       const data = await response.json();
       return data.success ? data.data : {};
     } catch (error) {
@@ -385,7 +406,9 @@ export const scheduleService = {
   },
 
   // Create schedule slot
-  async create(slot: Partial<ScheduleSlot>): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
+  async create(
+    slot: Partial<ScheduleSlot>,
+  ): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
     try {
       const apiData = transformScheduleToAPI(slot);
       const response = await fetch(`${API_BASE_URL}/schedule`, {
@@ -393,14 +416,14 @@ export const scheduleService = {
         headers: getAuthHeaders(),
         body: JSON.stringify(apiData),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success || result.id) {
         const scheduleData = result.data || result;
         return {
@@ -408,7 +431,7 @@ export const scheduleService = {
           data: transformScheduleFromAPI(scheduleData),
         };
       }
-      
+
       return { success: false, message: result.message || 'Failed to create schedule slot' };
     } catch (error) {
       console.error('Error creating schedule slot:', error);
@@ -417,19 +440,22 @@ export const scheduleService = {
   },
 
   // Update schedule slot
-  async update(id: string, slot: Partial<ScheduleSlot>): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
+  async update(
+    id: string,
+    slot: Partial<ScheduleSlot>,
+  ): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(slot),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -445,12 +471,12 @@ export const scheduleService = {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
@@ -460,19 +486,22 @@ export const scheduleService = {
   },
 
   // Enroll member in schedule slot
-  async enrollMember(slotId: string, memberId: string): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
+  async enrollMember(
+    slotId: string,
+    memberId: string,
+  ): Promise<{ success: boolean; data?: ScheduleSlot; message?: string }> {
     try {
       const response = await fetch(`${API_BASE_URL}/schedule/${slotId}/enroll`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({ memberId }),
       });
-      
+
       if (response.status === 401) {
         handle401Error();
         return { success: false, message: 'Session expired. Please login again.' };
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {

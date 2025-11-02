@@ -8,6 +8,8 @@ const { supabase } = require('../supabaseClient');
  */
 async function getAllClasses(filters = {}) {
   try {
+    console.log('📋 getAllClasses called with filters:', filters);
+
     let query = supabase
       .from('classes')
       .select(
@@ -56,21 +58,21 @@ async function getAllClasses(filters = {}) {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error fetching classes:', error);
+      console.error('❌ Error fetching classes:', error);
       return { error: 'Failed to fetch classes', status: 500 };
     }
 
     // Debug: Log first class structure
     if (data && data.length > 0) {
-      console.log('📊 First class structure:');
-      console.log('   - name:', data[0].name);
-      console.log('   - class_instructors:', data[0].class_instructors);
-      console.log('   - schedule_slots count:', data[0].schedule_slots?.length || 0);
+      console.log('✅ Successfully fetched', data.length, 'classes');
+    } else {
+      console.log('⚠️ No classes found');
     }
 
     return { success: true, data };
   } catch (error) {
-    console.error('Get all classes error:', error);
+    console.error('💥 EXCEPTION in getAllClasses:', error);
+    console.error('Stack:', error.stack);
     return { error: 'Internal server error', status: 500 };
   }
 }
@@ -300,25 +302,75 @@ async function updateClass(classId, updates) {
 }
 
 /**
- * Delete class
+ * Delete class with optional force delete (Sparta only)
  */
-async function deleteClass(classId) {
+async function deleteClass(classId, forceDelete = false) {
   try {
-    // Check if class has active schedule slots
-    const { data: activeSlots } = await supabase
-      .from('schedule_slots')
-      .select('id')
-      .eq('class_id', classId)
-      .eq('status', 'active')
-      .limit(1);
+    console.log(`🗑️ DELETE CLASS REQUEST: ${classId}, forceDelete: ${forceDelete}`);
 
-    if (activeSlots && activeSlots.length > 0) {
-      return {
-        error: 'Cannot delete class with active schedule slots. Cancel or remove slots first.',
-        status: 400,
-      };
+    if (!forceDelete) {
+      // Check if class has active schedule slots
+      const { data: activeSlots } = await supabase
+        .from('schedule_slots')
+        .select('id')
+        .eq('class_id', classId)
+        .eq('status', 'active')
+        .limit(1);
+
+      if (activeSlots && activeSlots.length > 0) {
+        console.log(
+          `❌ DELETE BLOCKED: Class ${classId} has ${activeSlots.length} active schedule slots`,
+        );
+        return {
+          error:
+            'Cannot delete class with active schedule slots. Use force delete or remove slots first.',
+          status: 400,
+        };
+      }
+    } else {
+      console.log(`⚠️ FORCE DELETE: Removing all dependencies for class ${classId}`);
+
+      // Force delete: Remove all dependencies first
+
+      // 1. Delete all class bookings
+      const { error: bookingsError } = await supabase
+        .from('class_bookings')
+        .delete()
+        .eq('class_id', classId);
+
+      if (bookingsError) {
+        console.error('Error deleting class bookings:', bookingsError);
+      } else {
+        console.log(`✅ Deleted bookings for class ${classId}`);
+      }
+
+      // 2. Delete all schedule slots
+      const { error: slotsError } = await supabase
+        .from('schedule_slots')
+        .delete()
+        .eq('class_id', classId);
+
+      if (slotsError) {
+        console.error('Error deleting schedule slots:', slotsError);
+      } else {
+        console.log(`✅ Deleted schedule slots for class ${classId}`);
+      }
+
+      // 3. Delete class instructor assignments
+      const { error: instructorError } = await supabase
+        .from('class_instructors')
+        .delete()
+        .eq('class_id', classId);
+
+      if (instructorError) {
+        console.error('Error deleting class instructors:', instructorError);
+      } else {
+        console.log(`✅ Deleted instructor assignments for class ${classId}`);
+      }
     }
 
+    // Finally delete the class itself
+    console.log(`🗑️ Deleting class record: ${classId}`);
     const { error } = await supabase.from('classes').delete().eq('id', classId);
 
     if (error) {
@@ -326,7 +378,11 @@ async function deleteClass(classId) {
       return { error: 'Failed to delete class', status: 500 };
     }
 
-    return { success: true, message: 'Class deleted successfully' };
+    console.log(`✅ CLASS DELETED SUCCESSFULLY: ${classId}`);
+    return {
+      success: true,
+      message: forceDelete ? 'Class force deleted successfully' : 'Class deleted successfully',
+    };
   } catch (error) {
     console.error('Delete class error:', error);
     return { error: 'Internal server error', status: 500 };

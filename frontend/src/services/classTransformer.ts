@@ -3,7 +3,12 @@
  * Converts backend API response (snake_case) to frontend interface (camelCase)
  */
 
-import type { GymClass, Instructor, ScheduleSlot, ScheduleEnrollment } from './classManagementService';
+import type {
+  GymClass,
+  Instructor,
+  ScheduleSlot,
+  ScheduleEnrollment,
+} from './classManagementService';
 
 /**
  * Transform class data from API format to frontend format
@@ -16,7 +21,7 @@ export function transformClassFromAPI(apiClass: any): GymClass {
       .map((ci: any) => {
         const instructor = ci.instructor;
         if (!instructor) return null;
-        
+
         // Return instructor ID
         return instructor.id || ci.instructor_id;
       })
@@ -30,7 +35,7 @@ export function transformClassFromAPI(apiClass: any): GymClass {
       .map((ci: any) => {
         const instructor = ci.instructor;
         if (!instructor) return null;
-        
+
         // Return instructor name
         if (instructor.first_name && instructor.last_name) {
           return `${instructor.first_name} ${instructor.last_name}`;
@@ -66,29 +71,27 @@ export function transformClassFromAPI(apiClass: any): GymClass {
   const normalizeRoster = (bookings: any[] | undefined): ScheduleEnrollment[] => {
     if (!bookings || !Array.isArray(bookings)) return [];
 
-    return bookings
-      .filter(Boolean)
-      .map((booking: any) => {
-        const user = booking.user || {};
-        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-        const resolvedName = user.name || fullName || user.email || 'Unknown Member';
+    return bookings.filter(Boolean).map((booking: any) => {
+      const user = booking.user || {};
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      const resolvedName = user.name || fullName || user.email || 'Unknown Member';
 
-        return {
-          bookingId: booking.id,
-          memberId: booking.user_id,
-          name: resolvedName,
-          email: user.email || '',
-          phone: user.phone || '',
-          status: booking.status || 'confirmed',
-          bookingDate: booking.booking_date || '',
-          bookedAt: booking.booked_at || null,
-        } as ScheduleEnrollment;
-      });
+      return {
+        bookingId: booking.id,
+        memberId: booking.user_id,
+        name: resolvedName,
+        email: user.email || '',
+        phone: user.phone || '',
+        status: booking.status || 'confirmed',
+        bookingDate: booking.booking_date || '',
+        bookedAt: booking.booked_at || null,
+      } as ScheduleEnrollment;
+    });
   };
 
   const transformSchedule = (scheduleSlots: any[] | undefined) => {
     if (!scheduleSlots || !Array.isArray(scheduleSlots)) return [];
-    
+
     return scheduleSlots.map((slot: any) => ({
       dayOfWeek: mapDayOfWeek(slot.day_of_week ?? slot.dayOfWeek),
       startTime: slot.start_time || slot.startTime || '09:00',
@@ -100,10 +103,20 @@ export function transformClassFromAPI(apiClass: any): GymClass {
   };
 
   // Calculate current enrollment from bookings
-  const calculateEnrollment = (bookings: any[] | undefined): number => {
-    if (!bookings || !Array.isArray(bookings)) return 0;
-    // Count only confirmed bookings
-    return bookings.filter((b: any) => b.status === 'confirmed' || b.status === 'attended').length;
+  const calculateEnrollment = (scheduleSlots: any[] | undefined): number => {
+    if (!scheduleSlots || !Array.isArray(scheduleSlots)) return 0;
+
+    // Sum all confirmed bookings across all schedule slots
+    let totalEnrollment = 0;
+    for (const slot of scheduleSlots) {
+      const bookings = slot.class_bookings || [];
+      // Count only confirmed/attended bookings
+      totalEnrollment += bookings.filter(
+        (b: any) => b.status === 'confirmed' || b.status === 'attended',
+      ).length;
+    }
+
+    return totalEnrollment;
   };
 
   return {
@@ -112,7 +125,7 @@ export function transformClassFromAPI(apiClass: any): GymClass {
     description: apiClass.description || '',
     duration: apiClass.duration_minutes || apiClass.duration || 60,
     maxCapacity: apiClass.max_capacity || apiClass.maxCapacity || 20,
-    currentEnrollment: calculateEnrollment(apiClass.class_bookings),
+    currentEnrollment: calculateEnrollment(apiClass.schedule_slots), // Pass schedule_slots instead
     instructors: extractInstructorIds(apiClass.class_instructors),
     instructorNames: extractInstructorNames(apiClass.class_instructors),
     schedule: transformSchedule(apiClass.schedule_slots),
@@ -207,17 +220,17 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
   // Map day_of_week string to number
   const mapDayOfWeek = (day: string | number): number => {
     if (typeof day === 'number') return day;
-    
+
     const dayMap: Record<string, number> = {
-      'Sunday': 0,
-      'Monday': 1,
-      'Tuesday': 2,
-      'Wednesday': 3,
-      'Thursday': 4,
-      'Friday': 5,
-      'Saturday': 6,
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6,
     };
-    
+
     // Case-insensitive lookup
     const normalizedDay = day.charAt(0).toUpperCase() + day.slice(1).toLowerCase();
     return dayMap[normalizedDay] || 1;
@@ -226,24 +239,22 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
   const normalizeRoster = (bookings: any[] | undefined): ScheduleEnrollment[] => {
     if (!bookings || !Array.isArray(bookings)) return [];
 
-    return bookings
-      .filter(Boolean)
-      .map((booking: any) => {
-        const user = booking.user || {};
-        const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-        const resolvedName = user.name || fullName || user.email || 'Unknown Member';
+    return bookings.filter(Boolean).map((booking: any) => {
+      const user = booking.user || {};
+      const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+      const resolvedName = user.name || fullName || user.email || 'Unknown Member';
 
-        return {
-          bookingId: booking.id,
-          memberId: booking.user_id,
-          name: resolvedName,
-          email: user.email || '',
-          phone: user.phone || '',
-          status: booking.status || 'confirmed',
-          bookingDate: booking.booking_date || '',
-          bookedAt: booking.booked_at || null,
-        } as ScheduleEnrollment;
-      });
+      return {
+        bookingId: booking.id,
+        memberId: booking.user_id,
+        name: resolvedName,
+        email: user.email || '',
+        phone: user.phone || '',
+        status: booking.status || 'confirmed',
+        bookingDate: booking.booking_date || '',
+        bookedAt: booking.booked_at || null,
+      } as ScheduleEnrollment;
+    });
   };
 
   return {
@@ -265,18 +276,12 @@ export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
  * Transform class data from frontend format to API format (for POST/PUT)
  */
 export function transformClassToAPI(gymClass: Partial<GymClass>): any {
-  // Map day number to day name for API
-  const mapDayOfWeek = (day: number): string => {
-    const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayMap[day] || 'Monday';
-  };
-
-  // Transform schedule array to API format
-  const schedule_slots = (gymClass.schedule || []).map(slot => ({
-    day_of_week: mapDayOfWeek(slot.dayOfWeek),  // Convert number to day name
+  // Transform schedule array to API format - keep day_of_week as integer
+  const schedule_slots = (gymClass.schedule || []).map((slot) => ({
+    day_of_week: slot.dayOfWeek, // Keep as integer (0=Sunday, 1=Monday, etc.)
     start_time: slot.startTime,
     end_time: slot.endTime,
-    status: 'active'
+    status: 'active',
   }));
 
   return {
@@ -290,7 +295,7 @@ export function transformClassToAPI(gymClass: Partial<GymClass>): any {
     price: gymClass.price || 0,
     status: gymClass.status || 'active',
     instructorIds: gymClass.instructors || [],
-    schedule_slots: schedule_slots,  // Add schedule data
+    schedule_slots: schedule_slots, // Add schedule data
   };
 }
 
@@ -324,7 +329,7 @@ export function transformScheduleToAPI(slot: Partial<ScheduleSlot>): any {
   // Map day number to day name
   const mapDayOfWeek = (day: number | undefined): string => {
     const dayMap = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    return dayMap[day ?? 1];  // Use nullish coalescing to handle 0 (Sunday)
+    return dayMap[day ?? 1]; // Use nullish coalescing to handle 0 (Sunday)
   };
 
   return {
@@ -334,6 +339,6 @@ export function transformScheduleToAPI(slot: Partial<ScheduleSlot>): any {
     start_time: slot.startTime,
     end_time: slot.endTime,
     specific_date: slot.date,
-    status: slot.status || 'active',  // Use 'active' instead of 'scheduled'
+    status: slot.status || 'active', // Use 'active' instead of 'scheduled'
   };
 }

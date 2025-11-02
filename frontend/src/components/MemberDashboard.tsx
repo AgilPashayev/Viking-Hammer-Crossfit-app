@@ -65,14 +65,14 @@ interface MemberDashboardProps {
 
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
   const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
-  
+
   // Debug logging
   console.log('MemberDashboard rendering, user:', user);
-  
+
   // Calculate real-time visit statistics
   const visitsThisMonth = user?.id ? getMemberVisitsThisMonth(user.id) : 0;
   const totalVisits = user?.id ? getMemberTotalVisits(user.id) : 0;
-  
+
   const [userProfile, setUserProfile] = useState<UserProfile>({
     name: user ? `${user.firstName} ${user.lastName}` : 'Viking Warrior',
     membershipType: user?.membershipType || 'Viking Warrior Basic',
@@ -87,11 +87,16 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const [selectedClass, setSelectedClass] = useState<GymClass | null>(null);
   const [selectedClassDate, setSelectedClassDate] = useState<string>('');
   const [selectedClassTime, setSelectedClassTime] = useState<string>('');
-  const [selectedClassDayOfWeek, setSelectedClassDayOfWeek] = useState<number | undefined>(undefined);
+  const [selectedClassDayOfWeek, setSelectedClassDayOfWeek] = useState<number | undefined>(
+    undefined,
+  );
   const [isBooking, setIsBooking] = useState(false);
   const [userBookings, setUserBookings] = useState<string[]>([]);
-  const [bookingMessage, setBookingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-  
+  const [bookingMessage, setBookingMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
   // Confirmation modal state for announcement dismiss
   const [dismissConfirmModal, setDismissConfirmModal] = useState<{
     show: boolean;
@@ -99,12 +104,41 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     title: string;
   }>({ show: false, announcementId: '', title: '' });
 
+  // Helper function to normalize time format to HH:MM:SS for consistent comparison
+  const normalizeTime = (time: string): string => {
+    if (!time) return '';
+    // If time is HH:MM, convert to HH:MM:SS (database format)
+    return time.length === 5 ? `${time}:00` : time;
+  };
+
+  // Helper function to get day of week from date string (YYYY-MM-DD)
+  const getDayOfWeek = (dateString: string): number => {
+    // Parse date components to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.getDay();
+  };
+
   // Load user bookings
   useEffect(() => {
     const loadUserBookings = async () => {
       if (user?.id) {
         const bookings = await bookingService.getMemberBookings(user.id);
-        const bookingKeys = bookings.map(b => `${b.classId}-${b.date}-${b.startTime}`);
+        console.log('📋 Loaded user bookings (raw):', JSON.stringify(bookings, null, 2));
+        // Parse backend response format: booking.slot.class.id, booking.booking_date, booking.slot.start_time
+        const bookingKeys = bookings.map((b: any) => {
+          const classId = b.slot?.class?.id || b.classId;
+          const date = b.booking_date || b.date;
+          const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+          const key = `${classId}-${date}-${startTime}`;
+          console.log(`  📝 Booking ${b.id}:`);
+          console.log(`     classId: "${classId}"`);
+          console.log(`     date: "${date}"`);
+          console.log(`     startTime: "${startTime}"`);
+          console.log(`     => key: "${key}"`);
+          return key;
+        });
+        console.log('🔑 Final booking keys array:', bookingKeys);
         setUserBookings(bookingKeys);
       }
     };
@@ -133,7 +167,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     const pollInterval = setInterval(loadClasses, 30000);
 
     return () => clearInterval(pollInterval);
-  }, []);  // Empty dependency - only load on mount and poll
+  }, []); // Empty dependency - only load on mount and poll
 
   // Sync localClasses with DataContext classes when they change
   useEffect(() => {
@@ -143,14 +177,14 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   // Helper function to get instructor name by ID or from class data
   const getInstructorName = (instructorId: string, classData?: any): string => {
     // First try to find instructor in members data (available for admins)
-    const instructor = members.find(member => 
-      member.id === instructorId && member.role === 'instructor'
+    const instructor = members.find(
+      (member) => member.id === instructorId && member.role === 'instructor',
     );
-    
+
     if (instructor) {
       return `${instructor.firstName} ${instructor.lastName}`;
     }
-    
+
     // Try to get instructor name from class data if available
     if (classData && classData.instructorNames && classData.instructorNames.length > 0) {
       const instructorIndex = classData.instructors?.indexOf(instructorId) ?? -1;
@@ -160,19 +194,19 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       // If instructor ID not found in array, return the first instructor name
       return classData.instructorNames[0];
     }
-    
+
     // Fallback for regular members: return a user-friendly placeholder
     if (instructorId && instructorId.length > 10) {
       return 'Instructor'; // Generic placeholder for valid instructor IDs
     }
-    
+
     return instructorId || 'TBA';
   };
 
   // Helper function to get full member data including status
   const getFullMemberData = () => {
     if (!user?.id) return null;
-    return members.find(member => member.id === user.id);
+    return members.find((member) => member.id === user.id);
   };
 
   // Update user profile when user data changes OR when visits change
@@ -192,16 +226,16 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
 
   // Transform classes to ClassBooking format with real-time updates
   const upcomingClasses: ClassBooking[] = localClasses
-    .filter(cls => cls.status === 'active' && cls.schedule && cls.schedule.length > 0)
-    .map(cls => {
+    .filter((cls) => cls.status === 'active' && cls.schedule && cls.schedule.length > 0)
+    .map((cls) => {
       try {
         // Find next scheduled class
         const now = new Date();
         const currentDay = now.getDay();
         const currentTime = now.toTimeString().slice(0, 5);
-        
+
         // Find the next upcoming schedule slot
-        let nextSchedule = cls.schedule.find(sch => {
+        let nextSchedule = cls.schedule.find((sch) => {
           if (sch.dayOfWeek === currentDay) {
             return sch.startTime > currentTime;
           }
@@ -221,10 +255,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         // Calculate next date for this class
         const targetDay = nextSchedule.dayOfWeek;
         let daysUntilClass = targetDay - currentDay;
-        if (daysUntilClass <= 0 || (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)) {
+        if (
+          daysUntilClass <= 0 ||
+          (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)
+        ) {
           daysUntilClass += 7;
         }
-        
+
         const nextDate = new Date();
         nextDate.setDate(now.getDate() + daysUntilClass);
 
@@ -237,11 +274,21 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         const booking: ClassBooking = {
           id: cls.id,
           className: cls.name,
-          instructor: cls.instructors && cls.instructors.length > 0 ? getInstructorName(cls.instructors[0], cls) : 'TBA',
+          instructor:
+            cls.instructors && cls.instructors.length > 0
+              ? getInstructorName(cls.instructors[0], cls)
+              : 'TBA',
           date: nextDate.toISOString().split('T')[0],
-          time: nextSchedule.startTime,
+          time: normalizeTime(nextSchedule.startTime), // Normalize time format
           status: 'upcoming',
         };
+
+        // DEBUG: Log the booking key that will be used
+        const debugKey = `${cls.id}-${booking.date}-${booking.time}`;
+        console.log(
+          `🗓️ Upcoming class "${cls.name}": key="${debugKey}", date="${booking.date}", time="${booking.time}"`,
+        );
+
         return booking;
       } catch (error) {
         console.error('Error processing class:', cls.name, error);
@@ -306,14 +353,11 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       if (granted) {
         await pushNotificationService.subscribe(user.id);
         setPushNotificationsEnabled(true);
-        
+
         // Show test notification
-        await pushNotificationService.showNotification(
-          'Notifications Enabled! 🎉',
-          {
-            body: 'You will now receive updates about gym announcements and classes.',
-          }
-        );
+        await pushNotificationService.showNotification('Notifications Enabled! 🎉', {
+          body: 'You will now receive updates about gym announcements and classes.',
+        });
       }
     } catch (error) {
       console.error('Failed to enable push notifications:', error);
@@ -334,21 +378,23 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
 
   // Booking handlers
   const handleShowDetails = (classItem: any) => {
-    const gymClass = localClasses.find(c => c.id === classItem.id);
+    const gymClass = localClasses.find((c) => c.id === classItem.id);
     if (gymClass) {
       setSelectedClass(gymClass);
       setSelectedClassDate(classItem.date);
       setSelectedClassTime(classItem.time);
-      
+
       // Calculate dayOfWeek from the date to ensure correct matching with database
-      const calculatedDayOfWeek = new Date(classItem.date).getDay();
+      const calculatedDayOfWeek = getDayOfWeek(classItem.date);
       setSelectedClassDayOfWeek(calculatedDayOfWeek);
-      
+
       console.log('🔍 Class Details Modal - Setting:', {
         date: classItem.date,
         time: classItem.time,
         calculatedDayOfWeek,
-        dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][calculatedDayOfWeek]
+        dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
+          calculatedDayOfWeek
+        ],
       });
     }
   };
@@ -364,51 +410,134 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const handleBookClass = async () => {
     if (!selectedClass || !user?.id) return;
 
-    const bookingKey = `${selectedClass.id}-${selectedClassDate}-${selectedClassTime}`;
+    const normalizedTime = normalizeTime(selectedClassTime);
+    const bookingKey = `${selectedClass.id}-${selectedClassDate}-${normalizedTime}`;
     const isAlreadyBooked = userBookings.includes(bookingKey);
+
+    console.log('🎯 BOOKING ACTION DEBUG:');
+    console.log('  Selected Class ID:', selectedClass.id);
+    console.log('  Selected Date:', selectedClassDate, typeof selectedClassDate);
+    console.log('  Selected Time (original):', selectedClassTime);
+    console.log('  Selected Time (normalized):', normalizedTime);
+    console.log('  Generated Key:', bookingKey);
+    console.log('  Is Already Booked?', isAlreadyBooked);
+    console.log('  Current userBookings:', userBookings);
 
     try {
       setIsBooking(true);
-      
+
       if (isAlreadyBooked) {
-        // Cancel booking
+        // Cancel booking - first find the booking ID
+        console.log('🔍 CANCEL BOOKING DEBUG:');
+        console.log('  Looking for booking with key:', bookingKey);
+        console.log('  Current userBookings:', userBookings);
+
+        const bookings = await bookingService.getMemberBookings(user.id);
+        console.log('  Fetched bookings from backend:', bookings);
+
+        const bookingToCancel = bookings.find((b: any) => {
+          const classId = b.slot?.class?.id || b.classId;
+          const date = b.booking_date || b.date;
+          const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+          const testKey = `${classId}-${date}-${startTime}`;
+          console.log(
+            `  Testing booking ${b.id}: ${testKey} === ${bookingKey}?`,
+            testKey === bookingKey,
+          );
+          return testKey === bookingKey;
+        });
+
+        if (!bookingToCancel) {
+          console.error('❌ CANCEL FAILED: Booking not found in database');
+          console.error('  Searched for key:', bookingKey);
+          console.error(
+            '  Available bookings:',
+            bookings.map((b: any) => ({
+              id: b.id,
+              key: `${b.slot?.class?.id || b.classId}-${b.booking_date || b.date}-${normalizeTime(
+                b.slot?.start_time || b.startTime,
+              )}`,
+            })),
+          );
+          setBookingMessage({
+            type: 'error',
+            text: 'Booking not found in database. Please refresh the page.',
+          });
+          setIsBooking(false);
+          return;
+        }
+
+        console.log('✅ Found booking to cancel:', bookingToCancel);
+
         const result = await bookingService.cancelBooking(
-          selectedClass.id,
+          (bookingToCancel as any).id, // Use the actual booking ID
           user.id,
           selectedClassDate,
-          selectedClassTime
+          selectedClassTime,
         );
 
         if (result.success) {
-          setUserBookings(prev => prev.filter(key => key !== bookingKey));
           setBookingMessage({ type: 'success', text: 'Booking cancelled successfully!' });
-          
+
+          // Reload user bookings from backend
+          const updatedBookings = await bookingService.getMemberBookings(user.id);
+          const bookingKeys = updatedBookings.map((b: any) => {
+            const classId = b.slot?.class?.id || b.classId;
+            const date = b.booking_date || b.date;
+            const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+            return `${classId}-${date}-${startTime}`;
+          });
+          console.log('📋 Updated booking keys after cancel:', bookingKeys);
+          setUserBookings(bookingKeys);
+
           // Refresh classes to update enrollment
           const classesData = await classService.getAll();
           setLocalClasses(classesData);
-          
+
           setTimeout(handleCloseModal, 2000);
         } else {
           setBookingMessage({ type: 'error', text: result.message || 'Failed to cancel booking' });
         }
       } else {
         // Book class
+        console.log('📝 CREATE BOOKING DEBUG:');
+        console.log('  classId:', selectedClass.id);
+        console.log('  bookingDate:', selectedClassDate);
+        console.log('  startTime:', selectedClassTime);
+        console.log('  dayOfWeek:', selectedClassDayOfWeek);
+
         const result = await bookingService.bookClass(
           selectedClass.id,
           user.id,
           selectedClassDate,
           selectedClassTime,
-          selectedClassDayOfWeek  // Pass the pre-calculated dayOfWeek
+          selectedClassDayOfWeek, // Pass the pre-calculated dayOfWeek
         );
 
+        console.log('📝 Booking result:', result);
+
         if (result.success) {
-          setUserBookings(prev => [...prev, bookingKey]);
           setBookingMessage({ type: 'success', text: 'Class booked successfully!' });
-          
+
+          // Reload user bookings from backend
+          const updatedBookings = await bookingService.getMemberBookings(user.id);
+          console.log('📋 Bookings after create:', updatedBookings);
+
+          const bookingKeys = updatedBookings.map((b: any) => {
+            const classId = b.slot?.class?.id || b.classId;
+            const date = b.booking_date || b.date;
+            const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+            const key = `${classId}-${date}-${startTime}`;
+            console.log(`  Creating booking key: ${key}`, b);
+            return key;
+          });
+          console.log('📋 Updated booking keys after book:', bookingKeys);
+          setUserBookings(bookingKeys);
+
           // Refresh classes to update enrollment
           const classesData = await classService.getAll();
           setLocalClasses(classesData);
-          
+
           setTimeout(handleCloseModal, 2000);
         } else {
           setBookingMessage({ type: 'error', text: result.message || 'Failed to book class' });
@@ -519,17 +648,16 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       <div className="dashboard-header">
         <div className="user-welcome">
           <div className="user-avatar">
-            <img 
-              src={userProfile.avatar || "/api/placeholder/60/60"} 
-              alt="User Avatar" 
+            <img
+              src={userProfile.avatar || '/api/placeholder/60/60'}
+              alt="User Avatar"
               style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
             />
           </div>
           <div className="welcome-text">
             <h1>Welcome back, {userProfile.name}!</h1>
             <p className="membership-info">
-              {userProfile.membershipType} • Member since{' '}
-              {formatDate(userProfile.joinDate)}
+              {userProfile.membershipType} • Member since {formatDate(userProfile.joinDate)}
             </p>
           </div>
         </div>
@@ -570,11 +698,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         <div className="stat-card">
           <div className="stat-icon">🎯</div>
           <div className="stat-content">
-            <h3>{(() => {
-              const memberData = getFullMemberData();
-              const status = memberData?.status || 'active';
-              return status.charAt(0).toUpperCase() + status.slice(1);
-            })()}</h3>
+            <h3>
+              {(() => {
+                const memberData = getFullMemberData();
+                const status = memberData?.status || 'active';
+                return status.charAt(0).toUpperCase() + status.slice(1);
+              })()}
+            </h3>
             <p>Membership Status</p>
           </div>
         </div>
@@ -602,31 +732,35 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
               upcomingClasses.map((classItem) => {
                 const bookingKey = `${classItem.id}-${classItem.date}-${classItem.time}`;
                 const isBooked = userBookings.includes(bookingKey);
-                
+
                 return (
-                  <div key={`${classItem.id}-${classItem.date}-${classItem.time}`} className="class-card">
+                  <div
+                    key={`${classItem.id}-${classItem.date}-${classItem.time}`}
+                    className="class-card"
+                  >
                     <div className="class-info">
                       <h4>{classItem.className}</h4>
                       <p className="instructor">with {classItem.instructor}</p>
                       <div className="class-datetime">
                         <span className="date">
-                          📅 {new Date(classItem.date).toLocaleDateString('en-US', {
+                          📅{' '}
+                          {new Date(classItem.date).toLocaleDateString('en-US', {
                             weekday: 'short',
                             month: 'short',
-                            day: 'numeric'
+                            day: 'numeric',
                           })}
                         </span>
                         <span className="time">🕐 {classItem.time}</span>
                       </div>
                     </div>
                     <div className="class-actions">
-                      <button 
-                        className="btn btn-outline" 
+                      <button
+                        className="btn btn-outline"
                         onClick={() => handleShowDetails(classItem)}
                       >
                         Details
                       </button>
-                      <button 
+                      <button
                         className={`btn ${isBooked ? 'btn-success' : 'btn-primary'}`}
                         onClick={() => handleShowDetails(classItem)}
                       >
@@ -656,16 +790,14 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                   <div className="announcement-header">
                     <h4>{announcement.title}</h4>
                     <div className="announcement-actions">
-                      <span className="announcement-date">
-                        {formatDate(announcement.date)}
-                      </span>
+                      <span className="announcement-date">{formatDate(announcement.date)}</span>
                       <button
                         className="btn-dismiss"
                         onClick={() => {
                           setDismissConfirmModal({
                             show: true,
                             announcementId: announcement.id,
-                            title: announcement.title
+                            title: announcement.title,
                           });
                         }}
                         title="Dismiss announcement"
@@ -695,11 +827,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             <div className="qr-modal-content">
               <div className="qr-display">
                 {qrCodeImage ? (
-                  <img
-                    src={qrCodeImage}
-                    alt="Check-in QR Code"
-                    className="qr-code-image"
-                  />
+                  <img src={qrCodeImage} alt="Check-in QR Code" className="qr-code-image" />
                 ) : (
                   <div className="qr-loading">
                     {isGeneratingQR ? (
@@ -714,7 +842,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 )}
               </div>
               <div className="qr-info">
-                <p className="qr-instruction">Present this QR code to the receptionist to check in</p>
+                <p className="qr-instruction">
+                  Present this QR code to the receptionist to check in
+                </p>
                 <p className="qr-id">ID: {quickStats.qrCode}</p>
                 {qrCodeData && (
                   <div className="qr-details">
@@ -748,7 +878,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           selectedTime={selectedClassTime}
           onClose={handleCloseModal}
           onBook={handleBookClass}
-          isBooked={userBookings.includes(`${selectedClass.id}-${selectedClassDate}-${selectedClassTime}`)}
+          isBooked={userBookings.includes(
+            `${selectedClass.id}-${selectedClassDate}-${selectedClassTime}`,
+          )}
           isBooking={isBooking}
         />
       )}
@@ -771,13 +903,18 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
 
       {/* Dismiss Announcement Confirmation Modal */}
       {dismissConfirmModal.show && (
-        <div className="modal-overlay" onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}>
+        <div
+          className="modal-overlay"
+          onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+        >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h3>📢 Dismiss Announcement</h3>
-              <button 
-                className="modal-close-btn" 
-                onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+              <button
+                className="modal-close-btn"
+                onClick={() =>
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' })
+                }
               >
                 ×
               </button>
@@ -791,13 +928,15 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
               </p>
             </div>
             <div className="modal-actions">
-              <button 
-                className="btn btn-secondary" 
-                onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' })
+                }
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={async () => {
                   const success = await dismissAnnouncement(dismissConfirmModal.announcementId);
