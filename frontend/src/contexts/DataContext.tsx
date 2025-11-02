@@ -520,9 +520,54 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         const transformed = transformApiMember(created);
         setMembers((prev) => [...prev, transformed]);
 
+        // 🆕 Create subscription in memberships table if membershipType is provided
+        if (memberData.membershipType && memberData.membershipType !== 'None') {
+          try {
+            const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+            // Get the plan ID from plans table based on membership type name
+            const plansResponse = await fetch('http://localhost:4001/api/plans');
+            const plansResult = await plansResponse.json();
+
+            if (plansResult.success && plansResult.data) {
+              const matchingPlan = plansResult.data.find(
+                (plan: any) => plan.name === memberData.membershipType,
+              );
+
+              if (matchingPlan) {
+                // Create subscription
+                const subscriptionData = {
+                  userId: transformed.id,
+                  planId: matchingPlan.id,
+                  startDate: memberData.joinDate || new Date().toISOString().split('T')[0],
+                  notes: `Initial subscription created on ${new Date().toLocaleDateString()}`,
+                };
+
+                const subResponse = await fetch('http://localhost:4001/api/subscriptions', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify(subscriptionData),
+                });
+
+                if (subResponse.ok) {
+                  console.log('✅ Subscription created for new member');
+                } else {
+                  console.warn('⚠️ Failed to create subscription for new member');
+                }
+              }
+            }
+          } catch (subError) {
+            console.error('❌ Error creating subscription:', subError);
+            // Don't fail the whole operation if subscription creation fails
+          }
+        }
+
         logActivity({
           type: 'member_added',
-          message: `New member ${transformed.firstName} ${transformed.lastName} registered`,
+          message: `New member: ${transformed.firstName} ${transformed.lastName}`,
           memberId: transformed.id,
         });
 
@@ -603,6 +648,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
           memberId: id,
         });
 
+        // 🆕 Handle membership type changes - create/update subscription
         if (before && transformed.membershipType !== before.membershipType) {
           logActivity({
             type: 'membership_changed',
@@ -610,6 +656,85 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
             memberId: id,
             metadata: { from: before.membershipType, to: transformed.membershipType },
           });
+
+          // Create or update subscription in memberships table
+          if (transformed.membershipType && transformed.membershipType !== 'None') {
+            try {
+              const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+              // Get the plan ID from plans table
+              const plansResponse = await fetch('http://localhost:4001/api/plans');
+              const plansResult = await plansResponse.json();
+
+              if (plansResult.success && plansResult.data) {
+                const matchingPlan = plansResult.data.find(
+                  (plan: any) => plan.name === transformed.membershipType,
+                );
+
+                if (matchingPlan) {
+                  // Check if user already has an active subscription
+                  const existingSubResponse = await fetch(
+                    `http://localhost:4001/api/subscriptions/user/${id}`,
+                    {
+                      headers: { Authorization: `Bearer ${token}` },
+                    },
+                  );
+
+                  const existingSubResult = await existingSubResponse.json();
+                  const activeSubscription =
+                    existingSubResult.success && existingSubResult.data?.length > 0
+                      ? existingSubResult.data.find((sub: any) => sub.status === 'active')
+                      : null;
+
+                  if (activeSubscription) {
+                    // Update existing subscription to expired and create new one
+                    await fetch(
+                      `http://localhost:4001/api/subscriptions/${activeSubscription.id}`,
+                      {
+                        method: 'PUT',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          Authorization: `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                          status: 'expired',
+                          endDate: new Date().toISOString().split('T')[0],
+                        }),
+                      },
+                    );
+                  }
+
+                  // Create new subscription starting today
+                  const subscriptionData = {
+                    userId: id,
+                    planId: matchingPlan.id,
+                    startDate: new Date().toISOString().split('T')[0],
+                    notes: `Membership updated from ${
+                      before.membershipType
+                    } on ${new Date().toLocaleDateString()}`,
+                  };
+
+                  const subResponse = await fetch('http://localhost:4001/api/subscriptions', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify(subscriptionData),
+                  });
+
+                  if (subResponse.ok) {
+                    console.log('✅ Subscription created/updated for membership change');
+                  } else {
+                    console.warn('⚠️ Failed to create subscription for membership change');
+                  }
+                }
+              }
+            } catch (subError) {
+              console.error('❌ Error updating subscription:', subError);
+              // Don't fail the whole operation
+            }
+          }
         }
 
         return transformed;
