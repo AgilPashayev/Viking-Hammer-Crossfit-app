@@ -61,7 +61,46 @@ interface MembershipManagerProps {
 
 const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const { setPlansCount, updateMembershipTypes } = useData();
-  const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions' | 'companies'>('plans');
+
+  // Get current user role from localStorage
+  const [userRole, setUserRole] = useState<string>('member');
+
+  useEffect(() => {
+    const userData =
+      localStorage.getItem('userData') || localStorage.getItem('viking_remembered_user');
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        setUserRole(user.role || 'member');
+      } catch (error) {
+        console.error('Failed to parse user data:', error);
+        setUserRole('member');
+      }
+    }
+  }, []);
+
+  // Define tab access based on roles
+  const canAccessPlans = userRole === 'sparta' || userRole === 'reception';
+  const canAccessSubscriptions = userRole === 'sparta' || userRole === 'reception';
+  const canAccessCompanies = userRole === 'sparta'; // Only Sparta can access Companies
+
+  // Determine default tab based on role
+  const getDefaultTab = (): 'plans' | 'subscriptions' | 'companies' => {
+    if (userRole === 'sparta') return 'plans';
+    if (userRole === 'reception') return 'plans'; // Reception sees Plans and Subscriptions
+    return 'plans'; // Fallback (though they shouldn't see this page)
+  };
+
+  const [activeTab, setActiveTab] = useState<'plans' | 'subscriptions' | 'companies'>(
+    getDefaultTab(),
+  );
+
+  // Update activeTab when userRole changes
+  useEffect(() => {
+    const defaultTab = getDefaultTab();
+    setActiveTab(defaultTab);
+  }, [userRole]);
+
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -1400,56 +1439,70 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       {/* Stats Overview */}
       <div className="stats-overview">
-        <div className="stat-card">
-          <div className="stat-icon">📋</div>
-          <div className="stat-content">
-            <h3 className="stat-number">{stats.totalPlans}</h3>
-            <p className="stat-label">Total Plans</p>
+        {canAccessPlans && (
+          <div className="stat-card">
+            <div className="stat-icon">📋</div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.totalPlans}</h3>
+              <p className="stat-label">Total Plans</p>
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">✅</div>
-          <div className="stat-content">
-            <h3 className="stat-number">{stats.activeSubscriptions}</h3>
-            <p className="stat-label">Active Subscriptions</p>
+        )}
+        {canAccessSubscriptions && (
+          <div className="stat-card">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.activeSubscriptions}</h3>
+              <p className="stat-label">Active Subscriptions</p>
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">🏢</div>
-          <div className="stat-content">
-            <h3 className="stat-number">{stats.activeCompanies}</h3>
-            <p className="stat-label">Company Partners</p>
+        )}
+        {canAccessCompanies && (
+          <div className="stat-card">
+            <div className="stat-icon">🏢</div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.activeCompanies}</h3>
+              <p className="stat-label">Company Partners</p>
+            </div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon">💰</div>
-          <div className="stat-content">
-            <h3 className="stat-number">{stats.monthlyRevenue} AZN</h3>
-            <p className="stat-label">Monthly Revenue</p>
+        )}
+        {(canAccessPlans || canAccessSubscriptions) && (
+          <div className="stat-card">
+            <div className="stat-icon">💰</div>
+            <div className="stat-content">
+              <h3 className="stat-number">{stats.monthlyRevenue} AZN</h3>
+              <p className="stat-label">Monthly Revenue</p>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Tab Navigation */}
       <div className="tabs-navigation">
-        <button
-          className={`tab-btn ${activeTab === 'plans' ? 'active' : ''}`}
-          onClick={() => setActiveTab('plans')}
-        >
-          📋 Membership Plans
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'subscriptions' ? 'active' : ''}`}
-          onClick={() => setActiveTab('subscriptions')}
-        >
-          📊 Subscriptions
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'companies' ? 'active' : ''}`}
-          onClick={() => setActiveTab('companies')}
-        >
-          🏢 Companies
-        </button>
+        {canAccessPlans && (
+          <button
+            className={`tab-btn ${activeTab === 'plans' ? 'active' : ''}`}
+            onClick={() => setActiveTab('plans')}
+          >
+            📋 Membership Plans
+          </button>
+        )}
+        {canAccessSubscriptions && (
+          <button
+            className={`tab-btn ${activeTab === 'subscriptions' ? 'active' : ''}`}
+            onClick={() => setActiveTab('subscriptions')}
+          >
+            📊 Subscriptions
+          </button>
+        )}
+        {canAccessCompanies && (
+          <button
+            className={`tab-btn ${activeTab === 'companies' ? 'active' : ''}`}
+            onClick={() => setActiveTab('companies')}
+          >
+            🏢 Companies
+          </button>
+        )}
       </div>
 
       {/* Filters */}
@@ -1495,9 +1548,19 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 'plans' && renderPlansTab()}
-      {activeTab === 'subscriptions' && renderSubscriptionsTab()}
-      {activeTab === 'companies' && renderCompaniesTab()}
+      {canAccessPlans && activeTab === 'plans' && renderPlansTab()}
+      {canAccessSubscriptions && activeTab === 'subscriptions' && renderSubscriptionsTab()}
+      {canAccessCompanies && activeTab === 'companies' && renderCompaniesTab()}
+
+      {/* Access Denied Message */}
+      {!canAccessPlans && !canAccessSubscriptions && !canAccessCompanies && (
+        <div className="access-denied-message">
+          <div className="access-denied-icon">🔒</div>
+          <h3>Access Denied</h3>
+          <p>You don't have permission to access Membership Manager.</p>
+          <p>Please contact your administrator if you believe this is an error.</p>
+        </div>
+      )}
 
       {/* Create/Edit Plan Modal */}
       {showCreatePlanModal && (
