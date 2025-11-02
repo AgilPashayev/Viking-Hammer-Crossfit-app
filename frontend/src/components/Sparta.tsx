@@ -44,46 +44,108 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
   };
 
   // Format activity messages with bold names and actions
-  const formatActivityMessage = (message: string): React.ReactElement => {
+  const formatActivityMessage = (message: string, updatedBy?: { name: string; role: string }): React.ReactElement => {
     // Patterns to match:
     // "John Doe checked in" -> <strong>John Doe</strong> checked in
     // "New member: Jane Smith" -> New member: <strong>Jane Smith</strong>
     // "Class created: CrossFit 101" -> <strong>Class created:</strong> CrossFit 101
     // "Membership changed from X to Y" -> <strong>Membership changed</strong> from X to Y
     
-    // Pattern 1: Name at the start (e.g., "John Doe checked in")
+    // Pattern 1: Name at the start (e.g., "John Doe checked in" or "John Doe profile updated")
     const nameAtStartMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (checked in|profile updated|birthday upcoming)/i);
     if (nameAtStartMatch) {
       const [, name, action] = nameAtStartMatch;
-      return <span><strong>{name}</strong> {action}</span>;
+      const formattedAction = action.toLowerCase() === 'profile updated' ? 'profile updated' : action;
+      
+      return (
+        <span>
+          <strong>{name}</strong> {formattedAction}
+          {updatedBy && action.toLowerCase() === 'profile updated' && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Pattern 2: "Action: Name" (e.g., "New member: John Doe")
     const actionNameMatch = message.match(/^(New member|New class added|Class updated|Instructor added|Instructor updated|Schedule created|Schedule updated): (.+)$/i);
     if (actionNameMatch) {
       const [, action, name] = actionNameMatch;
-      return <span><strong>{action}:</strong> {name}</span>;
+      return (
+        <span>
+          <strong>{action}:</strong> {name}
+          {updatedBy && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Pattern 3: "Announcement X" (e.g., "Announcement created: Title")
     const announcementMatch = message.match(/^(Announcement (?:created|published|deleted)): (.+)$/i);
     if (announcementMatch) {
       const [, action, title] = announcementMatch;
-      return <span><strong>{action}:</strong> {title}</span>;
+      return (
+        <span>
+          <strong>{action}:</strong> {title}
+          {updatedBy && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Pattern 4: "Membership changed" patterns
-    const membershipMatch = message.match(/^(Membership changed|Member status changed): (.+)$/i);
+    const membershipMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*) (membership changed to .+)$/i);
     if (membershipMatch) {
-      const [, action, details] = membershipMatch;
-      return <span><strong>{action}:</strong> {details}</span>;
+      const [, name, action] = membershipMatch;
+      return (
+        <span>
+          <strong>{name}</strong> {action}
+          {updatedBy && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Pattern 5: Delete actions (e.g., "Class deleted: CrossFit 101")
     const deleteMatch = message.match(/^(Class deleted|Instructor deleted|Schedule deleted): (.+)$/i);
     if (deleteMatch) {
       const [, action, name] = deleteMatch;
-      return <span><strong>{action}:</strong> {name}</span>;
+      return (
+        <span>
+          <strong>{action}:</strong> {name}
+          {updatedBy && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Default: try to bold any names (capitalized words at start)
@@ -91,7 +153,19 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     if (defaultMatch) {
       const [, name] = defaultMatch;
       const rest = message.slice(name.length);
-      return <span><strong>{name}</strong>{rest}</span>;
+      return (
+        <span>
+          <strong>{name}</strong>{rest}
+          {updatedBy && (
+            <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
+              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
     }
     
     // Fallback: return as-is
@@ -112,9 +186,9 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     }
   };
 
-  const buildActivityFeed = (): Array<{ id: string; type: Activity['type']; message: string; timestamp: string }> => {
-    const base: Array<{ id: string; type: Activity['type']; message: string; timestamp: string; memberId?: string }>
-      = activities.map(a => ({ id: a.id, type: a.type, message: a.message, timestamp: a.timestamp, memberId: a.memberId }));
+  const buildActivityFeed = (): Array<{ id: string; type: Activity['type']; message: string; timestamp: string; updatedBy?: { name: string; role: string } }> => {
+    const base: Array<{ id: string; type: Activity['type']; message: string; timestamp: string; memberId?: string; updatedBy?: { name: string; role: string } }>
+      = activities.map(a => ({ id: a.id, type: a.type, message: a.message, timestamp: a.timestamp, memberId: a.memberId, updatedBy: a.updatedBy }));
     // Synthesize upcoming birthday activities (next 7 days)
     const bdays = getUpcomingBirthdays();
     const bdayActs = bdays.map(m => {
@@ -470,7 +544,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                   <div key={activity.id} className={`activity-item ${cls}`}>
                     <div className="activity-icon">{icon}</div>
                     <div className="activity-content">
-                      <p className="activity-message">{formatActivityMessage(activity.message)}</p>
+                      <p className="activity-message">{formatActivityMessage(activity.message, activity.updatedBy)}</p>
                       <span className="activity-time">{timeAgo(activity.timestamp)}</span>
                     </div>
                   </div>

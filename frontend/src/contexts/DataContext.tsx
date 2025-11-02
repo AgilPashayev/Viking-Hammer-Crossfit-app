@@ -106,6 +106,10 @@ export interface Activity {
   timestamp: string; // ISO string
   memberId?: string;
   metadata?: Record<string, any>;
+  updatedBy?: {
+    name: string;
+    role: string;
+  };
 }
 
 type CreateMemberInput = {
@@ -674,6 +678,23 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
   // Activity helpers
   const logActivity = (entry: Omit<Activity, 'id' | 'timestamp'> & { timestamp?: string }) => {
+    // Get current user info from localStorage
+    let updatedBy: { name: string; role: string } | undefined;
+    try {
+      const userData = localStorage.getItem('userData') || localStorage.getItem('viking_remembered_user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        if (user.firstName && user.lastName) {
+          updatedBy = {
+            name: `${user.firstName} ${user.lastName}`,
+            role: user.role || 'member',
+          };
+        }
+      }
+    } catch (error) {
+      console.error('Failed to get user info for activity log:', error);
+    }
+
     const activity: Activity = {
       id: `act_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
       timestamp: entry.timestamp || new Date().toISOString(),
@@ -681,6 +702,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       message: entry.message,
       memberId: entry.memberId,
       metadata: entry.metadata,
+      updatedBy: entry.updatedBy || updatedBy,
     };
     setActivities((prev) => [activity, ...prev].slice(0, 200)); // keep last 200
   };
