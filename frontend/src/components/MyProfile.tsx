@@ -150,15 +150,26 @@ const MyProfile: React.FC<MyProfileProps> = ({
           console.log('💳 Loading subscription data for user:', user.id);
           const token = localStorage.getItem('authToken') || localStorage.getItem('token');
 
+          if (!token) {
+            console.error('❌ No auth token found');
+            setSubscription(null);
+            setIsLoadingSubscription(false);
+            return;
+          }
+
           const response = await fetch(`http://localhost:4001/api/subscriptions/user/${user.id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
             },
           });
+
+          console.log('📡 Response status:', response.status, response.statusText);
 
           if (!response.ok) {
             console.error('❌ Failed to load subscription:', response.status);
             setSubscription(null);
+            setIsLoadingSubscription(false);
             return;
           }
 
@@ -169,7 +180,22 @@ const MyProfile: React.FC<MyProfileProps> = ({
             // Find active subscription or use the most recent one
             const activeSub = result.data.find((s: any) => s.status === 'active') || result.data[0];
             console.log('✅ Active subscription found:', activeSub);
-            setSubscription(activeSub);
+            console.log('📦 Plans data:', activeSub.plans);
+
+            // Transform subscription data to match display expectations
+            const transformedSub = {
+              ...activeSub,
+              plan_name: activeSub.plans?.name || user?.membershipType || 'Basic Membership',
+              plan_type: activeSub.plans ? 'membership' : 'default',
+              amount: activeSub.plans?.price_cents ? activeSub.plans.price_cents / 100 : 0,
+              currency: 'AZN',
+              class_limit: activeSub.plans?.visit_quota || null,
+              remaining_entries: activeSub.remaining_visits,
+              next_billing_date: null, // Can be calculated if needed
+            };
+
+            console.log('✨ Transformed subscription:', transformedSub);
+            setSubscription(transformedSub);
           } else {
             console.log('ℹ️ No subscription found for user');
             setSubscription(null);
@@ -184,7 +210,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
     };
 
     loadSubscription();
-  }, [activeTab, user?.id]);
+  }, [activeTab, user?.id, user?.membershipType]);
 
   // Load membership history when modal opens
   useEffect(() => {
@@ -935,37 +961,37 @@ const MyProfile: React.FC<MyProfileProps> = ({
               <div className="subscription-card">
                 <div className={`subscription-badge ${subscription.status || 'active'}`}>
                   {subscription.status === 'active'
-                    ? 'Active Membership'
+                    ? '✅ Active Membership'
                     : subscription.status === 'suspended'
-                    ? 'Suspended'
+                    ? '⏸️ Suspended'
                     : subscription.status === 'expired'
-                    ? 'Expired'
-                    : 'Membership'}
+                    ? '⏰ Expired'
+                    : '💳 Membership'}
                 </div>
                 <div className="subscription-details">
                   <div className="detail-row">
                     <span className="detail-icon">🎯</span>
                     <div className="detail-content">
-                      <span className="detail-label">Membership Type</span>
+                      <span className="detail-label">Plan Name</span>
                       <span className="detail-value subscription-value">
-                        {subscription.plan_name || user?.membershipType || 'Viking Warrior Basic'}
+                        {subscription.plan_name || 'Basic Membership'}
                       </span>
                     </div>
                   </div>
+
                   <div className="detail-row">
                     <span className="detail-icon">📅</span>
                     <div className="detail-content">
                       <span className="detail-label">Start Date</span>
                       <span className="detail-value subscription-value">
-                        {formatDate(
-                          subscription.start_date || user?.joinDate || new Date().toISOString(),
-                        )}
+                        {formatDate(subscription.start_date || new Date().toISOString())}
                       </span>
                     </div>
                   </div>
+
                   {subscription.end_date && (
                     <div className="detail-row">
-                      <span className="detail-icon">📅</span>
+                      <span className="detail-icon">🏁</span>
                       <div className="detail-content">
                         <span className="detail-label">End Date</span>
                         <span className="detail-value subscription-value">
@@ -974,13 +1000,14 @@ const MyProfile: React.FC<MyProfileProps> = ({
                       </div>
                     </div>
                   )}
+
                   <div className="detail-row">
                     <span className="detail-icon">✅</span>
                     <div className="detail-content">
                       <span className="detail-label">Status</span>
                       <span className={`detail-value status-${subscription.status || 'active'}`}>
                         {subscription.status === 'active'
-                          ? 'Active'
+                          ? 'Active ✓'
                           : subscription.status === 'suspended'
                           ? 'Suspended'
                           : subscription.status === 'expired'
@@ -991,38 +1018,43 @@ const MyProfile: React.FC<MyProfileProps> = ({
                       </span>
                     </div>
                   </div>
-                  {subscription.next_billing_date && (
-                    <div className="detail-row">
-                      <span className="detail-icon">💰</span>
-                      <div className="detail-content">
-                        <span className="detail-label">Next Payment</span>
-                        <span className="detail-value subscription-value">
-                          {formatDate(subscription.next_billing_date)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
+
                   <div className="detail-row">
                     <span className="detail-icon">🏋️</span>
                     <div className="detail-content">
-                      <span className="detail-label">Remaining Entries</span>
+                      <span className="detail-label">Visit Quota</span>
                       <span className="detail-value subscription-value">
                         {subscription.remaining_entries !== null &&
                         subscription.remaining_entries !== undefined
-                          ? subscription.remaining_entries
+                          ? `${subscription.remaining_entries} ${
+                              subscription.class_limit ? `of ${subscription.class_limit}` : ''
+                            } remaining`
                           : subscription.class_limit
                           ? `${subscription.class_limit} per month`
                           : 'Unlimited'}
                       </span>
                     </div>
                   </div>
-                  {subscription.amount && (
+
+                  {subscription.amount > 0 && (
                     <div className="detail-row">
-                      <span className="detail-icon">💵</span>
+                      <span className="detail-icon">💰</span>
                       <div className="detail-content">
-                        <span className="detail-label">Amount</span>
+                        <span className="detail-label">Plan Price</span>
                         <span className="detail-value subscription-value">
                           {subscription.currency || 'AZN'} {subscription.amount.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {subscription.notes && (
+                    <div className="detail-row">
+                      <span className="detail-icon">�</span>
+                      <div className="detail-content">
+                        <span className="detail-label">Notes</span>
+                        <span className="detail-value subscription-value">
+                          {subscription.notes}
                         </span>
                       </div>
                     </div>
