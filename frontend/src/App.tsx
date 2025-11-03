@@ -15,6 +15,8 @@ import { isAuthenticated, logout as authLogout } from './services/authService';
 import './styles.css';
 // Import debug utilities for development
 import './debug-utils';
+// Import i18n configuration for multilingual support
+import './i18n/config';
 
 interface UserData {
   id: string;

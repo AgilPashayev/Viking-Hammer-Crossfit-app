@@ -1,0 +1,119 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "submit": "Submit",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "My Profile",
+    "classes": "Classes",
+    "schedule": "Schedule",
+    "members": "Members",
+    "instructors": "Instructors",
+    "announcements": "Announcements",
+    "settings": "Settings",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "invalidCredentials": "Invalid email or password",
+    "loginSuccess": "Login successful!"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "upcomingClasses": "Upcoming Classes",
+    "myBookings": "My Bookings",
+    "announcements": "Latest Announcements",
+    "noClasses": "No upcoming classes scheduled",
+    "noBookings": "You have no bookings yet",
+    "noAnnouncements": "No announcements available"
+  },
+  "classes": {
+    "title": "Classes",
+    "className": "Class Name",
+    "instructor": "Instructor",
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "capacity": "Capacity",
+    "available": "Available",
+    "book": "Book",
+    "booked": "Booked",
+    "full": "Full",
+    "cancel": "Cancel Booking",
+    "enrolledMembers": "Enrolled Members",
+    "minutes": "{{count}} minutes",
+    "spotsLeft": "{{count}} spots left"
+  },
+  "profile": {
+    "title": "My Profile",
+    "personalInfo": "Personal Information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "dateOfBirth": "Date of Birth",
+    "membershipType": "Membership Type",
+    "subscription": "My Subscription",
+    "subscriptionStatus": "Subscription Status",
+    "remainingEntries": "Remaining Entries",
+    "expiryDate": "Expiry Date",
+    "updateProfile": "Update Profile",
+    "changePassword": "Change Password"
+  },
+  "announcements": {
+    "title": "Announcements",
+    "newAnnouncement": "New Announcement",
+    "noAnnouncements": "No announcements available",
+    "publishedOn": "Published on {{date}}",
+    "readMore": "Read More",
+    "markAsRead": "Mark as Read",
+    "priority": {
+      "high": "High Priority",
+      "normal": "Normal",
+      "low": "Low Priority"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "changeLanguage": "Change Language",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "saveChanges": "Save Changes"
+  },
+  "errors": {
+    "genericError": "Something went wrong. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "Unauthorized. Please log in.",
+    "notFound": "Resource not found.",
+    "serverError": "Server error. Please try again later.",
+    "validationError": "Please check your input and try again."
+  }
+}

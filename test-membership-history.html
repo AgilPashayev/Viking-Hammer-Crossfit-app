@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Membership History</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <h1>Membership History Test</h1>
+    <div id="output"></div>
+
+    <script>
+        const SUPABASE_URL = 'https://nqseztalzjcfucfeljkf.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5xc2V6dGFsempjZnVjZmVsamtmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjgxNTIzMzQsImV4cCI6MjA0MzcyODMzNH0.LJkFBfZqtyDJpxFU2J1wXKz0hzR9_gEHZJkzHBP6dDA';
+
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const output = document.getElementById('output');
+
+        async function test() {
+            output.innerHTML += '<h2>Testing Membership History...</h2>';
+
+            // Test 1: Check localStorage
+            output.innerHTML += '<h3>1. LocalStorage Check:</h3>';
+            const userData = localStorage.getItem('userData');
+            const rememberUser = localStorage.getItem('viking_remembered_user');
+            output.innerHTML += `<pre>userData: ${userData}</pre>`;
+            output.innerHTML += `<pre>rememberUser: ${rememberUser}</pre>`;
+
+            let userId = null;
+            if (userData) {
+                const user = JSON.parse(userData);
+                userId = user.id;
+                output.innerHTML += `<p><strong>User ID from localStorage: ${userId}</strong></p>`;
+            }
+
+            if (!userId) {
+                output.innerHTML += '<p style="color: red;">No user ID found in localStorage!</p>';
+                userId = 'fa187bf9-b825-44e8-8e5d-99c0188c5728'; // agil83p's ID
+                output.innerHTML += `<p>Using hardcoded ID for testing: ${userId}</p>`;
+            }
+
+            // Test 2: Query memberships directly
+            output.innerHTML += '<h3>2. Query Memberships:</h3>';
+            const { data, error } = await supabase
+                .from('memberships')
+                .select(`
+                    id,
+                    user_id,
+                    start_date,
+                    end_date,
+                    status,
+                    remaining_visits,
+                    notes,
+                    created_at,
+                    plans (
+                        id,
+                        name,
+                        sku,
+                        price_cents,
+                        duration_days,
+                        visit_quota
+                    )
+                `)
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                output.innerHTML += `<pre style="color: red;">Error: ${JSON.stringify(error, null, 2)}</pre>`;
+            } else {
+                output.innerHTML += `<pre style="color: green;">Success! Found ${data.length} records:</pre>`;
+                output.innerHTML += `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+            }
+
+            // Test 3: Check all memberships
+            output.innerHTML += '<h3>3. All Memberships in Database:</h3>';
+            const { data: allData, error: allError } = await supabase
+                .from('memberships')
+                .select('id, user_id, status, plans(name)')
+                .limit(10);
+
+            if (allError) {
+                output.innerHTML += `<pre style="color: red;">Error: ${JSON.stringify(allError, null, 2)}</pre>`;
+            } else {
+                output.innerHTML += `<pre>${JSON.stringify(allData, null, 2)}</pre>`;
+            }
+        }
+
+        test();
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+{
+  "common": {
+    "welcome": "Добро пожаловать",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успешно",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "add": "Добавить",
+    "search": "Поиск",
+    "filter": "Фильтр",
+    "close": "Закрыть",
+    "submit": "Отправить",
+    "back": "Назад",
+    "next": "Далее",
+    "confirm": "Подтвердить",
+    "yes": "Да",
+    "no": "Нет"
+  },
+  "navigation": {
+    "dashboard": "Панель управления",
+    "profile": "Мой профиль",
+    "classes": "Занятия",
+    "schedule": "Расписание",
+    "members": "Участники",
+    "instructors": "Инструкторы",
+    "announcements": "Объявления",
+    "settings": "Настройки",
+    "logout": "Выход",
+    "login": "Вход"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Пароль",
+    "signIn": "Войти",
+    "signUp": "Регистрация",
+    "forgotPassword": "Забыли пароль?",
+    "rememberMe": "Запомнить меня",
+    "emailPlaceholder": "Введите ваш email",
+    "passwordPlaceholder": "Введите ваш пароль",
+    "invalidCredentials": "Неверный email или пароль",
+    "loginSuccess": "Вход выполнен успешно!"
+  },
+  "dashboard": {
+    "welcome": "Добро пожаловать, {{name}}!",
+    "upcomingClasses": "Предстоящие занятия",
+    "myBookings": "Мои бронирования",
+    "announcements": "Последние объявления",
+    "noClasses": "Нет запланированных занятий",
+    "noBookings": "У вас пока нет бронирований",
+    "noAnnouncements": "Нет доступных объявлений"
+  },
+  "classes": {
+    "title": "Занятия",
+    "className": "Название занятия",
+    "instructor": "Инструктор",
+    "date": "Дата",
+    "time": "Время",
+    "duration": "Продолжительность",
+    "capacity": "Вместимость",
+    "available": "Доступно",
+    "book": "Забронировать",
+    "booked": "Забронировано",
+    "full": "Заполнено",
+    "cancel": "Отменить бронирование",
+    "enrolledMembers": "Записанные участники",
+    "minutes": "{{count}} минут",
+    "spotsLeft": "Осталось мест: {{count}}"
+  },
+  "profile": {
+    "title": "Мой профиль",
+    "personalInfo": "Личная информация",
+    "firstName": "Имя",
+    "lastName": "Фамилия",
+    "email": "Email",
+    "phone": "Телефон",
+    "dateOfBirth": "Дата рождения",
+    "membershipType": "Тип членства",
+    "subscription": "Моя подписка",
+    "subscriptionStatus": "Статус подписки",
+    "remainingEntries": "Осталось посещений",
+    "expiryDate": "Дата окончания",
+    "updateProfile": "Обновить профиль",
+    "changePassword": "Изменить пароль"
+  },
+  "announcements": {
+    "title": "Объявления",
+    "newAnnouncement": "Новое объявление",
+    "noAnnouncements": "Нет доступных объявлений",
+    "publishedOn": "Опубликовано {{date}}",
+    "readMore": "Читать далее",
+    "markAsRead": "Отметить как прочитанное",
+    "priority": {
+      "high": "Высокий приоритет",
+      "normal": "Обычный",
+      "low": "Низкий приоритет"
+    }
+  },
+  "settings": {
+    "title": "Настройки",
+    "language": "Язык",
+    "selectLanguage": "Выберите язык",
+    "changeLanguage": "Изменить язык",
+    "preferences": "Предпочтения",
+    "notifications": "Уведомления",
+    "privacy": "Конфиденциальность",
+    "saveChanges": "Сохранить изменения"
+  },
+  "errors": {
+    "genericError": "Что-то пошло не так. Пожалуйста, попробуйте снова.",
+    "networkError": "Ошибка сети. Пожалуйста, проверьте соединение.",
+    "unauthorized": "Неавторизован. Пожалуйста, войдите в систему.",
+    "notFound": "Ресурс не найден.",
+    "serverError": "Ошибка сервера. Пожалуйста, попробуйте позже.",
+    "validationError": "Пожалуйста, проверьте введенные данные и попробуйте снова."
+  }
+}

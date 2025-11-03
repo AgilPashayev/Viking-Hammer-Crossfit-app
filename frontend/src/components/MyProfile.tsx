@@ -4,6 +4,7 @@ import './MyProfile-enhancements.css';
 import './MyProfile-notifications.css';
 import { uploadProfilePhoto, updateUserProfile, getUserProfile } from '../services/supabaseService';
 import { getUserMembershipHistory, MembershipRecord } from '../services/membershipHistoryService';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface User {
   id?: string;
@@ -1184,6 +1185,16 @@ const MyProfile: React.FC<MyProfileProps> = ({
             <div className="section-header">
               <h3>⚙️ Settings & Preferences</h3>
               <p className="section-description">Manage your app settings and notifications</p>
+            </div>
+
+            {/* Language Switcher */}
+            <div className="settings-group">
+              <h4>🌐 Language & Localization</h4>
+              <div className="settings-list">
+                <div className="setting-item">
+                  <LanguageSwitcher />
+                </div>
+              </div>
             </div>
 
             <div className="settings-group">

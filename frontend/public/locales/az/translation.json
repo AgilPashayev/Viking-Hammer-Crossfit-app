@@ -1,0 +1,119 @@
+{
+  "common": {
+    "welcome": "Xoş gəlmisiniz",
+    "loading": "Yüklənir...",
+    "error": "Xəta",
+    "success": "Uğurlu",
+    "save": "Saxla",
+    "cancel": "Ləğv et",
+    "delete": "Sil",
+    "edit": "Redaktə et",
+    "add": "Əlavə et",
+    "search": "Axtar",
+    "filter": "Süzgəc",
+    "close": "Bağla",
+    "submit": "Göndər",
+    "back": "Geri",
+    "next": "Növbəti",
+    "confirm": "Təsdiq et",
+    "yes": "Bəli",
+    "no": "Xeyr"
+  },
+  "navigation": {
+    "dashboard": "İdarə Paneli",
+    "profile": "Mənim Profilim",
+    "classes": "Dərslər",
+    "schedule": "Cədvəl",
+    "members": "Üzvlər",
+    "instructors": "Məşqçilər",
+    "announcements": "Elanlar",
+    "settings": "Parametrlər",
+    "logout": "Çıxış",
+    "login": "Giriş"
+  },
+  "auth": {
+    "email": "E-poçt",
+    "password": "Şifrə",
+    "signIn": "Daxil ol",
+    "signUp": "Qeydiyyat",
+    "forgotPassword": "Şifrəni unutmusunuz?",
+    "rememberMe": "Məni xatırla",
+    "emailPlaceholder": "E-poçtunuzu daxil edin",
+    "passwordPlaceholder": "Şifrənizi daxil edin",
+    "invalidCredentials": "Yanlış e-poçt və ya şifrə",
+    "loginSuccess": "Giriş uğurlu oldu!"
+  },
+  "dashboard": {
+    "welcome": "Xoş gəlmisiniz, {{name}}!",
+    "upcomingClasses": "Gələcək Dərslər",
+    "myBookings": "Mənim Rezervasiyalarım",
+    "announcements": "Son Elanlar",
+    "noClasses": "Planlaşdırılmış dərs yoxdur",
+    "noBookings": "Hələ rezervasiyanız yoxdur",
+    "noAnnouncements": "Elan yoxdur"
+  },
+  "classes": {
+    "title": "Dərslər",
+    "className": "Dərs Adı",
+    "instructor": "Məşqçi",
+    "date": "Tarix",
+    "time": "Vaxt",
+    "duration": "Müddət",
+    "capacity": "Tutum",
+    "available": "Mövcuddur",
+    "book": "Rezerv et",
+    "booked": "Rezerv edilib",
+    "full": "Doludur",
+    "cancel": "Rezervi ləğv et",
+    "enrolledMembers": "Qeydiyyatdan keçmiş üzvlər",
+    "minutes": "{{count}} dəqiqə",
+    "spotsLeft": "{{count}} yer qalıb"
+  },
+  "profile": {
+    "title": "Mənim Profilim",
+    "personalInfo": "Şəxsi Məlumatlar",
+    "firstName": "Ad",
+    "lastName": "Soyad",
+    "email": "E-poçt",
+    "phone": "Telefon",
+    "dateOfBirth": "Doğum tarixi",
+    "membershipType": "Üzvlük Növü",
+    "subscription": "Mənim Abunəliyim",
+    "subscriptionStatus": "Abunəlik Statusu",
+    "remainingEntries": "Qalan Girişlər",
+    "expiryDate": "Bitmə Tarixi",
+    "updateProfile": "Profili Yenilə",
+    "changePassword": "Şifrəni Dəyişdir"
+  },
+  "announcements": {
+    "title": "Elanlar",
+    "newAnnouncement": "Yeni Elan",
+    "noAnnouncements": "Elan yoxdur",
+    "publishedOn": "{{date}} tarixində dərc edilib",
+    "readMore": "Daha ətraflı",
+    "markAsRead": "Oxunmuş kimi işarələ",
+    "priority": {
+      "high": "Yüksək Prioritet",
+      "normal": "Normal",
+      "low": "Aşağı Prioritet"
+    }
+  },
+  "settings": {
+    "title": "Parametrlər",
+    "language": "Dil",
+    "selectLanguage": "Dil Seçin",
+    "changeLanguage": "Dili Dəyişdir",
+    "preferences": "Tərcihlər",
+    "notifications": "Bildirişlər",
+    "privacy": "Məxfilik",
+    "saveChanges": "Dəyişiklikləri Saxla"
+  },
+  "errors": {
+    "genericError": "Nəsə səhv getdi. Zəhmət olmasa yenidən cəhd edin.",
+    "networkError": "Şəbəkə xətası. Zəhmət olmasa bağlantınızı yoxlayın.",
+    "unauthorized": "İcazəsiz giriş. Zəhmət olmasa daxil olun.",
+    "notFound": "Resurs tapılmadı.",
+    "serverError": "Server xətası. Zəhmət olmasa daha sonra yenidən cəhd edin.",
+    "validationError": "Zəhmət olmasa məlumatları yoxlayın və yenidən cəhd edin."
+  }
+}
