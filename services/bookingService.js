@@ -475,8 +475,7 @@ async function getScheduleSlotRoster(scheduleSlotId) {
 
     const roster = (data || []).map((booking) => {
       const userRecord = booking.user || {};
-      const derivedName = `${userRecord.first_name || ''} ${userRecord.last_name || ''}`.trim();
-      const displayName = userRecord.name || derivedName || userRecord.email || 'Unknown Member';
+      const displayName = userRecord.name || userRecord.email || 'Unknown Member';
 
       return {
         bookingId: booking.id,
