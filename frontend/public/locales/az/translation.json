@@ -21,6 +21,7 @@
     "details": "Ətraflı"
   },
   "navigation": {
+    "home": "Ana Səhifə",
     "dashboard": "İdarə Paneli",
     "profile": "Mənim Profilim",
     "classes": "Dərslər",
@@ -29,6 +30,8 @@
     "instructors": "Məşqçilər",
     "announcements": "Elanlar",
     "settings": "Parametrlər",
+    "reception": "Resepşn",
+    "sparta": "Sparta",
     "logout": "Çıxış",
     "login": "Giriş"
   },

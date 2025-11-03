@@ -21,6 +21,7 @@
     "details": "Details"
   },
   "navigation": {
+    "home": "Home",
     "dashboard": "Dashboard",
     "profile": "My Profile",
     "classes": "Classes",
@@ -29,6 +30,8 @@
     "instructors": "Instructors",
     "announcements": "Announcements",
     "settings": "Settings",
+    "reception": "Reception",
+    "sparta": "Sparta",
     "logout": "Logout",
     "login": "Login"
   },

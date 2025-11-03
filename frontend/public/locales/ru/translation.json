@@ -21,6 +21,7 @@
     "details": "Подробнее"
   },
   "navigation": {
+    "home": "Главная",
     "dashboard": "Панель управления",
     "profile": "Мой профиль",
     "classes": "Занятия",
@@ -29,6 +30,8 @@
     "instructors": "Инструкторы",
     "announcements": "Объявления",
     "settings": "Настройки",
+    "reception": "Ресепшн",
+    "sparta": "Спарта",
     "logout": "Выход",
     "login": "Вход"
   },

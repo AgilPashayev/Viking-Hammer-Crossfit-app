@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import MemberDashboard from './components/MemberDashboard';
 import ClassList from './components/ClassList';
 import MyProfile from './components/MyProfile';
@@ -39,6 +40,7 @@ interface UserData {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState<
     | 'home'
     | 'dashboard'
@@ -445,24 +447,24 @@ export default function App() {
           <div>
             <div className="navigation-bar">
               <button className="nav-btn" onClick={() => handleNavigate('home')}>
-                🏠 Home
+                🏠 {t('navigation.home')}
               </button>
-              <button className="nav-btn active">📊 Dashboard</button>
+              <button className="nav-btn active">📊 {t('navigation.dashboard')}</button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
-                👤 Profile
+                👤 {t('navigation.profile')}
               </button>
               {(user?.role === 'sparta' || user?.role === 'reception') && (
                 <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                  🏢 Reception
+                  🏢 {t('navigation.reception')}
                 </button>
               )}
               {user?.role === 'sparta' && (
                 <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                  ⚔️ Sparta
+                  ⚔️ {t('navigation.sparta')}
                 </button>
               )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                🚪 Logout
+                🚪 {t('navigation.logout')}
               </button>
             </div>
             <MemberDashboard onNavigate={handleNavigate} user={user} />
@@ -471,22 +473,22 @@ export default function App() {
           <div>
             <div className="navigation-bar">
               <button className="nav-btn" onClick={() => handleNavigate('home')}>
-                🏠 Home
+                🏠 {t('navigation.home')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
-                📊 Dashboard
+                📊 {t('navigation.dashboard')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
-                👤 Profile
+                👤 {t('navigation.profile')}
               </button>
-              <button className="nav-btn active">🏢 Reception</button>
+              <button className="nav-btn active">🏢 {t('navigation.reception')}</button>
               {user?.role === 'sparta' && (
                 <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                  ⚔️ Sparta
+                  ⚔️ {t('navigation.sparta')}
                 </button>
               )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                🚪 Logout
+                🚪 {t('navigation.logout')}
               </button>
             </div>
             <Reception onNavigate={handleNavigate} user={user} />
@@ -495,20 +497,20 @@ export default function App() {
           <div>
             <div className="navigation-bar">
               <button className="nav-btn" onClick={() => handleNavigate('home')}>
-                🏠 Home
+                🏠 {t('navigation.home')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
-                📊 Dashboard
+                📊 {t('navigation.dashboard')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('profile')}>
-                👤 Profile
+                👤 {t('navigation.profile')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                🏢 Reception
+                🏢 {t('navigation.reception')}
               </button>
-              <button className="nav-btn active">⚔️ Sparta</button>
+              <button className="nav-btn active">⚔️ {t('navigation.sparta')}</button>
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                🚪 Logout
+                🚪 {t('navigation.logout')}
               </button>
             </div>
             <Sparta onNavigate={handleNavigate} user={user} />
@@ -517,24 +519,24 @@ export default function App() {
           <div>
             <div className="navigation-bar">
               <button className="nav-btn" onClick={() => handleNavigate('home')}>
-                🏠 Home
+                🏠 {t('navigation.home')}
               </button>
               <button className="nav-btn" onClick={() => handleNavigate('dashboard')}>
-                📊 Dashboard
+                📊 {t('navigation.dashboard')}
               </button>
-              <button className="nav-btn active">👤 Profile</button>
+              <button className="nav-btn active">👤 {t('navigation.profile')}</button>
               {(user?.role === 'sparta' || user?.role === 'reception') && (
                 <button className="nav-btn" onClick={() => handleNavigate('reception')}>
-                  🏢 Reception
+                  🏢 {t('navigation.reception')}
                 </button>
               )}
               {user?.role === 'sparta' && (
                 <button className="nav-btn" onClick={() => handleNavigate('sparta')}>
-                  ⚔️ Sparta
+                  ⚔️ {t('navigation.sparta')}
                 </button>
               )}
               <button className="nav-btn logout" onClick={() => handleNavigate('logout')}>
-                🚪 Logout
+                🚪 {t('navigation.logout')}
               </button>
             </div>
             <MyProfile
