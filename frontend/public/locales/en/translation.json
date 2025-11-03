@@ -136,6 +136,11 @@
     "title": "Your Check-In QR Code",
     "instructions": "Show this QR code to the reception desk to check in.",
     "memberId": "Member ID",
+    "expires": "Expires",
+    "generated": "Generated",
+    "generateNew": "Generate New QR",
+    "generating": "Generating...",
+    "done": "Done",
     "close": "Close"
   },
   "settings": {

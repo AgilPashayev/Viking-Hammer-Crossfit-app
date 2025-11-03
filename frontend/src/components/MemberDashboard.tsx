@@ -873,8 +873,12 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 </p>
                 {qrCodeData && (
                   <div className="qr-details">
-                    <p>Expires: {formatDate(qrCodeData.expiresAt)}</p>
-                    <p>Generated: {new Date(qrCodeData.timestamp).toLocaleString()}</p>
+                    <p>
+                      {t('qrCode.expires')}: {formatDate(qrCodeData.expiresAt)}
+                    </p>
+                    <p>
+                      {t('qrCode.generated')}: {new Date(qrCodeData.timestamp).toLocaleString()}
+                    </p>
                   </div>
                 )}
               </div>
@@ -884,10 +888,10 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                   disabled={isGeneratingQR}
                   className="btn btn-secondary"
                 >
-                  {isGeneratingQR ? 'Generating...' : 'Generate New QR'}
+                  {isGeneratingQR ? t('qrCode.generating') : t('qrCode.generateNew')}
                 </button>
                 <button onClick={handleCloseQRModal} className="btn btn-primary">
-                  Done
+                  {t('qrCode.done')}
                 </button>
               </div>
             </div>

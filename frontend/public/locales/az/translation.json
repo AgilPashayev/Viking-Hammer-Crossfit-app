@@ -136,6 +136,11 @@
     "title": "Giriş QR Kodunuz",
     "instructions": "Giriş üçün bu QR kodu resepşn masasına göstərin.",
     "memberId": "Üzv ID",
+    "expires": "Bitmə Tarixi",
+    "generated": "Yaradılıb",
+    "generateNew": "Yeni QR Kodu Yarat",
+    "generating": "Yaradılır...",
+    "done": "Hazırdır",
     "close": "Bağla"
   },
   "settings": {

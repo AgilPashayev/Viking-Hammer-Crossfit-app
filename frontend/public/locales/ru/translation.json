@@ -136,6 +136,11 @@
     "title": "Ваш QR-код для входа",
     "instructions": "Покажите этот QR-код на ресепшн для регистрации.",
     "memberId": "ID участника",
+    "expires": "Истекает",
+    "generated": "Создано",
+    "generateNew": "Создать новый QR-код",
+    "generating": "Создание...",
+    "done": "Готово",
     "close": "Закрыть"
   },
   "settings": {
