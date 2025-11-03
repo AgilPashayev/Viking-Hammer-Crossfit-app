@@ -39,7 +39,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
   currentUserRole = 'member',
   onUserUpdate,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState('personal');
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || user?.avatar_url || '');
   const [isEditingEmergency, setIsEditingEmergency] = useState(false);
@@ -305,18 +305,63 @@ const MyProfile: React.FC<MyProfileProps> = ({
     setNotificationModal({ show: false, type: 'info', title: '', message: '', autoClose: true });
   };
 
-  // Format date to readable format (e.g., "Oct 15, 2025")
+  // Format date to readable format with localization support
   const formatDate = (dateString: string): string => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
+      const currentLang = i18n.language;
+
+      const day = date.getDate();
+      const year = date.getFullYear();
+      const monthIndex = date.getMonth();
+
+      // Get month abbreviations from translations
+      const monthKeys = [
+        'classes.months.short.jan',
+        'classes.months.short.feb',
+        'classes.months.short.mar',
+        'classes.months.short.apr',
+        'classes.months.short.may',
+        'classes.months.short.jun',
+        'classes.months.short.jul',
+        'classes.months.short.aug',
+        'classes.months.short.sep',
+        'classes.months.short.oct',
+        'classes.months.short.nov',
+        'classes.months.short.dec',
+      ];
+
+      const month = t(monthKeys[monthIndex]).toLowerCase();
+
+      // Format: "26 okt, 2025" for az/ru, "Oct 26, 2025" for en
+      if (currentLang === 'en') {
+        return `${t(monthKeys[monthIndex])} ${day}, ${year}`;
+      } else {
+        return `${day} ${month}, ${year}`;
+      }
     } catch {
       return dateString;
     }
+  };
+
+  // Process notes text to translate and format dates
+  const processNotesText = (notes: string): string => {
+    if (!notes) return notes;
+
+    // Pattern to match ISO date format: 2025-11-02T16:50:34.575Z
+    const isoDatePattern = /(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z?)/g;
+
+    let processedText = notes;
+
+    // Replace "Suspended on" with translated version
+    processedText = processedText.replace(/Suspended on/gi, t('profile.subscription.suspendedOn'));
+
+    // Find and format all ISO dates
+    processedText = processedText.replace(isoDatePattern, (match) => {
+      return formatDate(match);
+    });
+
+    return processedText;
   };
 
   const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -550,7 +595,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
       showNotification(
         'success',
-        'Information Updated!',
+        t('profile.informationUpdated'),
         'Your personal information has been saved successfully.',
       );
       setIsEditingPersonal(false);
@@ -651,7 +696,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
       showNotification(
         'success',
-        'Emergency Contact Saved!',
+        t('profile.emergencyContactSaved'),
         'Your emergency contact information has been updated successfully.',
       );
       setIsEditingEmergency(false);
@@ -793,7 +838,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         </div>
         <div className="profile-actions">
           <button className="btn btn-secondary" onClick={() => onNavigate?.('dashboard')}>
-            ⬅️ Back to Dashboard
+            ⬅️ {t('profile.backToDashboard')}
           </button>
         </div>
       </div>
@@ -923,15 +968,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <input
                     type="text"
                     className="form-input"
-                    value={
-                      user?.dateOfBirth
-                        ? new Date(user.dateOfBirth).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })
-                        : ''
-                    }
+                    value={user?.dateOfBirth ? formatDate(user.dateOfBirth) : ''}
                     readOnly
                     disabled
                   />
@@ -945,11 +982,13 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   onChange={(e) => setPersonalInfo((prev) => ({ ...prev, gender: e.target.value }))}
                   disabled={!isEditingPersonal}
                 >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                  <option value="Prefer not to say">Prefer not to say</option>
+                  <option value="">{t('profile.genderOptions.select')}</option>
+                  <option value="Male">{t('profile.genderOptions.male')}</option>
+                  <option value="Female">{t('profile.genderOptions.female')}</option>
+                  <option value="Other">{t('profile.genderOptions.other')}</option>
+                  <option value="Prefer not to say">
+                    {t('profile.genderOptions.preferNotToSay')}
+                  </option>
                 </select>
               </div>
             </div>
@@ -982,9 +1021,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
           <div className="profile-section">
             <div className="section-header">
               <h3>💎 {t('profile.tabs.subscription')}</h3>
-              <p className="section-description">
-                Manage your membership and view subscription details
-              </p>
+              <p className="section-description">{t('profile.subscription.subscriptionDesc')}</p>
             </div>
 
             {isLoadingSubscription ? (
@@ -996,20 +1033,22 @@ const MyProfile: React.FC<MyProfileProps> = ({
               <div className="subscription-card">
                 <div className={`subscription-badge ${subscription.status || 'active'}`}>
                   {subscription.status === 'active'
-                    ? '✅ Active Membership'
+                    ? `✅ ${t('profile.subscription.active')} ${t(
+                        'profile.subscription.membership',
+                      )}`
                     : subscription.status === 'suspended'
-                    ? '⏸️ Suspended'
+                    ? `⏸️ ${t('profile.subscription.suspended')}`
                     : subscription.status === 'expired'
-                    ? '⏰ Expired'
-                    : '💳 Membership'}
+                    ? `⏰ ${t('profile.subscription.expired')}`
+                    : `💳 ${t('profile.subscription.membership')}`}
                 </div>
                 <div className="subscription-details">
                   <div className="detail-row">
                     <span className="detail-icon">🎯</span>
                     <div className="detail-content">
-                      <span className="detail-label">Plan Name</span>
+                      <span className="detail-label">{t('profile.subscription.planName')}</span>
                       <span className="detail-value subscription-value">
-                        {subscription.plan_name || 'Basic Membership'}
+                        {subscription.plan_name || t('profile.subscription.basicMembership')}
                       </span>
                     </div>
                   </div>
@@ -1017,7 +1056,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <div className="detail-row">
                     <span className="detail-icon">📅</span>
                     <div className="detail-content">
-                      <span className="detail-label">Start Date</span>
+                      <span className="detail-label">{t('profile.subscription.startDate')}</span>
                       <span className="detail-value subscription-value">
                         {formatDate(subscription.start_date || new Date().toISOString())}
                       </span>
@@ -1028,7 +1067,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                     <div className="detail-row">
                       <span className="detail-icon">🏁</span>
                       <div className="detail-content">
-                        <span className="detail-label">End Date</span>
+                        <span className="detail-label">{t('profile.subscription.endDate')}</span>
                         <span className="detail-value subscription-value">
                           {formatDate(subscription.end_date)}
                         </span>
@@ -1039,17 +1078,17 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <div className="detail-row">
                     <span className="detail-icon">✅</span>
                     <div className="detail-content">
-                      <span className="detail-label">Status</span>
+                      <span className="detail-label">{t('profile.subscription.status')}</span>
                       <span className={`detail-value status-${subscription.status || 'active'}`}>
                         {subscription.status === 'active'
-                          ? 'Active ✓'
+                          ? `${t('profile.subscription.active')} ✓`
                           : subscription.status === 'suspended'
-                          ? 'Suspended'
+                          ? t('profile.subscription.suspended')
                           : subscription.status === 'expired'
-                          ? 'Expired'
+                          ? t('profile.subscription.expired')
                           : subscription.status === 'cancelled'
-                          ? 'Cancelled'
-                          : 'Active'}
+                          ? t('profile.subscription.cancelled')
+                          : t('profile.subscription.active')}
                       </span>
                     </div>
                   </div>
@@ -1057,16 +1096,16 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <div className="detail-row">
                     <span className="detail-icon">🏋️</span>
                     <div className="detail-content">
-                      <span className="detail-label">Visit Quota</span>
+                      <span className="detail-label">{t('profile.subscription.visitQuota')}</span>
                       <span className="detail-value subscription-value">
                         {subscription.remaining_entries !== null &&
                         subscription.remaining_entries !== undefined
                           ? `${subscription.remaining_entries} ${
                               subscription.class_limit ? `of ${subscription.class_limit}` : ''
-                            } remaining`
+                            } ${t('profile.subscription.remaining')}`
                           : subscription.class_limit
-                          ? `${subscription.class_limit} per month`
-                          : 'Unlimited'}
+                          ? `${subscription.class_limit} ${t('profile.subscription.perMonth')}`
+                          : t('profile.subscription.unlimited')}
                       </span>
                     </div>
                   </div>
@@ -1075,7 +1114,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                     <div className="detail-row">
                       <span className="detail-icon">💰</span>
                       <div className="detail-content">
-                        <span className="detail-label">Plan Price</span>
+                        <span className="detail-label">{t('profile.subscription.planPrice')}</span>
                         <span className="detail-value subscription-value">
                           {subscription.currency || 'AZN'} {subscription.amount.toFixed(2)}
                         </span>
@@ -1085,11 +1124,11 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
                   {subscription.notes && (
                     <div className="detail-row">
-                      <span className="detail-icon">�</span>
+                      <span className="detail-icon">📝</span>
                       <div className="detail-content">
-                        <span className="detail-label">Notes</span>
+                        <span className="detail-label">{t('profile.subscription.notes')}</span>
                         <span className="detail-value subscription-value">
-                          {subscription.notes}
+                          {processNotesText(subscription.notes)}
                         </span>
                       </div>
                     </div>
@@ -1097,7 +1136,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 </div>
                 <div className="subscription-actions">
                   <button className="btn btn-primary" onClick={() => setShowHistoryModal(true)}>
-                    📊 View History
+                    📊 {t('profile.subscription.viewHistory')}
                   </button>
                 </div>
               </div>
@@ -1118,9 +1157,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
           <div className="profile-section">
             <div className="section-header">
               <h3>🚨 {t('profile.tabs.emergency')}</h3>
-              <p className="section-description">
-                Update your emergency contact information (optional)
-              </p>
+              <p className="section-description">{t('profile.emergencyContactDescription')}</p>
               {!isEditingEmergency && (
                 <button
                   className="btn btn-primary btn-sm"
@@ -1204,12 +1241,12 @@ const MyProfile: React.FC<MyProfileProps> = ({
           <div className="profile-section">
             <div className="section-header">
               <h3>⚙️ {t('profile.tabs.settings')}</h3>
-              <p className="section-description">Manage your app settings and notifications</p>
+              <p className="section-description">{t('profile.settingsDescription')}</p>
             </div>
 
             {/* Language Switcher */}
             <div className="settings-group">
-              <h4>🌐 Language & Localization</h4>
+              <h4>🌐 {t('profile.notifications.languageLocalization')}</h4>
               <div className="settings-list">
                 <div className="setting-item">
                   <LanguageSwitcher />
@@ -1219,7 +1256,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 className="setting-note"
                 style={{ fontSize: '12px', color: '#666', marginTop: '8px', fontStyle: 'italic' }}
               >
-                ℹ️ Language changes are saved automatically - no need to click "Save Settings"
+                ℹ️ {t('profile.notifications.languageNote')}
               </p>
             </div>
 
@@ -1231,9 +1268,11 @@ const MyProfile: React.FC<MyProfileProps> = ({
               <div className="settings-list">
                 <div className="setting-item">
                   <div className="setting-info">
-                    <span className="setting-label">Push Notifications</span>
+                    <span className="setting-label">
+                      {t('profile.notifications.pushNotifications')}
+                    </span>
                     <span className="setting-description">
-                      Receive push notifications on your device
+                      {t('profile.notifications.pushNotificationsDesc')}
                     </span>
                   </div>
                   <label className="toggle-switch">
@@ -1254,8 +1293,10 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
                 <div className="setting-item">
                   <div className="setting-info">
-                    <span className="setting-label">Email Alerts</span>
-                    <span className="setting-description">Receive notifications via email</span>
+                    <span className="setting-label">{t('profile.notifications.emailAlerts')}</span>
+                    <span className="setting-description">
+                      {t('profile.notifications.emailAlertsDesc')}
+                    </span>
                   </div>
                   <label className="toggle-switch">
                     <input
@@ -1271,8 +1312,10 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
                 <div className="setting-item">
                   <div className="setting-info">
-                    <span className="setting-label">SMS Alerts</span>
-                    <span className="setting-description">Receive important updates via SMS</span>
+                    <span className="setting-label">{t('profile.notifications.smsAlerts')}</span>
+                    <span className="setting-description">
+                      {t('profile.notifications.smsAlertsDesc')}
+                    </span>
                   </div>
                   <label className="toggle-switch">
                     <input
@@ -1306,7 +1349,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   });
                 }}
               >
-                🔄 Reset to Defaults
+                🔄 {t('profile.resetToDefaults')}
               </button>
             </div>
           </div>
@@ -1318,7 +1361,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         <div className="modal-overlay" onClick={() => setShowHistoryModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>📊 Membership History</h2>
+              <h2>📊 {t('profile.subscription.membershipHistory')}</h2>
               <button className="modal-close" onClick={() => setShowHistoryModal(false)}>
                 ✕
               </button>
@@ -1327,21 +1370,21 @@ const MyProfile: React.FC<MyProfileProps> = ({
               {isLoadingHistory ? (
                 <div className="loading-container">
                   <div className="spinner"></div>
-                  <p>Loading membership history...</p>
+                  <p>{t('profile.subscription.loadingHistory')}</p>
                 </div>
               ) : historyError ? (
                 <div className="error-container">
                   <span className="error-icon">⚠️</span>
                   <p>{historyError}</p>
                   <button className="btn btn-primary" onClick={() => setShowHistoryModal(false)}>
-                    Close
+                    {t('common.close')}
                   </button>
                 </div>
               ) : membershipHistory.length === 0 ? (
                 <div className="empty-container">
                   <span className="empty-icon">📋</span>
-                  <h3>No Membership History</h3>
-                  <p>You don't have any membership records yet.</p>
+                  <h3>{t('profile.subscription.noHistory')}</h3>
+                  <p>{t('profile.subscription.noHistoryDesc')}</p>
                 </div>
               ) : (
                 <>
@@ -1351,7 +1394,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                       <span className="summary-icon">📊</span>
                       <div className="summary-content">
                         <span className="summary-value">{membershipHistory.length}</span>
-                        <span className="summary-label">Total Records</span>
+                        <span className="summary-label">
+                          {t('profile.subscription.totalRecords')}
+                        </span>
                       </div>
                     </div>
                     <div className="summary-card">
@@ -1360,7 +1405,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                         <span className="summary-value">
                           {membershipHistory.filter((r) => r.status === 'active').length}
                         </span>
-                        <span className="summary-label">Active</span>
+                        <span className="summary-label">{t('profile.subscription.active')}</span>
                       </div>
                     </div>
                     <div className="summary-card">
@@ -1369,7 +1414,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                         <span className="summary-value">
                           {formatDate(membershipHistory[membershipHistory.length - 1]?.created_at)}
                         </span>
-                        <span className="summary-label">Member Since</span>
+                        <span className="summary-label">
+                          {t('profile.subscription.memberSince')}
+                        </span>
                       </div>
                     </div>
                     <div className="summary-card">
@@ -1381,7 +1428,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                             return total + used;
                           }, 0)}
                         </span>
-                        <span className="summary-label">Classes Used</span>
+                        <span className="summary-label">
+                          {t('profile.subscription.classesUsed')}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1407,11 +1456,15 @@ const MyProfile: React.FC<MyProfileProps> = ({
                             </div>
                             <div className="header-right">
                               <span className={`status-badge ${record.status}`}>
-                                {record.status === 'active' && '✅ Active'}
-                                {record.status === 'expired' && '⏰ Expired'}
-                                {record.status === 'completed' && '✔️ Completed'}
-                                {record.status === 'cancelled' && '❌ Cancelled'}
-                                {record.status === 'pending' && '⏳ Pending'}
+                                {record.status === 'active' &&
+                                  `✅ ${t('profile.subscription.active')}`}
+                                {record.status === 'expired' &&
+                                  `⏰ ${t('profile.subscription.expired')}`}
+                                {record.status === 'completed' && `✔️ ${t('common.completed')}`}
+                                {record.status === 'cancelled' &&
+                                  `❌ ${t('profile.subscription.cancelled')}`}
+                                {record.status === 'pending' &&
+                                  `⏳ ${t('dashboard.status.pending')}`}
                               </span>
                               <span className="expand-icon">{isExpanded ? '▼' : '▶'}</span>
                             </div>
@@ -1421,14 +1474,18 @@ const MyProfile: React.FC<MyProfileProps> = ({
                           <div className="history-summary-row">
                             <span className="summary-item">
                               📅 {formatDate(record.start_date)} -{' '}
-                              {record.end_date ? formatDate(record.end_date) : 'Ongoing'}
+                              {record.end_date
+                                ? formatDate(record.end_date)
+                                : t('profile.subscription.ongoing')}
                             </span>
                             <span className="summary-item">
                               💰 {record.currency} {record.amount.toFixed(2)}
                             </span>
                             <span className="summary-item">
                               🏋️{' '}
-                              {record.class_limit ? `${record.class_limit} classes` : 'Unlimited'}
+                              {record.class_limit
+                                ? `${record.class_limit} ${t('profile.subscription.classes')}`
+                                : t('profile.subscription.unlimited')}
                             </span>
                           </div>
 
@@ -1440,7 +1497,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">📅</span>
                                   <div className="info-content">
-                                    <span className="info-label">Start Date</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.startDate')}
+                                    </span>
                                     <span className="info-value">
                                       {formatDate(record.start_date)}
                                     </span>
@@ -1451,7 +1510,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                   <div className="info-item">
                                     <span className="info-icon">📅</span>
                                     <div className="info-content">
-                                      <span className="info-label">End Date</span>
+                                      <span className="info-label">
+                                        {t('profile.subscription.endDate')}
+                                      </span>
                                       <span className="info-value">
                                         {formatDate(record.end_date)}
                                       </span>
@@ -1461,8 +1522,12 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                   <div className="info-item">
                                     <span className="info-icon">∞</span>
                                     <div className="info-content">
-                                      <span className="info-label">Duration</span>
-                                      <span className="info-value ongoing">Ongoing</span>
+                                      <span className="info-label">
+                                        {t('profile.subscription.duration')}
+                                      </span>
+                                      <span className="info-value ongoing">
+                                        {t('profile.subscription.ongoing')}
+                                      </span>
                                     </div>
                                   </div>
                                 )}
@@ -1473,11 +1538,13 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">💰</span>
                                   <div className="info-content">
-                                    <span className="info-label">Amount</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.amount')}
+                                    </span>
                                     <span className="info-value amount">
                                       {record.amount > 0
                                         ? `${record.currency} ${record.amount.toFixed(2)}`
-                                        : 'Free'}
+                                        : t('profile.subscription.free')}
                                     </span>
                                   </div>
                                 </div>
@@ -1485,7 +1552,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">💳</span>
                                   <div className="info-content">
-                                    <span className="info-label">Payment Method</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.paymentMethod')}
+                                    </span>
                                     <span className="info-value">
                                       {record.payment_method
                                         .replace('_', ' ')
@@ -1500,7 +1569,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">🔄</span>
                                   <div className="info-content">
-                                    <span className="info-label">Renewal Type</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.renewalType')}
+                                    </span>
                                     <span className="info-value">
                                       {record.renewal_type
                                         .replace('_', ' ')
@@ -1513,11 +1584,15 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">🏋️</span>
                                   <div className="info-content">
-                                    <span className="info-label">Class Access</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.classLimit')}
+                                    </span>
                                     <span className="info-value">
                                       {record.class_limit
-                                        ? `${record.class_limit} per month`
-                                        : 'Unlimited'}
+                                        ? `${record.class_limit} ${t(
+                                            'profile.subscription.perMonth',
+                                          )}`
+                                        : t('profile.subscription.unlimited')}
                                     </span>
                                   </div>
                                 </div>
@@ -1528,7 +1603,9 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                 <div className="info-item">
                                   <span className="info-icon">📝</span>
                                   <div className="info-content">
-                                    <span className="info-label">Registered On</span>
+                                    <span className="info-label">
+                                      {t('profile.subscription.registeredOn')}
+                                    </span>
                                     <span className="info-value">
                                       {formatDate(record.created_at)}
                                     </span>
@@ -1556,9 +1633,11 @@ const MyProfile: React.FC<MyProfileProps> = ({
                                   <div className="info-item full-width">
                                     <span className="info-icon">ℹ️</span>
                                     <div className="info-content">
-                                      <span className="info-label">Notes</span>
+                                      <span className="info-label">
+                                        {t('profile.subscription.notes')}
+                                      </span>
                                       <span className="info-value">
-                                        {record.cancellation_reason}
+                                        {processNotesText(record.cancellation_reason)}
                                       </span>
                                     </div>
                                   </div>
@@ -1575,7 +1654,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
             </div>
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowHistoryModal(false)}>
-                Close
+                {t('common.close')}
               </button>
             </div>
           </div>

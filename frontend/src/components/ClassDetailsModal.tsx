@@ -1,6 +1,7 @@
 import React from 'react';
 import { GymClass } from '../services/classManagementService';
 import './ClassDetailsModal.css';
+import { useTranslation } from 'react-i18next';
 
 interface ClassDetailsModalProps {
   gymClass: GymClass;
@@ -21,8 +22,70 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
   isBooked,
   isBooking,
 }) => {
+  const { t, i18n } = useTranslation();
+
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
+    const currentLang = i18n.language;
+
+    // Use locale-specific formatting
+    if (currentLang === 'az') {
+      const dayNames = [
+        'Bazar',
+        'Bazar ertəsi',
+        'Çərşənbə axşamı',
+        'Çərşənbə',
+        'Cümə axşamı',
+        'Cümə',
+        'Şənbə',
+      ];
+      const monthNames = [
+        'Yan',
+        'Fev',
+        'Mar',
+        'Apr',
+        'May',
+        'İyn',
+        'İyl',
+        'Avq',
+        'Sen',
+        'Okt',
+        'Noy',
+        'Dek',
+      ];
+      return `${dayNames[date.getDay()]}, ${
+        monthNames[date.getMonth()]
+      } ${date.getDate()}, ${date.getFullYear()}`;
+    } else if (currentLang === 'ru') {
+      const dayNames = [
+        'Воскресенье',
+        'Понедельник',
+        'Вторник',
+        'Среда',
+        'Четверг',
+        'Пятница',
+        'Суббота',
+      ];
+      const monthNames = [
+        'Янв',
+        'Фев',
+        'Мар',
+        'Апр',
+        'Май',
+        'Июн',
+        'Июл',
+        'Авг',
+        'Сен',
+        'Окт',
+        'Ноя',
+        'Дек',
+      ];
+      return `${dayNames[date.getDay()]}, ${
+        monthNames[date.getMonth()]
+      } ${date.getDate()}, ${date.getFullYear()}`;
+    }
+
+    // English (default)
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -47,6 +110,17 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
   const spotsRemaining = gymClass.maxCapacity - gymClass.currentEnrollment;
   const isClassFull = spotsRemaining <= 0;
 
+  // Translate difficulty level
+  const translateDifficulty = (difficulty: string): string => {
+    const difficultyMap: { [key: string]: string } = {
+      Beginner: t('classes.difficulty.beginner'),
+      Intermediate: t('classes.difficulty.intermediate'),
+      Advanced: t('classes.difficulty.advanced'),
+      Mixed: t('classes.difficulty.mixed'),
+    };
+    return difficultyMap[difficulty] || difficulty;
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -61,30 +135,33 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
             className="modal-difficulty"
             style={{ color: getDifficultyColor(gymClass.difficulty) }}
           >
-            {gymClass.difficulty}
+            {translateDifficulty(gymClass.difficulty)}
           </div>
         </div>
 
         <div className="modal-body">
           <div className="modal-section">
-            <h3>📅 Schedule</h3>
+            <h3>📅 {t('classes.modal.schedule')}</h3>
             <div className="schedule-details">
               <p>
-                <strong>Date:</strong> {formatDate(selectedDate)}
+                <strong>{t('classes.modal.date')}:</strong> {formatDate(selectedDate)}
               </p>
               <p>
-                <strong>Time:</strong> {selectedTime} ({gymClass.duration} minutes)
+                <strong>{t('classes.modal.time')}:</strong> {selectedTime} ({gymClass.duration}{' '}
+                {t('common.minutes', 'minutes')})
               </p>
             </div>
           </div>
 
           <div className="modal-section">
-            <h3>📝 Description</h3>
-            <p className="class-description">{gymClass.description}</p>
+            <h3>📝 {t('classes.modal.description')}</h3>
+            <p className="class-description">
+              {gymClass.description || t('classes.modal.addDescription')}
+            </p>
           </div>
 
           <div className="modal-section">
-            <h3>👨‍🏫 Instructors</h3>
+            <h3>👨‍🏫 {t('classes.modal.instructors')}</h3>
             <div className="instructors-list">
               {gymClass.instructorNames && gymClass.instructorNames.length > 0 ? (
                 gymClass.instructorNames.map((name, index) => (
@@ -93,14 +170,14 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
                   </div>
                 ))
               ) : (
-                <p className="text-muted">No instructors assigned</p>
+                <p className="text-muted">{t('classes.modal.noInstructors')}</p>
               )}
             </div>
           </div>
 
           {gymClass.equipment && gymClass.equipment.length > 0 && (
             <div className="modal-section">
-              <h3>🏋️ Equipment</h3>
+              <h3>🏋️ {t('classes.modal.equipment')}</h3>
               <div className="equipment-list">
                 {gymClass.equipment.map((item, index) => (
                   <span key={index} className="equipment-tag">
@@ -112,7 +189,7 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
           )}
 
           <div className="modal-section">
-            <h3>👥 Capacity</h3>
+            <h3>👥 {t('classes.modal.capacity')}</h3>
             <div className="capacity-info">
               <div className="capacity-bar">
                 <div
@@ -129,7 +206,8 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
                 />
               </div>
               <p className="capacity-text">
-                <strong>{gymClass.currentEnrollment}</strong> / {gymClass.maxCapacity} enrolled
+                <strong>{gymClass.currentEnrollment}</strong> / {gymClass.maxCapacity}{' '}
+                {t('classes.modal.enrolled')}
                 {spotsRemaining > 0 && (
                   <span
                     className="spots-remaining"
@@ -142,7 +220,7 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
                           : 'var(--viking-success)',
                     }}
                   >
-                    ({spotsRemaining} spots left)
+                    ({spotsRemaining} {t('classes.modal.spotsLeft')})
                   </span>
                 )}
               </p>
@@ -151,7 +229,7 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
 
           {gymClass.price > 0 && (
             <div className="modal-section">
-              <h3>💰 Price</h3>
+              <h3>💰 {t('classes.modal.price')}</h3>
               <p className="price-info">${gymClass.price.toFixed(2)}</p>
             </div>
           )}
@@ -159,7 +237,7 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
 
         <div className="modal-footer">
           <button className="btn btn-secondary" onClick={onClose}>
-            Close
+            {t('classes.modal.close')}
           </button>
           <button
             className={`btn ${isBooked ? 'btn-success' : 'btn-primary'}`}
@@ -167,13 +245,13 @@ const ClassDetailsModal: React.FC<ClassDetailsModalProps> = ({
             disabled={isBooking || (isClassFull && !isBooked)}
           >
             {isBooking ? (
-              <>🔄 Processing...</>
+              <>🔄 {t('classes.modal.processing')}</>
             ) : isBooked ? (
-              <>✅ Booked (Click to Cancel)</>
+              <>✅ {t('classes.modal.booked')}</>
             ) : isClassFull ? (
-              <>🚫 Class Full</>
+              <>🚫 {t('classes.modal.classFull')}</>
             ) : (
-              <>📅 Book Now</>
+              <>📅 {t('classes.modal.bookNow')}</>
             )}
           </button>
         </div>

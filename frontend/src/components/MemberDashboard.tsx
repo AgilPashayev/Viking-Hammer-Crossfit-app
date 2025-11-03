@@ -66,7 +66,7 @@ interface MemberDashboardProps {
 
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
   const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
-  const { t } = useTranslation(); // Add translation hook
+  const { t, i18n } = useTranslation(); // Add i18n for language detection
 
   // Debug logging
   console.log('MemberDashboard rendering, user:', user);
@@ -228,6 +228,74 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       }));
     }
   }, [user, getMemberVisitsThisMonth, getMemberTotalVisits, checkIns, members]);
+
+  // Helper function to format dates according to current language
+  const formatLocalizedDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const currentLang = i18n.language;
+
+    // Use locale-specific formatting
+    if (currentLang === 'az') {
+      const dayNames = [
+        t('common.sunday'),
+        t('common.monday'),
+        t('common.tuesday'),
+        t('common.wednesday'),
+        t('common.thursday'),
+        t('common.friday'),
+        t('common.saturday'),
+      ];
+      const monthNames = [
+        t('classes.months.short.jan'),
+        t('classes.months.short.feb'),
+        t('classes.months.short.mar'),
+        t('classes.months.short.apr'),
+        t('classes.months.short.may'),
+        t('classes.months.short.jun'),
+        t('classes.months.short.jul'),
+        t('classes.months.short.aug'),
+        t('classes.months.short.sep'),
+        t('classes.months.short.oct'),
+        t('classes.months.short.nov'),
+        t('classes.months.short.dec'),
+      ];
+      const dayShort = dayNames[date.getDay()].substring(0, 3);
+      return `${dayShort}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+    } else if (currentLang === 'ru') {
+      const dayNames = [
+        t('common.sunday'),
+        t('common.monday'),
+        t('common.tuesday'),
+        t('common.wednesday'),
+        t('common.thursday'),
+        t('common.friday'),
+        t('common.saturday'),
+      ];
+      const monthNames = [
+        t('classes.months.short.jan'),
+        t('classes.months.short.feb'),
+        t('classes.months.short.mar'),
+        t('classes.months.short.apr'),
+        t('classes.months.short.may'),
+        t('classes.months.short.jun'),
+        t('classes.months.short.jul'),
+        t('classes.months.short.aug'),
+        t('classes.months.short.sep'),
+        t('classes.months.short.oct'),
+        t('classes.months.short.nov'),
+        t('classes.months.short.dec'),
+      ];
+      const dayShort = dayNames[date.getDay()].substring(0, 2);
+      return `${dayShort}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+    }
+
+    // English (default)
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   // Transform classes to ClassBooking format with real-time updates
   const upcomingClasses: ClassBooking[] = localClasses
@@ -708,7 +776,11 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
               {(() => {
                 const memberData = getFullMemberData();
                 const status = memberData?.status || 'active';
-                return status.charAt(0).toUpperCase() + status.slice(1);
+                // Translate status
+                return t(
+                  `dashboard.status.${status}`,
+                  status.charAt(0).toUpperCase() + status.slice(1),
+                );
               })()}
             </h3>
             <p>{t('dashboard.membershipStatus')}</p>
@@ -754,14 +826,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                         {t('classes.with')} {classItem.instructor}
                       </p>
                       <div className="class-datetime">
-                        <span className="date">
-                          📅{' '}
-                          {new Date(classItem.date).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
-                        </span>
+                        <span className="date">📅 {formatLocalizedDate(classItem.date)}</span>
                         <span className="time">🕐 {classItem.time}</span>
                       </div>
                     </div>
