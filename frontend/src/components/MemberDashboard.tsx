@@ -711,7 +711,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 return status.charAt(0).toUpperCase() + status.slice(1);
               })()}
             </h3>
-            <p>Membership Status</p>
+            <p>{t('dashboard.membershipStatus')}</p>
           </div>
         </div>
       </div>
@@ -734,7 +734,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
               <div className="no-classes">
                 <div className="no-classes-icon">📭</div>
                 <p>{t('dashboard.noClasses')}</p>
-                <small>Check back later or contact your instructor</small>
+                <small>{t('dashboard.noClassesMessage')}</small>
               </div>
             ) : (
               upcomingClasses.map((classItem) => {
@@ -750,7 +750,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                   >
                     <div className="class-info">
                       <h4>{classItem.className}</h4>
-                      <p className="instructor">with {classItem.instructor}</p>
+                      <p className="instructor">
+                        {t('classes.with')} {classItem.instructor}
+                      </p>
                       <div className="class-datetime">
                         <span className="date">
                           📅{' '}
