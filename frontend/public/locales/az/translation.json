@@ -85,19 +85,35 @@
   },
   "profile": {
     "title": "Mənim Profilim",
+    "tabs": {
+      "personal": "Şəxsi Məlumatlar",
+      "subscription": "Mənim Abunəliyim",
+      "emergency": "Təcili Əlaqə",
+      "settings": "Parametrlər"
+    },
     "personalInfo": "Şəxsi Məlumatlar",
+    "personalInfoDescription": "Əlaqə məlumatlarınızı və şəxsi məlumatlarınızı yeniləyin",
     "firstName": "Ad",
     "lastName": "Soyad",
     "email": "E-poçt",
     "phone": "Telefon",
     "dateOfBirth": "Doğum tarixi",
+    "gender": "Cins",
     "membershipType": "Üzvlük Növü",
     "subscription": "Mənim Abunəliyim",
     "subscriptionStatus": "Abunəlik Statusu",
     "remainingEntries": "Qalan Girişlər",
     "expiryDate": "Bitmə Tarixi",
     "updateProfile": "Profili Yenilə",
-    "changePassword": "Şifrəni Dəyişdir"
+    "changePassword": "Şifrəni Dəyişdir",
+    "edit": "Redaktə et",
+    "save": "Dəyişiklikləri Yadda Saxla",
+    "cancel": "Ləğv et",
+    "emergencyContact": "Təcili Əlaqə",
+    "emergencyContactName": "Təcili Əlaqə Şəxsinin Adı",
+    "emergencyContactPhone": "Təcili Əlaqə Telefonu",
+    "notificationPreferences": "Bildiriş Parametrləri",
+    "saveSettings": "Bildiriş Parametrlərini Yadda Saxla"
   },
   "announcements": {
     "title": "Elanlar",

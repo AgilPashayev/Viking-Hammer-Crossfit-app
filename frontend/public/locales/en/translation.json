@@ -85,19 +85,35 @@
   },
   "profile": {
     "title": "My Profile",
+    "tabs": {
+      "personal": "Personal Info",
+      "subscription": "My Subscription",
+      "emergency": "Emergency Contact",
+      "settings": "Settings"
+    },
     "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your contact details and personal information",
     "firstName": "First Name",
     "lastName": "Last Name",
     "email": "Email",
     "phone": "Phone",
     "dateOfBirth": "Date of Birth",
+    "gender": "Gender",
     "membershipType": "Membership Type",
     "subscription": "My Subscription",
     "subscriptionStatus": "Subscription Status",
     "remainingEntries": "Remaining Entries",
     "expiryDate": "Expiry Date",
     "updateProfile": "Update Profile",
-    "changePassword": "Change Password"
+    "changePassword": "Change Password",
+    "edit": "Edit",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "emergencyContact": "Emergency Contact",
+    "emergencyContactName": "Emergency Contact Name",
+    "emergencyContactPhone": "Emergency Contact Phone",
+    "notificationPreferences": "Notification Preferences",
+    "saveSettings": "Save Notification Preferences"
   },
   "announcements": {
     "title": "Announcements",

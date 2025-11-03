@@ -1,4 +1,5 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './MyProfile.css';
 import './MyProfile-enhancements.css';
 import './MyProfile-notifications.css';
@@ -38,6 +39,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
   currentUserRole = 'member',
   onUserUpdate,
 }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('personal');
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || user?.avatar_url || '');
   const [isEditingEmergency, setIsEditingEmergency] = useState(false);
@@ -801,25 +803,25 @@ const MyProfile: React.FC<MyProfileProps> = ({
           onClick={() => setActiveTab('personal')}
           className={`tab ${activeTab === 'personal' ? 'active' : ''}`}
         >
-          👤 Personal Info
+          👤 {t('profile.tabs.personal')}
         </button>
         <button
           onClick={() => setActiveTab('subscription')}
           className={`tab ${activeTab === 'subscription' ? 'active' : ''}`}
         >
-          💳 My Subscription
+          💳 {t('profile.tabs.subscription')}
         </button>
         <button
           onClick={() => setActiveTab('emergency')}
           className={`tab ${activeTab === 'emergency' ? 'active' : ''}`}
         >
-          🚨 Emergency Contact
+          🚨 {t('profile.tabs.emergency')}
         </button>
         <button
           onClick={() => setActiveTab('settings')}
           className={`tab ${activeTab === 'settings' ? 'active' : ''}`}
         >
-          ⚙️ Settings
+          ⚙️ {t('profile.tabs.settings')}
         </button>
       </div>
 
@@ -827,22 +829,20 @@ const MyProfile: React.FC<MyProfileProps> = ({
         {activeTab === 'personal' && (
           <div className="profile-section">
             <div className="section-header">
-              <h3>📋 Personal Information</h3>
-              <p className="section-description">
-                Update your contact details and personal information
-              </p>
+              <h3>📋 {t('profile.personalInfo')}</h3>
+              <p className="section-description">{t('profile.personalInfoDescription')}</p>
               {!isEditingPersonal && (
                 <button
                   className="btn btn-primary btn-sm"
                   onClick={() => setIsEditingPersonal(true)}
                 >
-                  ✏️ Edit
+                  ✏️ {t('profile.edit')}
                 </button>
               )}
             </div>
             <div className="form-grid">
               <div className="form-group">
-                <label>First Name</label>
+                <label>{t('profile.firstName')}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -853,7 +853,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 />
               </div>
               <div className="form-group">
-                <label>Last Name</label>
+                <label>{t('profile.lastName')}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -864,7 +864,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 />
               </div>
               <div className="form-group">
-                <label>Email</label>
+                <label>{t('profile.email')}</label>
                 <input
                   type="email"
                   className="form-input"
@@ -876,7 +876,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 />
               </div>
               <div className="form-group">
-                <label>Phone</label>
+                <label>{t('profile.phone')}</label>
                 <div className="phone-input-group">
                   <select
                     className="country-code-select"
@@ -909,7 +909,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 </div>
               </div>
               <div className="form-group">
-                <label>Date of Birth</label>
+                <label>{t('profile.dateOfBirth')}</label>
                 {isEditingPersonal ? (
                   <input
                     type="date"
@@ -938,7 +938,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 )}
               </div>
               <div className="form-group">
-                <label>Gender</label>
+                <label>{t('profile.gender')}</label>
                 <select
                   className="form-input"
                   value={isEditingPersonal ? personalInfo.gender : user?.gender || ''}
@@ -956,7 +956,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
             {isEditingPersonal && (
               <div className="action-buttons">
                 <button className="btn btn-success" onClick={handleSavePersonalInfo}>
-                  ✅ Save Changes
+                  ✅ {t('profile.save')}
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -971,7 +971,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                     });
                   }}
                 >
-                  ❌ Cancel
+                  ❌ {t('profile.cancel')}
                 </button>
               </div>
             )}
@@ -981,7 +981,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         {activeTab === 'subscription' && (
           <div className="profile-section">
             <div className="section-header">
-              <h3>💎 My Subscription</h3>
+              <h3>💎 {t('profile.tabs.subscription')}</h3>
               <p className="section-description">
                 Manage your membership and view subscription details
               </p>
@@ -1117,7 +1117,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         {activeTab === 'emergency' && (
           <div className="profile-section">
             <div className="section-header">
-              <h3>🚨 Emergency Contact</h3>
+              <h3>🚨 {t('profile.tabs.emergency')}</h3>
               <p className="section-description">
                 Update your emergency contact information (optional)
               </p>
@@ -1126,13 +1126,13 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   className="btn btn-primary btn-sm"
                   onClick={() => setIsEditingEmergency(true)}
                 >
-                  ✏️ Edit
+                  ✏️ {t('profile.edit')}
                 </button>
               )}
             </div>
             <div className="form-grid">
               <div className="form-group">
-                <label>Contact Name</label>
+                <label>{t('profile.emergencyContactName')}</label>
                 <input
                   type="text"
                   className="form-input"
@@ -1150,7 +1150,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                 />
               </div>
               <div className="form-group">
-                <label>Contact Phone</label>
+                <label>{t('profile.emergencyContactPhone')}</label>
                 <div className="phone-input-group">
                   <select
                     className="country-code-select"
@@ -1190,10 +1190,10 @@ const MyProfile: React.FC<MyProfileProps> = ({
             {isEditingEmergency && (
               <div className="action-buttons">
                 <button className="btn btn-success" onClick={handleSaveEmergencyContact}>
-                  ✅ Save Changes
+                  ✅ {t('profile.save')}
                 </button>
                 <button className="btn btn-secondary" onClick={() => setIsEditingEmergency(false)}>
-                  ❌ Cancel
+                  ❌ {t('profile.cancel')}
                 </button>
               </div>
             )}
@@ -1203,7 +1203,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         {activeTab === 'settings' && (
           <div className="profile-section">
             <div className="section-header">
-              <h3>⚙️ Settings & Preferences</h3>
+              <h3>⚙️ {t('profile.tabs.settings')}</h3>
               <p className="section-description">Manage your app settings and notifications</p>
             </div>
 
@@ -1227,7 +1227,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
               className="settings-group"
               style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #e0e0e0' }}
             >
-              <h4>🔔 Notification Preferences</h4>
+              <h4>🔔 {t('profile.notificationPreferences')}</h4>
               <div className="settings-list">
                 <div className="setting-item">
                   <div className="setting-info">
@@ -1290,7 +1290,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
             <div className="action-buttons">
               <button className="btn btn-success" onClick={handleSaveSettings}>
-                ✅ Save Notification Preferences
+                ✅ {t('profile.saveSettings')}
               </button>
               <button
                 className="btn btn-secondary"

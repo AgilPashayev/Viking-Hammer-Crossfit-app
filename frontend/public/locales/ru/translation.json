@@ -85,19 +85,35 @@
   },
   "profile": {
     "title": "Мой профиль",
+    "tabs": {
+      "personal": "Личная информация",
+      "subscription": "Моя подписка",
+      "emergency": "Экстренный контакт",
+      "settings": "Настройки"
+    },
     "personalInfo": "Личная информация",
+    "personalInfoDescription": "Обновите свои контактные данные и личную информацию.",
     "firstName": "Имя",
     "lastName": "Фамилия",
     "email": "Email",
     "phone": "Телефон",
     "dateOfBirth": "Дата рождения",
+    "gender": "Пол",
     "membershipType": "Тип членства",
     "subscription": "Моя подписка",
     "subscriptionStatus": "Статус подписки",
     "remainingEntries": "Осталось посещений",
     "expiryDate": "Дата окончания",
     "updateProfile": "Обновить профиль",
-    "changePassword": "Изменить пароль"
+    "changePassword": "Изменить пароль",
+    "edit": "Редактировать",
+    "save": "Сохранить изменения",
+    "cancel": "Отмена",
+    "emergencyContact": "Экстренный контакт",
+    "emergencyContactName": "Имя экстренного контакта",
+    "emergencyContactPhone": "Телефон экстренного контакта",
+    "notificationPreferences": "Настройки уведомлений",
+    "saveSettings": "Сохранить настройки"
   },
   "announcements": {
     "title": "Объявления",
