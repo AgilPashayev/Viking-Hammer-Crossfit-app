@@ -1195,9 +1195,18 @@ const MyProfile: React.FC<MyProfileProps> = ({
                   <LanguageSwitcher />
                 </div>
               </div>
+              <p
+                className="setting-note"
+                style={{ fontSize: '12px', color: '#666', marginTop: '8px', fontStyle: 'italic' }}
+              >
+                ℹ️ Language changes are saved automatically - no need to click "Save Settings"
+              </p>
             </div>
 
-            <div className="settings-group">
+            <div
+              className="settings-group"
+              style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid #e0e0e0' }}
+            >
               <h4>🔔 Notification Preferences</h4>
               <div className="settings-list">
                 <div className="setting-item">
@@ -1299,7 +1308,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
 
             <div className="action-buttons">
               <button className="btn btn-success" onClick={handleSaveSettings}>
-                ✅ Save Settings
+                ✅ Save Notification Preferences
               </button>
               <button
                 className="btn btn-secondary"
