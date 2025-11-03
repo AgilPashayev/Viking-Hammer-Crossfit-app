@@ -1375,13 +1375,35 @@ app.get(
   asyncHandler(async (req, res) => {
     const { userId, unreadOnly } = req.query;
 
-    const { data, error } = await supabase
+    // Get user's registration date if userId is provided
+    let userCreatedAt = null;
+    if (userId) {
+      const { data: userData, error: userError } = await supabase
+        .from('users_profile')
+        .select('created_at')
+        .eq('id', userId)
+        .single();
+
+      if (!userError && userData) {
+        userCreatedAt = userData.created_at;
+      }
+    }
+
+    // Build query with filters
+    let query = supabase
       .from('announcements')
       .select('*')
       .eq('status', 'published')
       .or('target_audience.eq.all,target_audience.eq.members')
       .order('published_at', { ascending: false })
       .limit(20);
+
+    // Only show announcements published after user registered
+    if (userCreatedAt) {
+      query = query.gte('published_at', userCreatedAt);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return res.status(500).json({ error: error.message });
