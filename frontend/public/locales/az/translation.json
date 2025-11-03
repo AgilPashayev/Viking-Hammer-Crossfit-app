@@ -474,6 +474,125 @@
     "sparta": {
       "title": "Sparta Paneli",
       "subtitle": "Tam sistem nəzarəti və idarəçiliyə"
+    },
+    "memberManagement": {
+      "pageTitle": "Viking Hammer Üzv İdarəetməsi",
+      "returnButton": "Panelə Qayıt",
+      "returnTooltip": "Resepşn Panelinə Qayıt",
+      "addButton": "Üzv Əlavə Et",
+      "addTooltip": "Yeni üzv əlavə et",
+      "loading": "Üzvlər yüklənir...",
+      "error": "Xəta",
+      "stats": {
+        "found": "Tapıldı",
+        "total": "Cəmi",
+        "active": "Aktiv",
+        "instructors": "Məşqçilər",
+        "members": "Üzvlər"
+      },
+      "search": {
+        "placeholder": "Ad, email, telefon və ya şirkətə görə axtarın...",
+        "clearTooltip": "Axtarışı təmizlə"
+      },
+      "filters": {
+        "roleLabel": "Rol:",
+        "allRoles": "Bütün Rollar",
+        "members": "Üzvlər",
+        "instructors": "Məşqçilər",
+        "reception": "Resepşn",
+        "sparta": "Sparta",
+        "admin": "Admin",
+        "membershipLabel": "Üzvlük:",
+        "allTypes": "Bütün Növlər",
+        "single": "Tək",
+        "monthly": "Aylıq",
+        "unlimited": "Limitsiz",
+        "company": "Şirkət",
+        "statusLabel": "Status:",
+        "allStatus": "Bütün Statuslar",
+        "active": "Aktiv",
+        "inactive": "Qeyri-aktiv",
+        "pending": "Gözləyir",
+        "clearButton": "Təmizlə",
+        "clearTooltip": "Bütün filterləri təmizlə"
+      },
+      "viewToggle": {
+        "cards": "Kartlar",
+        "list": "Siyahı"
+      },
+      "card": {
+        "collapseTooltip": "Bağla",
+        "expandTooltip": "Genişləndir",
+        "emailLabel": "Email:",
+        "phoneLabel": "Telefon:",
+        "membershipLabel": "Üzvlük:",
+        "roleLabel": "Rol:",
+        "joinDateLabel": "Qoşulma Tarixi:",
+        "dateOfBirthLabel": "Doğum Tarixi:",
+        "genderLabel": "Cins:",
+        "lastCheckInLabel": "Son Giriş:",
+        "companyLabel": "Şirkət:",
+        "emergencyContactLabel": "Təcili Əlaqə:",
+        "addressLabel": "Ünvan:",
+        "editButton": "Redaktə Et",
+        "editTooltip": "Üzvü Redaktə Et",
+        "deleteButton": "Sil",
+        "deleteTooltip": "Üzvü Sil"
+      },
+      "list": {
+        "nameColumn": "Ad",
+        "membershipColumn": "Üzvlük Növü",
+        "phoneColumn": "Telefon",
+        "roleColumn": "Rol",
+        "statusColumn": "Status",
+        "actionsColumn": "Əməliyyatlar"
+      },
+      "modal": {
+        "editTitle": "Üzvü Redaktə Et",
+        "addTitle": "Üzv Əlavə Et",
+        "closeButton": "×",
+        "error": "Xəta",
+        "form": {
+          "firstNameLabel": "Ad",
+          "firstNamePlaceholder": "Thor",
+          "lastNameLabel": "Soyad",
+          "lastNamePlaceholder": "Hammer",
+          "emailLabel": "Email",
+          "emailPlaceholder": "user@vikinghammer.com",
+          "phoneLabel": "Telefon",
+          "phonePlaceholder": "50 333 33 33",
+          "membershipLabel": "Üzvlük Növü",
+          "roleLabel": "Rol",
+          "roleMember": "Üzv",
+          "roleReception": "Resepşn",
+          "roleInstructor": "Məşqçi",
+          "roleSpartaOption": "Sparta",
+          "roleAdmin": "Admin",
+          "dateOfBirthLabel": "Doğum Tarixi (İstəyə görə)",
+          "datePreview": "Önbaxış:",
+          "companyLabel": "Şirkət (İstəyə görə)",
+          "noCompany": "Şirkət Yoxdur"
+        },
+        "actions": {
+          "cancelButton": "Ləğv Et",
+          "working": "İşlənir...",
+          "updateButton": "Üzvü Yenilə",
+          "addButton": "Üzv Əlavə Et"
+        }
+      },
+      "roles": {
+        "member": "Üzv",
+        "instructor": "Məşqçi",
+        "reception": "Resepşn",
+        "sparta": "Sparta",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Aktiv",
+        "inactive": "Qeyri-aktiv",
+        "pending": "Gözləyir",
+        "suspended": "Dayandırılıb"
+      }
     }
   }
 }

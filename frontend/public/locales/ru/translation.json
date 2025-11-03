@@ -474,6 +474,125 @@
     "sparta": {
       "title": "Панель Sparta",
       "subtitle": "Полный контроль и управление системой"
+    },
+    "memberManagement": {
+      "pageTitle": "Управление Участниками Viking Hammer",
+      "returnButton": "Вернуться к Панели",
+      "returnTooltip": "Вернуться к Панели Reception",
+      "addButton": "Добавить Участника",
+      "addTooltip": "Добавить нового участника",
+      "loading": "Загрузка участников...",
+      "error": "Ошибка",
+      "stats": {
+        "found": "Найдено",
+        "total": "Всего",
+        "active": "Активных",
+        "instructors": "Инструкторы",
+        "members": "Участники"
+      },
+      "search": {
+        "placeholder": "Поиск по имени, email, телефону или компании...",
+        "clearTooltip": "Очистить поиск"
+      },
+      "filters": {
+        "roleLabel": "Роль:",
+        "allRoles": "Все Роли",
+        "members": "Участники",
+        "instructors": "Инструкторы",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Админ",
+        "membershipLabel": "Членство:",
+        "allTypes": "Все Типы",
+        "single": "Разовое",
+        "monthly": "Месячный",
+        "unlimited": "Безлимит",
+        "company": "Компания",
+        "statusLabel": "Статус:",
+        "allStatus": "Все Статусы",
+        "active": "Активный",
+        "inactive": "Неактивный",
+        "pending": "Ожидание",
+        "clearButton": "Очистить",
+        "clearTooltip": "Очистить все фильтры"
+      },
+      "viewToggle": {
+        "cards": "Карточки",
+        "list": "Список"
+      },
+      "card": {
+        "collapseTooltip": "Свернуть",
+        "expandTooltip": "Развернуть",
+        "emailLabel": "Email:",
+        "phoneLabel": "Телефон:",
+        "membershipLabel": "Членство:",
+        "roleLabel": "Роль:",
+        "joinDateLabel": "Дата Регистрации:",
+        "dateOfBirthLabel": "Дата Рождения:",
+        "genderLabel": "Пол:",
+        "lastCheckInLabel": "Последний Визит:",
+        "companyLabel": "Компания:",
+        "emergencyContactLabel": "Экстренный Контакт:",
+        "addressLabel": "Адрес:",
+        "editButton": "Изменить",
+        "editTooltip": "Изменить Участника",
+        "deleteButton": "Удалить",
+        "deleteTooltip": "Удалить Участника"
+      },
+      "list": {
+        "nameColumn": "Имя",
+        "membershipColumn": "Тип Членства",
+        "phoneColumn": "Телефон",
+        "roleColumn": "Роль",
+        "statusColumn": "Статус",
+        "actionsColumn": "Действия"
+      },
+      "modal": {
+        "editTitle": "Изменить Участника",
+        "addTitle": "Добавить Участника",
+        "closeButton": "×",
+        "error": "Ошибка",
+        "form": {
+          "firstNameLabel": "Имя",
+          "firstNamePlaceholder": "Тор",
+          "lastNameLabel": "Фамилия",
+          "lastNamePlaceholder": "Хаммер",
+          "emailLabel": "Email",
+          "emailPlaceholder": "user@vikinghammer.com",
+          "phoneLabel": "Телефон",
+          "phonePlaceholder": "50 333 33 33",
+          "membershipLabel": "Тип Членства",
+          "roleLabel": "Роль",
+          "roleMember": "Участник",
+          "roleReception": "Reception",
+          "roleInstructor": "Инструктор",
+          "roleSpartaOption": "Sparta",
+          "roleAdmin": "Админ",
+          "dateOfBirthLabel": "Дата Рождения (Необязательно)",
+          "datePreview": "Предпросмотр:",
+          "companyLabel": "Компания (Необязательно)",
+          "noCompany": "Без Компании"
+        },
+        "actions": {
+          "cancelButton": "Отмена",
+          "working": "Обработка...",
+          "updateButton": "Обновить Участника",
+          "addButton": "Добавить Участника"
+        }
+      },
+      "roles": {
+        "member": "Участник",
+        "instructor": "Инструктор",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Админ"
+      },
+      "status": {
+        "active": "Активный",
+        "inactive": "Неактивный",
+        "pending": "Ожидание",
+        "suspended": "Приостановлен"
+      }
     }
   }
 }

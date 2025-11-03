@@ -474,6 +474,125 @@
     "sparta": {
       "title": "Sparta Dashboard",
       "subtitle": "Full system control and management"
+    },
+    "memberManagement": {
+      "pageTitle": "Viking Hammer Member Management",
+      "returnButton": "Return to Dashboard",
+      "returnTooltip": "Return to Reception Dashboard",
+      "addButton": "Add Member",
+      "addTooltip": "Add a new member",
+      "loading": "Loading members...",
+      "error": "Error",
+      "stats": {
+        "found": "Found",
+        "total": "Total",
+        "active": "Active",
+        "instructors": "Instructors",
+        "members": "Members"
+      },
+      "search": {
+        "placeholder": "Search Members by name, email, phone, or company...",
+        "clearTooltip": "Clear search"
+      },
+      "filters": {
+        "roleLabel": "Role:",
+        "allRoles": "All Roles",
+        "members": "Members",
+        "instructors": "Instructors",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Admin",
+        "membershipLabel": "Membership:",
+        "allTypes": "All Types",
+        "single": "Single",
+        "monthly": "Monthly",
+        "unlimited": "Unlimited",
+        "company": "Company",
+        "statusLabel": "Status:",
+        "allStatus": "All Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "clearButton": "Clear",
+        "clearTooltip": "Clear all filters"
+      },
+      "viewToggle": {
+        "cards": "Cards",
+        "list": "List"
+      },
+      "card": {
+        "collapseTooltip": "Collapse",
+        "expandTooltip": "Expand",
+        "emailLabel": "Email:",
+        "phoneLabel": "Phone:",
+        "membershipLabel": "Membership:",
+        "roleLabel": "Role:",
+        "joinDateLabel": "Join Date:",
+        "dateOfBirthLabel": "Date of Birth:",
+        "genderLabel": "Gender:",
+        "lastCheckInLabel": "Last Check-in:",
+        "companyLabel": "Company:",
+        "emergencyContactLabel": "Emergency Contact:",
+        "addressLabel": "Address:",
+        "editButton": "Edit",
+        "editTooltip": "Edit Member",
+        "deleteButton": "Delete",
+        "deleteTooltip": "Delete Member"
+      },
+      "list": {
+        "nameColumn": "Name",
+        "membershipColumn": "Membership Type",
+        "phoneColumn": "Phone",
+        "roleColumn": "Role",
+        "statusColumn": "Status",
+        "actionsColumn": "Actions"
+      },
+      "modal": {
+        "editTitle": "Edit Member",
+        "addTitle": "Add Member",
+        "closeButton": "×",
+        "error": "Error",
+        "form": {
+          "firstNameLabel": "First Name",
+          "firstNamePlaceholder": "Thor",
+          "lastNameLabel": "Last Name",
+          "lastNamePlaceholder": "Hammer",
+          "emailLabel": "Email",
+          "emailPlaceholder": "user@vikinghammer.com",
+          "phoneLabel": "Phone",
+          "phonePlaceholder": "50 333 33 33",
+          "membershipLabel": "Membership Type",
+          "roleLabel": "Role",
+          "roleMember": "Member",
+          "roleReception": "Reception",
+          "roleInstructor": "Instructor",
+          "roleSpartaOption": "Sparta",
+          "roleAdmin": "Admin",
+          "dateOfBirthLabel": "Date of Birth (Optional)",
+          "datePreview": "Preview:",
+          "companyLabel": "Company (Optional)",
+          "noCompany": "No Company"
+        },
+        "actions": {
+          "cancelButton": "Cancel",
+          "working": "Working...",
+          "updateButton": "Update Member",
+          "addButton": "Add Member"
+        }
+      },
+      "roles": {
+        "member": "Member",
+        "instructor": "Instructor",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      }
     }
   }
 }

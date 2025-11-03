@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useData, Member } from '../contexts/DataContext';
-import { formatDate } from '../utils/dateFormatter';
+import { formatDate } from '../utils/formatDate';
 import './MemberManagement.css';
 
 interface MemberManagementProps {
@@ -8,6 +9,7 @@ interface MemberManagementProps {
 }
 
 const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const {
     members,
     membersLoading,
@@ -179,16 +181,25 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           company: newMember.company || undefined,
           dateOfBirth: newMember.dateOfBirth || undefined,
         });
-        
+
         // Check invitation email status
         if ((result as any).invitationStatus === 'created_but_email_failed') {
           if ((result as any).isTestModeRestriction) {
-            showToast('⚠️ Member added, but invitation email NOT sent. Email service is in test mode and can only send to vikingshammerxfit@gmail.com. Please verify your domain at resend.com/domains to send to all members.', 8000);
+            showToast(
+              '⚠️ Member added, but invitation email NOT sent. Email service is in test mode and can only send to vikingshammerxfit@gmail.com. Please verify your domain at resend.com/domains to send to all members.',
+              8000,
+            );
           } else {
-            showToast('⚠️ Member added, but invitation email failed to send. Please check email configuration.', 5000);
+            showToast(
+              '⚠️ Member added, but invitation email failed to send. Please check email configuration.',
+              5000,
+            );
           }
         } else if ((result as any).invitationStatus === 'failed') {
-          showToast('⚠️ Member added, but invitation system failed. Member may need manual onboarding.', 5000);
+          showToast(
+            '⚠️ Member added, but invitation system failed. Member may need manual onboarding.',
+            5000,
+          );
         } else {
           showToast('✅ Member added successfully and invitation email sent!');
         }
@@ -252,7 +263,9 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   };
 
   const handleDeleteMember = async (member: Member) => {
-    if (!window.confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)) {
+    if (
+      !window.confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)
+    ) {
       return;
     }
 
@@ -298,15 +311,15 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
 
       <div className="page-header">
         <div className="page-title">
-          <h2>🛡️ Viking Hammer Member Management</h2>
+          <h2>🛡️ {t('admin.memberManagement.pageTitle')}</h2>
         </div>
         <div className="header-actions">
           <button
             className="btn btn-secondary"
             onClick={onBack}
-            title="Return to Reception Dashboard"
+            title={t('admin.memberManagement.returnTooltip')}
           >
-            🏠 Return to Dashboard
+            🏠 {t('admin.memberManagement.returnButton')}
           </button>
           <button
             className="btn btn-primary"
@@ -326,15 +339,17 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
               setSelectedCountry(countries[0]);
               setShowAddForm(true);
             }}
-            title="Add a new member"
+            title={t('admin.memberManagement.addTooltip')}
           >
-            ➕ Add Member
+            ➕ {t('admin.memberManagement.addButton')}
           </button>
         </div>
       </div>
 
       {membersError && <div className="confirmation-message">❌ {membersError}</div>}
-      {membersLoading && <div className="confirmation-message">🔄 Loading members...</div>}
+      {membersLoading && (
+        <div className="confirmation-message">🔄 {t('admin.memberManagement.loading')}</div>
+      )}
 
       <div className="management-controls">
         <div className="top-controls">
@@ -348,8 +363,8 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 filterRole !== 'all' ||
                 filterMembershipType !== 'all' ||
                 filterStatus !== 'all'
-                  ? 'Found'
-                  : 'Total'}
+                  ? t('admin.memberManagement.stats.found')
+                  : t('admin.memberManagement.stats.total')}
               </span>
             </div>
             <div className="stat-item">
@@ -358,7 +373,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   {filteredMembers.filter((m) => m.status === 'active').length}
                 </span>
               </div>
-              <span className="stat-label">Active</span>
+              <span className="stat-label">{t('admin.memberManagement.stats.active')}</span>
             </div>
             <div className="stat-item">
               <div className="stat-box">
@@ -366,7 +381,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   {filteredMembers.filter((m) => m.role === 'instructor').length}
                 </span>
               </div>
-              <span className="stat-label">Instructors</span>
+              <span className="stat-label">{t('admin.memberManagement.stats.instructors')}</span>
             </div>
             <div className="stat-item">
               <div className="stat-box">
@@ -374,7 +389,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   {filteredMembers.filter((m) => m.role === 'member').length}
                 </span>
               </div>
-              <span className="stat-label">Members</span>
+              <span className="stat-label">{t('admin.memberManagement.stats.members')}</span>
             </div>
           </div>
 
@@ -384,7 +399,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 <span className="search-icon">🔍</span>
                 <input
                   type="text"
-                  placeholder="Search Members by name, email, phone, or company..."
+                  placeholder={t('admin.memberManagement.search.placeholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="search-input"
@@ -393,7 +408,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <button
                     className="clear-search"
                     onClick={() => setSearchTerm('')}
-                    title="Clear search"
+                    title={t('admin.memberManagement.search.clearTooltip')}
                   >
                     ✕
                   </button>
@@ -405,47 +420,51 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           <div className="filters-row">
             <div className="filters-section">
               <div className="filter-group">
-                <label>Role:</label>
+                <label>{t('admin.memberManagement.filters.roleLabel')}</label>
                 <select
                   value={filterRole}
                   onChange={(e) => setFilterRole(e.target.value)}
                   className="filter-select"
                 >
-                  <option value="all">All Roles</option>
-                  <option value="member">Members</option>
-                  <option value="instructor">Instructors</option>
-                  <option value="reception">Reception</option>
-                  <option value="sparta">Sparta</option>
-                  <option value="admin">Admin</option>
+                  <option value="all">{t('admin.memberManagement.filters.allRoles')}</option>
+                  <option value="member">{t('admin.memberManagement.filters.members')}</option>
+                  <option value="instructor">
+                    {t('admin.memberManagement.filters.instructors')}
+                  </option>
+                  <option value="reception">{t('admin.memberManagement.filters.reception')}</option>
+                  <option value="sparta">{t('admin.memberManagement.filters.sparta')}</option>
+                  <option value="admin">{t('admin.memberManagement.filters.admin')}</option>
                 </select>
               </div>
 
               <div className="filter-group">
-                <label>Membership:</label>
+                <label>{t('admin.memberManagement.filters.membershipLabel')}</label>
                 <select
                   value={filterMembershipType}
                   onChange={(e) => setFilterMembershipType(e.target.value)}
                   className="filter-select"
                 >
-                  <option value="all">All Types</option>
-                  <option value="Single">Single</option>
-                  <option value="Monthly">Monthly</option>
-                  <option value="Monthly Unlimited">Unlimited</option>
-                  <option value="Company">Company</option>
+                  <option value="all">{t('admin.memberManagement.filters.allTypes')}</option>
+                  <option value="Single">{t('admin.memberManagement.filters.single')}</option>
+                  <option value="Monthly">{t('admin.memberManagement.filters.monthly')}</option>
+                  <option value="Monthly Unlimited">
+                    {t('admin.memberManagement.filters.unlimited')}
+                  </option>
+                  <option value="Company">{t('admin.memberManagement.filters.company')}</option>
                 </select>
               </div>
 
               <div className="filter-group">
-                <label>Status:</label>
+                <label>{t('admin.memberManagement.filters.statusLabel')}</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="filter-select"
                 >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="pending">Pending</option>
+                  <option value="all">{t('admin.memberManagement.filters.allStatus')}</option>
+                  <option value="active">{t('admin.memberManagement.filters.active')}</option>
+                  <option value="inactive">{t('admin.memberManagement.filters.inactive')}</option>
+                  <option value="pending">{t('admin.memberManagement.filters.pending')}</option>
                 </select>
               </div>
 
@@ -457,9 +476,9 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   setFilterStatus('all');
                   setSearchTerm('');
                 }}
-                title="Clear all filters"
+                title={t('admin.memberManagement.filters.clearTooltip')}
               >
-                🗑️ Clear
+                🗑️ {t('admin.memberManagement.filters.clearButton')}
               </button>
             </div>
 
@@ -468,15 +487,19 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 className={`toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
                 onClick={() => setViewMode('card')}
               >
-                <span className="toggle-icon" aria-hidden="true">📋</span>
-                <span className="toggle-label">Cards</span>
+                <span className="toggle-icon" aria-hidden="true">
+                  📋
+                </span>
+                <span className="toggle-label">{t('admin.memberManagement.viewToggle.cards')}</span>
               </button>
               <button
                 className={`toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
                 onClick={() => setViewMode('list')}
               >
-                <span className="toggle-icon" aria-hidden="true">📊</span>
-                <span className="toggle-label">List</span>
+                <span className="toggle-icon" aria-hidden="true">
+                  📊
+                </span>
+                <span className="toggle-label">{t('admin.memberManagement.viewToggle.list')}</span>
               </button>
             </div>
           </div>
@@ -508,7 +531,11 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <button
                     className="expand-btn"
                     onClick={() => toggleMemberExpansion(member.id)}
-                    title={expandedMembers.has(member.id) ? 'Collapse' : 'Expand'}
+                    title={
+                      expandedMembers.has(member.id)
+                        ? t('admin.memberManagement.card.collapseTooltip')
+                        : t('admin.memberManagement.card.expandTooltip')
+                    }
                   >
                     {expandedMembers.has(member.id) ? '−' : '+'}
                   </button>
@@ -517,66 +544,80 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 {expandedMembers.has(member.id) && (
                   <div className="member-details">
                     <div className="detail-row">
-                      <span className="label">📧 Email:</span>
+                      <span className="label">
+                        📧 {t('admin.memberManagement.card.emailLabel')}
+                      </span>
                       <span className="value">{member.email}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">📞 Phone:</span>
+                      <span className="label">
+                        📞 {t('admin.memberManagement.card.phoneLabel')}
+                      </span>
                       <span className="value">{member.phone}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">💎 Membership:</span>
+                      <span className="label">
+                        💎 {t('admin.memberManagement.card.membershipLabel')}
+                      </span>
                       <span className="value">{member.membershipType}</span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">👤 Role:</span>
+                      <span className="label">👤 {t('admin.memberManagement.card.roleLabel')}</span>
                       <span className="value">
                         {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                       </span>
                     </div>
                     <div className="detail-row">
-                      <span className="label">📅 Join Date:</span>
-                      <span className="value">
-                        {formatDate(member.joinDate)}
+                      <span className="label">
+                        📅 {t('admin.memberManagement.card.joinDateLabel')}
                       </span>
+                      <span className="value">{formatDate(member.joinDate)}</span>
                     </div>
                     {member.dateOfBirth && (
                       <div className="detail-row">
-                        <span className="label">🎂 Date of Birth:</span>
-                        <span className="value">
-                          {formatDate(member.dateOfBirth)}
+                        <span className="label">
+                          🎂 {t('admin.memberManagement.card.dateOfBirthLabel')}
                         </span>
+                        <span className="value">{formatDate(member.dateOfBirth)}</span>
                       </div>
                     )}
                     {member.gender && (
                       <div className="detail-row">
-                        <span className="label">⚧ Gender:</span>
+                        <span className="label">
+                          ⚧ {t('admin.memberManagement.card.genderLabel')}
+                        </span>
                         <span className="value">{member.gender}</span>
                       </div>
                     )}
                     {member.lastCheckIn && (
                       <div className="detail-row">
-                        <span className="label">✅ Last Check-in:</span>
-                        <span className="value">
-                          {formatDate(member.lastCheckIn)}
+                        <span className="label">
+                          ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
                         </span>
+                        <span className="value">{formatDate(member.lastCheckIn)}</span>
                       </div>
                     )}
                     {member.company && (
                       <div className="detail-row">
-                        <span className="label">🏢 Company:</span>
+                        <span className="label">
+                          🏢 {t('admin.memberManagement.card.companyLabel')}
+                        </span>
                         <span className="value">{member.company}</span>
                       </div>
                     )}
                     {member.emergencyContact && (
                       <div className="detail-row">
-                        <span className="label">🚨 Emergency Contact:</span>
+                        <span className="label">
+                          🚨 {t('admin.memberManagement.card.emergencyContactLabel')}
+                        </span>
                         <span className="value">{member.emergencyContact}</span>
                       </div>
                     )}
                     {member.address && (
                       <div className="detail-row">
-                        <span className="label">🏠 Address:</span>
+                        <span className="label">
+                          🏠 {t('admin.memberManagement.card.addressLabel')}
+                        </span>
                         <span className="value">{member.address}</span>
                       </div>
                     )}
@@ -587,18 +628,24 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <button
                     className="btn btn-outline btn-xs"
                     onClick={() => handleEditMember(member)}
-                    title="Edit Member"
+                    title={t('admin.memberManagement.card.editTooltip')}
                   >
-                    <span className="btn-icon" aria-hidden="true">✏️</span>
-                    <span className="btn-label">Edit</span>
+                    <span className="btn-icon" aria-hidden="true">
+                      ✏️
+                    </span>
+                    <span className="btn-label">{t('admin.memberManagement.card.editButton')}</span>
                   </button>
                   <button
                     className="btn btn-danger btn-xs"
                     onClick={() => handleDeleteMember(member)}
-                    title="Delete Member"
+                    title={t('admin.memberManagement.card.deleteTooltip')}
                   >
-                    <span className="btn-icon" aria-hidden="true">🗑️</span>
-                    <span className="btn-label">Delete</span>
+                    <span className="btn-icon" aria-hidden="true">
+                      🗑️
+                    </span>
+                    <span className="btn-label">
+                      {t('admin.memberManagement.card.deleteButton')}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -607,12 +654,12 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         ) : (
           <div className="members-list">
             <div className="list-header">
-              <div className="col">Name</div>
-              <div className="col">Membership Type</div>
-              <div className="col">Phone</div>
-              <div className="col">Role</div>
-              <div className="col">Status</div>
-              <div className="col">Actions</div>
+              <div className="col">{t('admin.memberManagement.list.nameColumn')}</div>
+              <div className="col">{t('admin.memberManagement.list.membershipColumn')}</div>
+              <div className="col">{t('admin.memberManagement.list.phoneColumn')}</div>
+              <div className="col">{t('admin.memberManagement.list.roleColumn')}</div>
+              <div className="col">{t('admin.memberManagement.list.statusColumn')}</div>
+              <div className="col">{t('admin.memberManagement.list.actionsColumn')}</div>
             </div>
             {filteredMembers.map((member) => (
               <React.Fragment key={member.id}>
@@ -643,102 +690,130 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                       <button
                         className="btn btn-outline btn-xs"
                         onClick={() => handleEditMember(member)}
-                        title="Edit Member"
+                        title={t('admin.memberManagement.card.editTooltip')}
                       >
-                        <span className="btn-icon" aria-hidden="true">✏️</span>
-                        <span className="btn-label">Edit</span>
+                        <span className="btn-icon" aria-hidden="true">
+                          ✏️
+                        </span>
+                        <span className="btn-label">
+                          {t('admin.memberManagement.card.editButton')}
+                        </span>
                       </button>
                       <button
                         className="btn btn-danger btn-xs"
                         onClick={() => handleDeleteMember(member)}
-                        title="Delete Member"
+                        title={t('admin.memberManagement.card.deleteTooltip')}
                       >
-                        <span className="btn-icon" aria-hidden="true">🗑️</span>
-                        <span className="btn-label">Delete</span>
+                        <span className="btn-icon" aria-hidden="true">
+                          🗑️
+                        </span>
+                        <span className="btn-label">
+                          {t('admin.memberManagement.card.deleteButton')}
+                        </span>
                       </button>
                       <button
                         className="expand-btn"
                         onClick={() => toggleMemberExpansion(member.id)}
-                        title={expandedMembers.has(member.id) ? 'Collapse' : 'Expand'}
+                        title={
+                          expandedMembers.has(member.id)
+                            ? t('admin.memberManagement.card.collapseTooltip')
+                            : t('admin.memberManagement.card.expandTooltip')
+                        }
                       >
                         {expandedMembers.has(member.id) ? '−' : '+'}
                       </button>
                     </div>
                   </div>
                 </div>
-                
+
                 {expandedMembers.has(member.id) && (
                   <div className="list-row-expanded">
                     <div className="expanded-details">
                       <div className="detail-group">
-                        <span className="detail-label">📧 Email:</span>
+                        <span className="detail-label">
+                          📧 {t('admin.memberManagement.card.emailLabel')}
+                        </span>
                         <span className="detail-value">{member.email}</span>
                       </div>
                       <div className="detail-group">
-                        <span className="detail-label">� Phone:</span>
+                        <span className="detail-label">
+                          📞 {t('admin.memberManagement.card.phoneLabel')}
+                        </span>
                         <span className="detail-value">{member.phone}</span>
                       </div>
                       <div className="detail-group">
-                        <span className="detail-label">💎 Membership:</span>
+                        <span className="detail-label">
+                          💎 {t('admin.memberManagement.card.membershipLabel')}
+                        </span>
                         <span className="detail-value">{member.membershipType}</span>
                       </div>
                       <div className="detail-group">
-                        <span className="detail-label">👤 Role:</span>
+                        <span className="detail-label">
+                          👤 {t('admin.memberManagement.card.roleLabel')}
+                        </span>
                         <span className="detail-value">
                           {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
                         </span>
                       </div>
                       <div className="detail-group">
-                        <span className="detail-label">📅 Join Date:</span>
-                        <span className="detail-value">
-                          {formatDate(member.joinDate)}
+                        <span className="detail-label">
+                          📅 {t('admin.memberManagement.card.joinDateLabel')}
                         </span>
+                        <span className="detail-value">{formatDate(member.joinDate)}</span>
                       </div>
                       {member.dateOfBirth && (
                         <div className="detail-group">
-                          <span className="detail-label">🎂 Date of Birth:</span>
-                          <span className="detail-value">
-                            {formatDate(member.dateOfBirth)}
+                          <span className="detail-label">
+                            🎂 {t('admin.memberManagement.card.dateOfBirthLabel')}
                           </span>
+                          <span className="detail-value">{formatDate(member.dateOfBirth)}</span>
                         </div>
                       )}
                       {member.lastCheckIn && (
                         <div className="detail-group">
-                          <span className="detail-label">✅ Last Check-in:</span>
-                          <span className="detail-value">
-                            {formatDate(member.lastCheckIn)}
+                          <span className="detail-label">
+                            ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
                           </span>
+                          <span className="detail-value">{formatDate(member.lastCheckIn)}</span>
                         </div>
                       )}
                       {member.gender && (
                         <div className="detail-group">
-                          <span className="detail-label">⚧ Gender:</span>
+                          <span className="detail-label">
+                            ⚧ {t('admin.memberManagement.card.genderLabel')}
+                          </span>
                           <span className="detail-value">{member.gender}</span>
                         </div>
                       )}
                       {member.lastCheckIn && (
                         <div className="detail-group">
-                          <span className="detail-label">✅ Last Check-in:</span>
-                          <span className="detail-value">
-                            {formatDate(member.lastCheckIn)}
+                          <span className="detail-label">
+                            ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
                           </span>
+                          <span className="detail-value">{formatDate(member.lastCheckIn)}</span>
                         </div>
                       )}
                       {member.company && (
                         <div className="detail-group">
-                          <span className="detail-label">🏢 Company:</span>
+                          <span className="detail-label">
+                            🏢 {t('admin.memberManagement.card.companyLabel')}
+                          </span>
                           <span className="detail-value">{member.company}</span>
                         </div>
                       )}
                       {member.emergencyContact && (
                         <div className="detail-group">
-                          <span className="detail-label">🚨 Emergency Contact:</span>
+                          <span className="detail-label">
+                            🚨 {t('admin.memberManagement.card.emergencyContactLabel')}
+                          </span>
                           <span className="detail-value">{member.emergencyContact}</span>
                         </div>
                       )}
                       {member.address && (
                         <div className="detail-group">
-                          <span className="detail-label">🏠 Address:</span>
+                          <span className="detail-label">
+                            🏠 {t('admin.memberManagement.card.addressLabel')}
+                          </span>
                           <span className="detail-value">{member.address}</span>
                         </div>
                       )}
@@ -755,7 +830,11 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{selectedMember ? '⚔️ Edit Member' : '🛡️ Add Member'}</h3>
+              <h3>
+                {selectedMember
+                  ? `⚔️ ${t('admin.memberManagement.modal.editTitle')}`
+                  : `🛡️ ${t('admin.memberManagement.modal.addTitle')}`}
+              </h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -763,7 +842,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   setShowAddForm(false);
                 }}
               >
-                ×
+                {t('admin.memberManagement.modal.closeButton')}
               </button>
             </div>
 
@@ -771,42 +850,43 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
 
             <div className="form-grid">
               <div className="form-group">
-                <label>First Name</label>
+                <label>{t('admin.memberManagement.modal.form.firstNameLabel')}</label>
                 <input
                   type="text"
                   value={newMember.firstName}
                   onChange={(e) => setNewMember({ ...newMember, firstName: e.target.value })}
-                  placeholder="Thor"
+                  placeholder={t('admin.memberManagement.modal.form.firstNamePlaceholder')}
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label>Last Name</label>
+                <label>{t('admin.memberManagement.modal.form.lastNameLabel')}</label>
                 <input
                   type="text"
                   value={newMember.lastName}
                   onChange={(e) => setNewMember({ ...newMember, lastName: e.target.value })}
-                  placeholder="Hammer"
+                  placeholder={t('admin.memberManagement.modal.form.lastNamePlaceholder')}
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label>Email</label>
+                <label>{t('admin.memberManagement.modal.form.emailLabel')}</label>
                 <input
                   type="email"
                   value={newMember.email}
                   onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
-                  placeholder="user@vikinghammer.com"
+                  placeholder={t('admin.memberManagement.modal.form.emailPlaceholder')}
                   className="form-input"
                 />
               </div>
               <div className="form-group">
-                <label>Phone</label>
+                <label>{t('admin.memberManagement.modal.form.phoneLabel')}</label>
                 <div className="phone-input-group">
                   <select
                     value={selectedCountry.code}
                     onChange={(e) => {
-                      const country = countries.find(c => c.code === e.target.value) || countries[0];
+                      const country =
+                        countries.find((c) => c.code === e.target.value) || countries[0];
                       setSelectedCountry(country);
                     }}
                     className="country-code-select"
@@ -820,17 +900,19 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <input
                     type="text"
                     value={newMember.phone}
-                    onChange={(e) => setNewMember({ 
-                      ...newMember, 
-                      phone: e.target.value
-                    })}
-                    placeholder="50 333 33 33"
+                    onChange={(e) =>
+                      setNewMember({
+                        ...newMember,
+                        phone: e.target.value,
+                      })
+                    }
+                    placeholder={t('admin.memberManagement.modal.form.phonePlaceholder')}
                     className="form-input phone-number-input"
                   />
                 </div>
               </div>
               <div className="form-group">
-                <label>Membership Type</label>
+                <label>{t('admin.memberManagement.modal.form.membershipLabel')}</label>
                 <select
                   value={newMember.membershipType}
                   onChange={(e) => setNewMember({ ...newMember, membershipType: e.target.value })}
@@ -844,21 +926,29 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 </select>
               </div>
               <div className="form-group">
-                <label>Role</label>
+                <label>{t('admin.memberManagement.modal.form.roleLabel')}</label>
                 <select
                   value={newMember.role}
                   onChange={(e) => setNewMember({ ...newMember, role: e.target.value as any })}
                   className="form-select"
                 >
-                  <option value="member">Member</option>
-                  <option value="reception">Reception</option>
-                  <option value="instructor">Instructor</option>
-                  <option value="sparta">Sparta</option>
-                  <option value="admin">Admin</option>
+                  <option value="member">
+                    {t('admin.memberManagement.modal.form.roleMember')}
+                  </option>
+                  <option value="reception">
+                    {t('admin.memberManagement.modal.form.roleReception')}
+                  </option>
+                  <option value="instructor">
+                    {t('admin.memberManagement.modal.form.roleInstructor')}
+                  </option>
+                  <option value="sparta">
+                    {t('admin.memberManagement.modal.form.roleSpartaOption')}
+                  </option>
+                  <option value="admin">{t('admin.memberManagement.modal.form.roleAdmin')}</option>
                 </select>
               </div>
               <div className="form-group">
-                <label>📅 Date of Birth (Optional)</label>
+                <label>📅 {t('admin.memberManagement.modal.form.dateOfBirthLabel')}</label>
                 <div style={{ position: 'relative' }}>
                   <input
                     type="date"
@@ -868,38 +958,43 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                     style={{ paddingLeft: '40px' }}
                     max={new Date().toISOString().split('T')[0]}
                   />
-                  <span style={{
-                    position: 'absolute',
-                    left: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    fontSize: '18px',
-                    pointerEvents: 'none',
-                    color: '#666'
-                  }}>
+                  <span
+                    style={{
+                      position: 'absolute',
+                      left: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      fontSize: '18px',
+                      pointerEvents: 'none',
+                      color: '#666',
+                    }}
+                  >
                     📅
                   </span>
                 </div>
                 {newMember.dateOfBirth && (
-                  <div style={{ 
-                    marginTop: '8px', 
-                    fontSize: '14px', 
-                    color: '#666',
-                    fontStyle: 'italic'
-                  }}>
-                    Preview: {formatDate(newMember.dateOfBirth)}
+                  <div
+                    style={{
+                      marginTop: '8px',
+                      fontSize: '14px',
+                      color: '#666',
+                      fontStyle: 'italic',
+                    }}
+                  >
+                    {t('admin.memberManagement.modal.form.datePreview')}{' '}
+                    {formatDate(newMember.dateOfBirth)}
                   </div>
                 )}
               </div>
               {newMember.role === 'member' && (
                 <div className="form-group">
-                  <label>Company (Optional)</label>
+                  <label>{t('admin.memberManagement.modal.form.companyLabel')}</label>
                   <select
                     value={newMember.company}
                     onChange={(e) => setNewMember({ ...newMember, company: e.target.value })}
                     className="form-select"
                   >
-                    <option value="">No Company</option>
+                    <option value="">{t('admin.memberManagement.modal.form.noCompany')}</option>
                     {companies.map((company) => (
                       <option key={company} value={company}>
                         {company}
@@ -929,7 +1024,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   });
                 }}
               >
-                ❌ Cancel
+                ❌ {t('admin.memberManagement.modal.actions.cancelButton')}
               </button>
               <button
                 className="btn btn-primary"
@@ -937,10 +1032,10 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                 disabled={membersSaving}
               >
                 {membersSaving
-                  ? '🔄 Working...'
+                  ? `🔄 ${t('admin.memberManagement.modal.actions.working')}`
                   : selectedMember
-                  ? '⚡ Update Member'
-                  : '🛡️ Add Member'}
+                  ? `⚡ ${t('admin.memberManagement.modal.actions.updateButton')}`
+                  : `🛡️ ${t('admin.memberManagement.modal.actions.addButton')}`}
               </button>
             </div>
           </div>
