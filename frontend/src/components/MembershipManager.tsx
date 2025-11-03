@@ -1576,9 +1576,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       {!canAccessPlans && !canAccessSubscriptions && !canAccessCompanies && (
         <div className="access-denied-message">
           <div className="access-denied-icon">🔒</div>
-          <h3>Access Denied</h3>
-          <p>You don't have permission to access Membership Manager.</p>
-          <p>Please contact your administrator if you believe this is an error.</p>
+          <h3>{t('admin.membership.accessDenied')}</h3>
+          <p>{t('admin.membership.noPermission')}</p>
+          <p>{t('admin.membership.contactAdmin')}</p>
         </div>
       )}
 
@@ -1587,7 +1587,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content large-modal">
             <div className="modal-header">
-              <h3>{editingPlanId ? '✏️ Edit Membership Plan' : '➕ Create New Membership Plan'}</h3>
+              <h3>
+                {editingPlanId
+                  ? `✏️ ${t('admin.membership.editPlan')}`
+                  : `➕ ${t('admin.membership.createPlan')}`}
+              </h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -1616,13 +1620,13 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="modal-body">
               <div className="form-group">
                 <label>
-                  Plan Name: <span className="required">*</span>
+                  {t('admin.membership.planName')}: <span className="required">*</span>
                 </label>
                 <input
                   type="text"
                   value={newPlan.name || ''}
                   onChange={(e) => setNewPlan({ ...newPlan, name: e.target.value })}
-                  placeholder="e.g., Premium Monthly, Single Entry"
+                  placeholder={t('admin.membership.planNamePlaceholder')}
                   className="form-input-large"
                 />
               </div>
@@ -1630,23 +1634,25 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               <div className="form-row">
                 <div className="form-group">
                   <label>
-                    Plan Type: <span className="required">*</span>
+                    {t('admin.membership.planType')}: <span className="required">*</span>
                   </label>
                   <select
                     value={newPlan.type || 'single'}
                     onChange={(e) => setNewPlan({ ...newPlan, type: e.target.value as any })}
                     className="form-select-large"
                   >
-                    <option value="single">Single Entry</option>
-                    <option value="monthly-limited">Monthly Limited</option>
-                    <option value="monthly-unlimited">Monthly Unlimited</option>
-                    <option value="company">Company Plan</option>
+                    <option value="single">{t('admin.membership.singleEntry')}</option>
+                    <option value="monthly-limited">{t('admin.membership.monthlyLimited')}</option>
+                    <option value="monthly-unlimited">
+                      {t('admin.membership.monthlyUnlimited')}
+                    </option>
+                    <option value="company">{t('admin.membership.companyPlan')}</option>
                   </select>
                 </div>
 
                 <div className="form-group">
                   <label>
-                    Price (AZN): <span className="required">*</span>
+                    {t('admin.membership.price')} (AZN): <span className="required">*</span>
                   </label>
                   <input
                     type="number"
@@ -1660,11 +1666,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Description:</label>
+                <label>{t('admin.membership.description')}:</label>
                 <textarea
                   value={newPlan.description || ''}
                   onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
-                  placeholder="Brief description of this plan"
+                  placeholder={t('admin.membership.descriptionPlaceholder')}
                   rows={3}
                   className="form-textarea-large"
                 />
@@ -1672,7 +1678,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
               {newPlan.type === 'monthly-limited' && (
                 <div className="form-group">
-                  <label>Entry Limit:</label>
+                  <label>{t('admin.membership.entryLimit')}:</label>
                   <input
                     type="number"
                     value={newPlan.entryLimit || 0}
@@ -1681,7 +1687,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     }
                     min="1"
                     className="form-input-large"
-                    placeholder="Number of gym visits allowed"
+                    placeholder={t('admin.membership.entryLimitPlaceholder')}
                   />
                 </div>
               )}
@@ -1690,19 +1696,19 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 newPlan.type === 'monthly-unlimited' ||
                 newPlan.type === 'company') && (
                 <div className="form-group">
-                  <label>Duration:</label>
+                  <label>{t('profile.subscription.duration')}:</label>
                   <input
                     type="text"
                     value={newPlan.duration || ''}
                     onChange={(e) => setNewPlan({ ...newPlan, duration: e.target.value })}
-                    placeholder="e.g., 30 days, 1 month, 1 year"
+                    placeholder={t('admin.membership.durationPlaceholder')}
                     className="form-input-large"
                   />
                 </div>
               )}
 
               <div className="form-group">
-                <label>✅ Features:</label>
+                <label>✅ {t('admin.membership.features')}:</label>
                 <div className="dynamic-list">
                   {(newPlan.features || []).map((feature, index) => (
                     <div key={index} className="list-item">
@@ -1735,13 +1741,13 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       setNewPlan({ ...newPlan, features: [...(newPlan.features || []), ''] })
                     }
                   >
-                    + Add Feature
+                    + {t('admin.membership.addFeature')}
                   </button>
                 </div>
               </div>
 
               <div className="form-group">
-                <label>⚠️ Limitations (Optional):</label>
+                <label>⚠️ {t('admin.membership.limitations')}:</label>
                 <div className="dynamic-list">
                   {(newPlan.limitations || []).map((limitation, index) => (
                     <div key={index} className="list-item">
@@ -1774,7 +1780,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       setNewPlan({ ...newPlan, limitations: [...(newPlan.limitations || []), ''] })
                     }
                   >
-                    + Add Limitation
+                    + {t('admin.membership.addLimitation')}
                   </button>
                 </div>
               </div>
@@ -1787,7 +1793,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       checked={newPlan.isPopular || false}
                       onChange={(e) => setNewPlan({ ...newPlan, isPopular: e.target.checked })}
                     />
-                    <span>⭐ Mark as Popular</span>
+                    <span>⭐ {t('admin.membership.markPopular')}</span>
                   </label>
                 </div>
 
@@ -1798,7 +1804,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       checked={newPlan.isActive !== false}
                       onChange={(e) => setNewPlan({ ...newPlan, isActive: e.target.checked })}
                     />
-                    <span>✅ Active Plan</span>
+                    <span>✅ {t('admin.membership.activePlan')}</span>
                   </label>
                 </div>
               </div>
@@ -1826,10 +1832,12 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   });
                 }}
               >
-                ❌ Cancel
+                ❌ {t('admin.membership.cancel')}
               </button>
               <button className="confirm-btn" onClick={handleCreatePlan}>
-                {editingPlanId ? '💾 Update Plan' : '➕ Create Plan'}
+                {editingPlanId
+                  ? `💾 ${t('admin.membership.savePlan')}`
+                  : `➕ ${t('admin.membership.createNewPlan')}`}
               </button>
             </div>
           </div>
@@ -1841,7 +1849,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>Add Company Partnership</h3>
+              <h3>{t('admin.membership.createCompany')}</h3>
               <button className="close-btn" onClick={() => setShowCreateCompanyModal(false)}>
                 ✕
               </button>
@@ -1849,28 +1857,28 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="form-group">
-                <label>Company Name:</label>
+                <label>{t('admin.membership.companyName')}:</label>
                 <input
                   type="text"
                   value={newCompany.name || ''}
                   onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })}
-                  placeholder="Enter company name"
+                  placeholder={t('admin.membership.companyName')}
                 />
               </div>
 
               <div className="form-group">
-                <label>Contact Person:</label>
+                <label>{t('admin.membership.contactPerson')}:</label>
                 <input
                   type="text"
                   value={newCompany.contactPerson || ''}
                   onChange={(e) => setNewCompany({ ...newCompany, contactPerson: e.target.value })}
-                  placeholder="Enter contact person name"
+                  placeholder={t('admin.membership.contactPerson')}
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Email:</label>
+                  <label>{t('admin.membership.email')}:</label>
                   <input
                     type="email"
                     value={newCompany.email || ''}
@@ -1880,7 +1888,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Phone:</label>
+                  <label>{t('admin.membership.phone')}:</label>
                   <input
                     type="tel"
                     value={newCompany.phone || ''}
@@ -1891,18 +1899,18 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Address:</label>
+                <label>{t('admin.membership.address')}:</label>
                 <textarea
                   value={newCompany.address || ''}
                   onChange={(e) => setNewCompany({ ...newCompany, address: e.target.value })}
-                  placeholder="Enter company address"
+                  placeholder={t('admin.membership.address')}
                   rows={2}
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Employee Count:</label>
+                  <label>{t('admin.membership.employeeCount')}:</label>
                   <input
                     type="number"
                     value={newCompany.employeeCount || 0}
@@ -1913,7 +1921,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Discount Percentage (0-100%):</label>
+                  <label>{t('admin.membership.discountPercentage')} (0-100%):</label>
                   <input
                     type="number"
                     min="0"
@@ -1935,10 +1943,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowCreateCompanyModal(false)}>
-                Cancel
+                {t('admin.membership.cancel')}
               </button>
               <button className="confirm-btn" onClick={handleCreateCompany}>
-                Add Company
+                {t('admin.membership.createCompany')}
               </button>
             </div>
           </div>
@@ -1950,7 +1958,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>✏️ Edit Subscription</h3>
+              <h3>✏️ {t('admin.membership.editSubscription')}</h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -1965,7 +1973,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="form-group">
-                <label>Start Date:</label>
+                <label>{t('profile.subscription.startDate')}:</label>
                 <input
                   type="date"
                   value={editingSubscription.startDate || ''}
@@ -1977,7 +1985,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>End Date:</label>
+                <label>{t('profile.subscription.endDate')}:</label>
                 <input
                   type="date"
                   value={editingSubscription.endDate || ''}
@@ -1990,7 +1998,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
               {editingSubscription.remainingEntries !== undefined && (
                 <div className="form-group">
-                  <label>Remaining Entries:</label>
+                  <label>{t('admin.membership.remainingVisits')}:</label>
                   <input
                     type="number"
                     min="0"
@@ -2007,7 +2015,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               )}
 
               <div className="form-group">
-                <label>Status:</label>
+                <label>{t('profile.subscription.status')}:</label>
                 <select
                   value={editingSubscription.status || 'active'}
                   onChange={(e) =>
@@ -2018,10 +2026,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   }
                   className="form-select-large"
                 >
-                  <option value="active">✅ Active</option>
-                  <option value="inactive">❌ Inactive</option>
-                  <option value="suspended">⏸️ Suspended</option>
-                  <option value="expired">⏳ Expired</option>
+                  <option value="active">✅ {t('profile.subscription.active')}</option>
+                  <option value="inactive">❌ {t('profile.subscription.inactive')}</option>
+                  <option value="suspended">⏸️ {t('dashboard.status.suspended')}</option>
+                  <option value="expired">⏳ {t('admin.membership.expired')}</option>
                 </select>
               </div>
             </div>
@@ -2035,10 +2043,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   setEditingSubscription({});
                 }}
               >
-                ❌ Cancel
+                ❌ {t('admin.membership.cancel')}
               </button>
               <button className="confirm-btn" onClick={handleSaveSubscriptionEdit}>
-                💾 Save Changes
+                💾 {t('admin.membership.saveSubscription')}
               </button>
             </div>
           </div>
