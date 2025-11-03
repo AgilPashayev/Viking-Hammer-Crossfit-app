@@ -93,9 +93,17 @@ const MyProfile: React.FC<MyProfileProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load user settings from API on mount
+  // TODO: Re-enable when backend settings endpoint is implemented
   useEffect(() => {
     const loadSettings = async () => {
       if (user?.id) {
+        // TEMPORARILY DISABLED: Backend endpoint /api/settings/user/{id} not yet implemented
+        // This was causing 500 errors on page load
+        // Language settings work independently via localStorage (i18next)
+        console.log('ℹ️ Settings: Using default values (backend endpoint not yet implemented)');
+        setIsLoadingSettings(false);
+
+        /* ORIGINAL CODE - Uncomment when backend endpoint is ready:
         try {
           setIsLoadingSettings(true);
           const response = await fetch(`http://localhost:4001/api/settings/user/${user.id}`);
@@ -117,6 +125,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         } finally {
           setIsLoadingSettings(false);
         }
+        */
       }
     };
 
@@ -658,6 +667,16 @@ const MyProfile: React.FC<MyProfileProps> = ({
   const handleSaveSettings = async () => {
     if (!user?.id) return;
 
+    // TEMPORARILY DISABLED: Backend settings endpoint not implemented yet
+    showNotification(
+      'info',
+      'Feature Coming Soon',
+      'Notification preferences will be saved when the backend endpoint is implemented. Language changes are already saved automatically!',
+    );
+    console.log('ℹ️ Settings save skipped: Backend endpoint not yet implemented');
+    return;
+
+    /* ORIGINAL CODE - Uncomment when backend endpoint is ready:
     try {
       // Get auth token (try both possible token storage keys)
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -707,6 +726,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
         'Unable to connect to server. Please check your connection and try again.',
       );
     }
+    */
   };
 
   // Request notification permission
