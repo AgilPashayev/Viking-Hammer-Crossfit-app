@@ -15,6 +15,7 @@ import {
 import { pushNotificationService } from '../services/pushNotificationService';
 import AnnouncementPopup from './AnnouncementPopup';
 import { useAnnouncements } from '../hooks/useAnnouncements';
+import { useTranslation } from 'react-i18next';
 
 interface UserProfile {
   name: string;
@@ -65,6 +66,7 @@ interface MemberDashboardProps {
 
 const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
   const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
+  const { t } = useTranslation(); // Add translation hook
 
   // Debug logging
   console.log('MemberDashboard rendering, user:', user);
@@ -718,17 +720,19 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         {/* Upcoming Classes */}
         <div className="content-section">
           <div className="section-header">
-            <h2>🗓️ Upcoming Classes</h2>
-            {isLoadingClasses && <span className="loading-indicator">🔄 Refreshing...</span>}
+            <h2>🗓️ {t('dashboard.upcomingClasses')}</h2>
+            {isLoadingClasses && (
+              <span className="loading-indicator">🔄 {t('common.loading')}</span>
+            )}
             <button className="btn btn-link" onClick={() => onNavigate?.('classes')}>
-              View All
+              {t('navigation.classes')}
             </button>
           </div>
           <div className="classes-list">
             {upcomingClasses.length === 0 ? (
               <div className="no-classes">
-                <div className="no-classes-icon">�</div>
-                <p>No upcoming classes scheduled</p>
+                <div className="no-classes-icon">📭</div>
+                <p>{t('dashboard.noClasses')}</p>
                 <small>Check back later or contact your instructor</small>
               </div>
             ) : (
@@ -763,13 +767,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                         className="btn btn-outline"
                         onClick={() => handleShowDetails(classItem)}
                       >
-                        Details
+                        {t('common.details') || 'Details'}
                       </button>
                       <button
                         className={`btn ${isBooked ? 'btn-success' : 'btn-primary'}`}
                         onClick={() => handleShowDetails(classItem)}
                       >
-                        {isBooked ? '✅ Booked' : 'Book'}
+                        {isBooked ? `✅ ${t('classes.booked')}` : t('classes.book')}
                       </button>
                     </div>
                   </div>
