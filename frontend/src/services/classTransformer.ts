@@ -219,7 +219,14 @@ export function transformInstructorFromAPI(apiInstructor: any): Instructor {
 export function transformScheduleFromAPI(apiSchedule: any): ScheduleSlot {
   // Map day_of_week string to number
   const mapDayOfWeek = (day: string | number): number => {
+    // If it's already a number, return it
     if (typeof day === 'number') return day;
+
+    // Safety check for undefined/null day
+    if (!day || typeof day !== 'string') {
+      console.warn('Invalid day value in mapDayOfWeek:', day);
+      return 1; // Default to Monday
+    }
 
     const dayMap: Record<string, number> = {
       Sunday: 0,
