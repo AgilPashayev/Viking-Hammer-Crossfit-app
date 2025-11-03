@@ -82,13 +82,21 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     const then = new Date(ts).getTime();
     const diff = Math.max(0, now - then);
     const sec = Math.floor(diff / 1000);
-    if (sec < 60) return `${sec}s ago`;
+    if (sec < 60) return t('admin.reception.time.secondsAgo', { count: sec });
     const min = Math.floor(sec / 60);
-    if (min < 60) return `${min} minute${min === 1 ? '' : 's'} ago`;
+    if (min < 60)
+      return min === 1
+        ? t('admin.reception.time.minuteAgo', { count: min })
+        : t('admin.reception.time.minutesAgo', { count: min });
     const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr} hour${hr === 1 ? '' : 's'} ago`;
+    if (hr < 24)
+      return hr === 1
+        ? t('admin.reception.time.hourAgo', { count: hr })
+        : t('admin.reception.time.hoursAgo', { count: hr });
     const day = Math.floor(hr / 24);
-    return `${day} day${day === 1 ? '' : 's'} ago`;
+    return day === 1
+      ? t('admin.reception.time.dayAgo', { count: day })
+      : t('admin.reception.time.daysAgo', { count: day });
   };
 
   // Format activity messages with bold names and actions

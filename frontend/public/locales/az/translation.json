@@ -439,7 +439,37 @@
       "plans": "Planlar",
       "new": "Yeni",
       "recentActivity": "Son Fəaliyyətlər",
-      "viewAll": "Hamısına Bax"
+      "viewAll": "Hamısına Bax",
+      "activity": {
+        "profileUpdated": "profil yeniləndi",
+        "checkedIn": "qeydə alındı",
+        "birthdayUpcoming": "ad günü yaxınlaşır",
+        "newMember": "Yeni üzv",
+        "newClass": "Yeni məşğələ əlavə edildi",
+        "classUpdated": "Məşğələ yeniləndi",
+        "instructorAdded": "İnstruktor əlavə edildi",
+        "instructorUpdated": "İnstruktor yeniləndi",
+        "scheduleCreated": "Cədvəl yaradıldı",
+        "scheduleUpdated": "Cədvəl yeniləndi",
+        "announcementCreated": "Elan yaradıldı",
+        "announcementPublished": "Elan dərc edildi",
+        "announcementDeleted": "Elan silindi",
+        "classDeleted": "Məşğələ silindi",
+        "instructorDeleted": "İnstruktor silindi",
+        "scheduleDeleted": "Cədvəl silindi",
+        "membershipChanged": "üzvlük dəyişdirildi",
+        "by": "tərəfindən",
+        "member": "Üzv"
+      },
+      "time": {
+        "secondsAgo": "{{count}} saniyə əvvəl",
+        "minuteAgo": "{{count}} dəqiqə əvvəl",
+        "minutesAgo": "{{count}} dəqiqə əvvəl",
+        "hourAgo": "{{count}} saat əvvəl",
+        "hoursAgo": "{{count}} saat əvvəl",
+        "dayAgo": "{{count}} gün əvvəl",
+        "daysAgo": "{{count}} gün əvvəl"
+      }
     },
     "sparta": {
       "title": "Sparta Paneli",

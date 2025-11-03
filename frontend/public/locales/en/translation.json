@@ -439,7 +439,37 @@
       "plans": "Plans",
       "new": "New",
       "recentActivity": "Recent Activity",
-      "viewAll": "View All"
+      "viewAll": "View All",
+      "activity": {
+        "profileUpdated": "profile updated",
+        "checkedIn": "checked in",
+        "birthdayUpcoming": "birthday upcoming",
+        "newMember": "New member",
+        "newClass": "New class added",
+        "classUpdated": "Class updated",
+        "instructorAdded": "Instructor added",
+        "instructorUpdated": "Instructor updated",
+        "scheduleCreated": "Schedule created",
+        "scheduleUpdated": "Schedule updated",
+        "announcementCreated": "Announcement created",
+        "announcementPublished": "Announcement published",
+        "announcementDeleted": "Announcement deleted",
+        "classDeleted": "Class deleted",
+        "instructorDeleted": "Instructor deleted",
+        "scheduleDeleted": "Schedule deleted",
+        "membershipChanged": "membership changed to",
+        "by": "by",
+        "member": "Member"
+      },
+      "time": {
+        "secondsAgo": "{{count}}s ago",
+        "minuteAgo": "{{count}} minute ago",
+        "minutesAgo": "{{count}} minutes ago",
+        "hourAgo": "{{count}} hour ago",
+        "hoursAgo": "{{count}} hours ago",
+        "dayAgo": "{{count}} day ago",
+        "daysAgo": "{{count}} days ago"
+      }
     },
     "sparta": {
       "title": "Sparta Dashboard",

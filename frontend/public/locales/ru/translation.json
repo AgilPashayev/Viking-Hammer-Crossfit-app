@@ -439,7 +439,37 @@
       "plans": "Планы",
       "new": "Новое",
       "recentActivity": "Недавняя активность",
-      "viewAll": "Просмотреть все"
+      "viewAll": "Просмотреть все",
+      "activity": {
+        "profileUpdated": "профиль обновлен",
+        "checkedIn": "зарегистрирован",
+        "birthdayUpcoming": "скоро день рождения",
+        "newMember": "Новый член",
+        "newClass": "Добавлено новое занятие",
+        "classUpdated": "Занятие обновлено",
+        "instructorAdded": "Добавлен инструктор",
+        "instructorUpdated": "Инструктор обновлен",
+        "scheduleCreated": "Создано расписание",
+        "scheduleUpdated": "Расписание обновлено",
+        "announcementCreated": "Создано объявление",
+        "announcementPublished": "Опубликовано объявление",
+        "announcementDeleted": "Объявление удалено",
+        "classDeleted": "Занятие удалено",
+        "instructorDeleted": "Инструктор удален",
+        "scheduleDeleted": "Расписание удалено",
+        "membershipChanged": "членство изменено на",
+        "by": "пользователем",
+        "member": "Член"
+      },
+      "time": {
+        "secondsAgo": "{{count}} сек назад",
+        "minuteAgo": "{{count}} минуту назад",
+        "minutesAgo": "{{count}} минут назад",
+        "hourAgo": "{{count}} час назад",
+        "hoursAgo": "{{count}} часов назад",
+        "dayAgo": "{{count}} день назад",
+        "daysAgo": "{{count}} дней назад"
+      }
     },
     "sparta": {
       "title": "Панель Sparta",

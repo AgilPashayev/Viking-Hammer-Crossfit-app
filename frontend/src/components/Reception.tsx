@@ -82,13 +82,21 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     const then = new Date(ts).getTime();
     const diff = Math.max(0, now - then);
     const sec = Math.floor(diff / 1000);
-    if (sec < 60) return `${sec}s ago`;
+    if (sec < 60) return t('admin.reception.time.secondsAgo', { count: sec });
     const min = Math.floor(sec / 60);
-    if (min < 60) return `${min} minute${min === 1 ? '' : 's'} ago`;
+    if (min < 60)
+      return min === 1
+        ? t('admin.reception.time.minuteAgo', { count: min })
+        : t('admin.reception.time.minutesAgo', { count: min });
     const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr} hour${hr === 1 ? '' : 's'} ago`;
+    if (hr < 24)
+      return hr === 1
+        ? t('admin.reception.time.hourAgo', { count: hr })
+        : t('admin.reception.time.hoursAgo', { count: hr });
     const day = Math.floor(hr / 24);
-    return `${day} day${day === 1 ? '' : 's'} ago`;
+    return day === 1
+      ? t('admin.reception.time.dayAgo', { count: day })
+      : t('admin.reception.time.daysAgo', { count: day });
   };
 
   // Format activity messages with bold names, actions, and updatedBy info
@@ -105,10 +113,12 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     if (message.match(/^(Member|Unknown Member) profile updated$/i)) {
       return (
         <span>
-          <strong>Member</strong> profile updated
+          <strong>{t('admin.reception.activity.member')}</strong>{' '}
+          {t('admin.reception.activity.profileUpdated')}
           {updatedBy && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -124,15 +134,22 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     );
     if (nameAtStartMatch) {
       const [, name, action] = nameAtStartMatch;
-      const formattedAction =
-        action.toLowerCase() === 'profile updated' ? 'profile updated' : action;
+      let translatedAction = action;
+      if (action.toLowerCase() === 'profile updated') {
+        translatedAction = t('admin.reception.activity.profileUpdated');
+      } else if (action.toLowerCase() === 'checked in') {
+        translatedAction = t('admin.reception.activity.checkedIn');
+      } else if (action.toLowerCase() === 'birthday upcoming') {
+        translatedAction = t('admin.reception.activity.birthdayUpcoming');
+      }
 
       return (
         <span>
-          <strong>{name}</strong> {formattedAction}
+          <strong>{name}</strong> {translatedAction}
           {updatedBy && action.toLowerCase() === 'profile updated' && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -148,12 +165,29 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     );
     if (actionNameMatch) {
       const [, action, name] = actionNameMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'new member') translatedAction = t('admin.reception.activity.newMember');
+      else if (actionLower === 'new class added')
+        translatedAction = t('admin.reception.activity.newClass');
+      else if (actionLower === 'class updated')
+        translatedAction = t('admin.reception.activity.classUpdated');
+      else if (actionLower === 'instructor added')
+        translatedAction = t('admin.reception.activity.instructorAdded');
+      else if (actionLower === 'instructor updated')
+        translatedAction = t('admin.reception.activity.instructorUpdated');
+      else if (actionLower === 'schedule created')
+        translatedAction = t('admin.reception.activity.scheduleCreated');
+      else if (actionLower === 'schedule updated')
+        translatedAction = t('admin.reception.activity.scheduleUpdated');
+
       return (
         <span>
-          <strong>{action}:</strong> {name}
+          <strong>{translatedAction}:</strong> {name}
           {updatedBy && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -169,12 +203,22 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     );
     if (announcementMatch) {
       const [, action, title] = announcementMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'announcement created')
+        translatedAction = t('admin.reception.activity.announcementCreated');
+      else if (actionLower === 'announcement published')
+        translatedAction = t('admin.reception.activity.announcementPublished');
+      else if (actionLower === 'announcement deleted')
+        translatedAction = t('admin.reception.activity.announcementDeleted');
+
       return (
         <span>
-          <strong>{action}:</strong> {title}
+          <strong>{translatedAction}:</strong> {title}
           {updatedBy && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -189,13 +233,22 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     if (membershipMatch) {
       const [, name, action] = membershipMatch;
       // Only process if name looks like a real name (not just "Member")
-      const displayName = name.trim() !== 'Member' && name.trim() !== '' ? name : 'Member';
+      const displayName =
+        name.trim() !== 'Member' && name.trim() !== ''
+          ? name
+          : t('admin.reception.activity.member');
+      // Extract the plan name from action
+      const planMatch = action.match(/membership changed to (.+)$/i);
+      const planName = planMatch ? planMatch[1] : '';
+
       return (
         <span>
-          <strong>{displayName}</strong> {action}
+          <strong>{displayName}</strong> {t('admin.reception.activity.membershipChanged')}{' '}
+          {planName}
           {updatedBy && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -211,12 +264,22 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
     );
     if (deleteMatch) {
       const [, action, name] = deleteMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'class deleted')
+        translatedAction = t('admin.reception.activity.classDeleted');
+      else if (actionLower === 'instructor deleted')
+        translatedAction = t('admin.reception.activity.instructorDeleted');
+      else if (actionLower === 'schedule deleted')
+        translatedAction = t('admin.reception.activity.scheduleDeleted');
+
       return (
         <span>
-          <strong>{action}:</strong> {name}
+          <strong>{translatedAction}:</strong> {name}
           {updatedBy && (
             <span style={{ color: '#666', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#2563eb' }}>{updatedBy.name}</strong>
               <span style={{ textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
