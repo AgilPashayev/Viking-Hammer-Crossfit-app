@@ -114,10 +114,12 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     if (message.match(/^(Member|Unknown Member) profile updated$/i)) {
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>Member</strong> profile updated
+          <strong style={{ color: '#60a5fa' }}>{t('admin.reception.activity.member')}</strong>{' '}
+          {t('admin.reception.activity.profileUpdated')}
           {updatedBy && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -133,15 +135,22 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     );
     if (nameAtStartMatch) {
       const [, name, action] = nameAtStartMatch;
-      const formattedAction =
-        action.toLowerCase() === 'profile updated' ? 'profile updated' : action;
+      let translatedAction = action;
+      if (action.toLowerCase() === 'profile updated') {
+        translatedAction = t('admin.reception.activity.profileUpdated');
+      } else if (action.toLowerCase() === 'checked in') {
+        translatedAction = t('admin.reception.activity.checkedIn');
+      } else if (action.toLowerCase() === 'birthday upcoming') {
+        translatedAction = t('admin.reception.activity.birthdayUpcoming');
+      }
 
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>{name}</strong> {formattedAction}
+          <strong style={{ color: '#60a5fa' }}>{name}</strong> {translatedAction}
           {updatedBy && action.toLowerCase() === 'profile updated' && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -157,12 +166,29 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     );
     if (actionNameMatch) {
       const [, action, name] = actionNameMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'new member') translatedAction = t('admin.reception.activity.newMember');
+      else if (actionLower === 'new class added')
+        translatedAction = t('admin.reception.activity.newClass');
+      else if (actionLower === 'class updated')
+        translatedAction = t('admin.reception.activity.classUpdated');
+      else if (actionLower === 'instructor added')
+        translatedAction = t('admin.reception.activity.instructorAdded');
+      else if (actionLower === 'instructor updated')
+        translatedAction = t('admin.reception.activity.instructorUpdated');
+      else if (actionLower === 'schedule created')
+        translatedAction = t('admin.reception.activity.scheduleCreated');
+      else if (actionLower === 'schedule updated')
+        translatedAction = t('admin.reception.activity.scheduleUpdated');
+
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {name}
+          <strong style={{ color: '#60a5fa' }}>{translatedAction}:</strong> {name}
           {updatedBy && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -178,12 +204,22 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     );
     if (announcementMatch) {
       const [, action, title] = announcementMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'announcement created')
+        translatedAction = t('admin.reception.activity.announcementCreated');
+      else if (actionLower === 'announcement published')
+        translatedAction = t('admin.reception.activity.announcementPublished');
+      else if (actionLower === 'announcement deleted')
+        translatedAction = t('admin.reception.activity.announcementDeleted');
+
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {title}
+          <strong style={{ color: '#60a5fa' }}>{translatedAction}:</strong> {title}
           {updatedBy && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -198,13 +234,22 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     if (membershipMatch) {
       const [, name, action] = membershipMatch;
       // Only process if name looks like a real name (not just "Member")
-      const displayName = name.trim() !== 'Member' && name.trim() !== '' ? name : 'Member';
+      const displayName =
+        name.trim() !== 'Member' && name.trim() !== ''
+          ? name
+          : t('admin.reception.activity.member');
+      // Extract the plan name from action
+      const planMatch = action.match(/membership changed to (.+)$/i);
+      const planName = planMatch ? planMatch[1] : '';
+
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>{displayName}</strong> {action}
+          <strong style={{ color: '#60a5fa' }}>{displayName}</strong>{' '}
+          {t('admin.reception.activity.membershipChanged')} {planName}
           {updatedBy && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
@@ -220,12 +265,22 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     );
     if (deleteMatch) {
       const [, action, name] = deleteMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'class deleted')
+        translatedAction = t('admin.reception.activity.classDeleted');
+      else if (actionLower === 'instructor deleted')
+        translatedAction = t('admin.reception.activity.instructorDeleted');
+      else if (actionLower === 'schedule deleted')
+        translatedAction = t('admin.reception.activity.scheduleDeleted');
+
       return (
         <span>
-          <strong style={{ color: '#60a5fa' }}>{action}:</strong> {name}
+          <strong style={{ color: '#60a5fa' }}>{translatedAction}:</strong> {name}
           {updatedBy && (
             <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
-              by <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
               <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
                 ({updatedBy.role})
               </span>
