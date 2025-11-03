@@ -88,16 +88,26 @@
   },
   "announcements": {
     "title": "Elanlar",
+    "gymNews": "Zalın Xəbərləri və Elanları",
     "newAnnouncement": "Yeni Elan",
-    "noAnnouncements": "Elan yoxdur",
+    "noAnnouncements": "Hazırda elan yoxdur. Daha sonra yenidən baxın!",
     "publishedOn": "{{date}} tarixində dərc edilib",
     "readMore": "Daha ətraflı",
     "markAsRead": "Oxunmuş kimi işarələ",
+    "dismiss": "Elanı bağla",
+    "showLess": "Daha az göstər",
+    "showAll": "Hamısını göstər ({{count}})",
     "priority": {
       "high": "Yüksək Prioritet",
       "normal": "Normal",
       "low": "Aşağı Prioritet"
     }
+  },
+  "qrCode": {
+    "title": "Giriş QR Kodunuz",
+    "instructions": "Giriş üçün bu QR kodu resepşn masasına göstərin.",
+    "memberId": "Üzv ID",
+    "close": "Bağla"
   },
   "settings": {
     "title": "Parametrlər",

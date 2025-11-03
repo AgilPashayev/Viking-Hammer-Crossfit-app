@@ -88,16 +88,26 @@
   },
   "announcements": {
     "title": "Announcements",
+    "gymNews": "Gym News & Announcements",
     "newAnnouncement": "New Announcement",
-    "noAnnouncements": "No announcements available",
+    "noAnnouncements": "No announcements at the moment. Check back later!",
     "publishedOn": "Published on {{date}}",
     "readMore": "Read More",
     "markAsRead": "Mark as Read",
+    "dismiss": "Dismiss announcement",
+    "showLess": "Show Less",
+    "showAll": "Show All ({{count}})",
     "priority": {
       "high": "High Priority",
       "normal": "Normal",
       "low": "Low Priority"
     }
+  },
+  "qrCode": {
+    "title": "Your Check-In QR Code",
+    "instructions": "Show this QR code to the reception desk to check in.",
+    "memberId": "Member ID",
+    "close": "Close"
   },
   "settings": {
     "title": "Settings",

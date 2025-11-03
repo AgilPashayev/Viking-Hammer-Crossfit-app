@@ -786,7 +786,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         {/* Gym Announcements */}
         <div className="content-section full-width">
           <div className="section-header">
-            <h2>📢 Gym News & Announcements</h2>
+            <h2>📢 {t('announcements.gymNews')}</h2>
             {announcementsList.length > 3 && (
               <button
                 className="btn btn-secondary"
@@ -794,15 +794,15 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 style={{ marginLeft: 'auto' }}
               >
                 {showAllAnnouncements
-                  ? '📤 Show Less'
-                  : `📥 Show All (${announcementsList.length})`}
+                  ? `📤 ${t('announcements.showLess')}`
+                  : `📥 ${t('announcements.showAll', { count: announcementsList.length })}`}
               </button>
             )}
           </div>
           <div className="announcements-list">
             {announcementsList.length === 0 ? (
               <div className="empty-state">
-                <p>📭 No announcements at the moment. Check back later!</p>
+                <p>📭 {t('announcements.noAnnouncements')}</p>
               </div>
             ) : (
               (showAllAnnouncements ? announcementsList : announcementsList.slice(0, 3)).map(
@@ -821,7 +821,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                               title: announcement.title,
                             });
                           }}
-                          title="Dismiss announcement"
+                          title={t('announcements.dismiss')}
                         >
                           ✕
                         </button>
@@ -841,7 +841,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         <div className="qr-modal-overlay" onClick={handleCloseQRModal}>
           <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
             <div className="qr-modal-header">
-              <h3>🎫 Your Check-In QR Code</h3>
+              <h3>🎫 {t('qrCode.title')}</h3>
               <button className="close-button" onClick={handleCloseQRModal}>
                 ✕
               </button>
@@ -849,13 +849,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             <div className="qr-modal-content">
               <div className="qr-display">
                 {qrCodeImage ? (
-                  <img src={qrCodeImage} alt="Check-in QR Code" className="qr-code-image" />
+                  <img src={qrCodeImage} alt={t('qrCode.title')} className="qr-code-image" />
                 ) : (
                   <div className="qr-loading">
                     {isGeneratingQR ? (
                       <div className="loading-content">
                         <div className="spinner">🔄</div>
-                        <p>Generating QR Code...</p>
+                        <p>{t('common.loading')}...</p>
                       </div>
                     ) : (
                       <div className="qr-pattern"></div>
@@ -864,10 +864,10 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
                 )}
               </div>
               <div className="qr-info">
-                <p className="qr-instruction">
-                  Present this QR code to the receptionist to check in
+                <p className="qr-instruction">{t('qrCode.instructions')}</p>
+                <p className="qr-id">
+                  {t('qrCode.memberId')}: {quickStats.qrCode}
                 </p>
-                <p className="qr-id">ID: {quickStats.qrCode}</p>
                 {qrCodeData && (
                   <div className="qr-details">
                     <p>Expires: {formatDate(qrCodeData.expiresAt)}</p>
