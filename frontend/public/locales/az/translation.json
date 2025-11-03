@@ -316,11 +316,53 @@
     "saveChanges": "Dəyişiklikləri Saxla"
   },
   "errors": {
-    "genericError": "Nəsə səhv getdi. Zəhmət olmasa yenidən cəhd edin.",
+    "genericError": "Bir xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.",
     "networkError": "Şəbəkə xətası. Zəhmət olmasa bağlantınızı yoxlayın.",
     "unauthorized": "İcazəsiz giriş. Zəhmət olmasa daxil olun.",
     "notFound": "Resurs tapılmadı.",
-    "serverError": "Server xətası. Zəhmət olmasa daha sonra yenidən cəhd edin.",
-    "validationError": "Zəhmət olmasa məlumatları yoxlayın və yenidən cəhd edin."
+    "serverError": "Server xətası. Zəhmət olmasa yenidən cəhd edin.",
+    "validationError": "Zəhmət olmasa məlumatlarınızı yoxlayıb yenidən cəhd edin."
+  },
+  "admin": {
+    "membership": {
+      "title": "Üzvlük İdarəçiliyə",
+      "plans": "Planlar",
+      "subscriptions": "Abunəliklər",
+      "companies": "Şirkətlər",
+      "createNewPlan": "Yeni Plan Yarat",
+      "addSubscription": "Abunəlik Əlavə Et",
+      "createCompany": "Şirkət Yarat",
+      "mostPopular": "Ən Populyar",
+      "entryLimit": "Giriş Limiti",
+      "entries": "giriş",
+      "unlimited": "Limitsiz",
+      "edit": "Redaktə et",
+      "activate": "Aktivləşdir",
+      "deactivate": "Deaktivləşdir",
+      "delete": "Sil",
+      "renew": "Yenilə",
+      "suspend": "Dayandır",
+      "cancel": "Ləğv et",
+      "name": "Ad",
+      "email": "E-poçt",
+      "company": "Şirkət",
+      "plan": "Plan",
+      "totalVisits": "Ümumi Ziyarətlər",
+      "remainingVisits": "Qalan Ziyarətlər",
+      "usedVisits": "İstifadə Edilmiş Ziyarətlər",
+      "nextPayment": "Növbəti Ödəniş",
+      "daysRemaining": "Qalan Günlər",
+      "searchPlaceholder": "{{tab}} axtar...",
+      "off": "ENDİRİM",
+      "daysLeft": "{{count}} gün qalıb",
+      "expired": "VAXTı KEÇİB",
+      "contact": "Əlaqə",
+      "phone": "Telefon",
+      "address": "Ünvan",
+      "discount": "Endirim",
+      "employees": "İşçilər",
+      "activeSubs": "Aktiv Abunələr",
+      "contract": "Müqavilə"
+    }
   }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { showConfirmDialog } from '../utils/confirmDialog';
+import { useTranslation } from 'react-i18next';
 import './MembershipManager.css';
 import './MembershipManager-additions.css';
 
@@ -61,6 +62,7 @@ interface MembershipManagerProps {
 
 const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const { setPlansCount, updateMembershipTypes } = useData();
+  const { t } = useTranslation();
 
   // Get current user role from localStorage
   const [userRole, setUserRole] = useState<string>('member');
@@ -999,16 +1001,18 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const renderPlansTab = () => (
     <div className="tab-content">
       <div className="section-header">
-        <h3>Membership Plans</h3>
+        <h3>{t('admin.membership.plans')}</h3>
         <button className="add-btn" onClick={() => setShowCreatePlanModal(true)}>
-          ➕ Create New Plan
+          ➕ {t('admin.membership.createNewPlan')}
         </button>
       </div>
 
       <div className="plans-grid">
         {getFilteredPlans().map((plan) => (
           <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
-            {plan.isPopular && <div className="popular-badge">⭐ Most Popular</div>}
+            {plan.isPopular && (
+              <div className="popular-badge">⭐ {t('admin.membership.mostPopular')}</div>
+            )}
 
             <div className="plan-header">
               <h4 className="plan-name">{plan.name}</h4>
@@ -1032,13 +1036,15 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="plan-details">
               {plan.entryLimit && (
                 <div className="detail-item">
-                  <span className="detail-label">Entry Limit:</span>
-                  <span className="detail-value">{plan.entryLimit} entries</span>
+                  <span className="detail-label">{t('admin.membership.entryLimit')}:</span>
+                  <span className="detail-value">
+                    {plan.entryLimit} {t('admin.membership.entries')}
+                  </span>
                 </div>
               )}
               {plan.duration && (
                 <div className="detail-item">
-                  <span className="detail-label">Duration:</span>
+                  <span className="detail-label">{t('profile.subscription.duration')}:</span>
                   <span className="detail-value">{plan.duration}</span>
                 </div>
               )}
@@ -1069,13 +1075,15 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 className="status-badge"
                 style={{ backgroundColor: getStatusColor(plan.isActive ? 'active' : 'inactive') }}
               >
-                {plan.isActive ? 'Active' : 'Inactive'}
+                {plan.isActive
+                  ? t('profile.subscription.active')
+                  : t('profile.subscription.inactive')}
               </span>
             </div>
 
             <div className="plan-actions">
               <button className="edit-btn" onClick={() => handleEditPlan(plan.id)}>
-                ✏️ Edit
+                ✏️ {t('admin.membership.edit')}
               </button>
               <button
                 className="toggle-btn"
@@ -1087,10 +1095,12 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   )
                 }
               >
-                {plan.isActive ? '🔒 Deactivate' : '🔓 Activate'}
+                {plan.isActive
+                  ? `🔒 ${t('admin.membership.deactivate')}`
+                  : `🔓 ${t('admin.membership.activate')}`}
               </button>
               <button className="delete-btn" onClick={() => handleDeletePlan(plan.id)}>
-                🗑️ Delete
+                🗑️ {t('admin.membership.delete')}
               </button>
             </div>
           </div>
@@ -1102,9 +1112,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const renderSubscriptionsTab = () => (
     <div className="tab-content">
       <div className="section-header">
-        <h3>Active Subscriptions</h3>
+        <h3>{t('admin.membership.subscriptions')}</h3>
         <button className="add-btn" onClick={() => setShowAddSubscriptionModal(true)}>
-          ➕ Add Subscription
+          ➕ {t('admin.membership.addSubscription')}
         </button>
       </div>
 
@@ -1182,16 +1192,16 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     <div className="detail-section">
                       <h5>👤 Member Information</h5>
                       <div className="detail-row">
-                        <span className="detail-label">Name:</span>
+                        <span className="detail-label">{t('admin.membership.name')}:</span>
                         <span className="detail-value">{subscription.memberName}</span>
                       </div>
                       <div className="detail-row">
-                        <span className="detail-label">Email:</span>
+                        <span className="detail-label">{t('admin.membership.email')}:</span>
                         <span className="detail-value">{subscription.memberEmail}</span>
                       </div>
                       {subscription.companyName && (
                         <div className="detail-row">
-                          <span className="detail-label">Company:</span>
+                          <span className="detail-label">{t('admin.membership.company')}:</span>
                           <span className="detail-value">🏢 {subscription.companyName}</span>
                         </div>
                       )}
@@ -1200,26 +1210,28 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     <div className="detail-section">
                       <h5>📋 Subscription Details</h5>
                       <div className="detail-row">
-                        <span className="detail-label">Plan:</span>
+                        <span className="detail-label">{t('admin.membership.plan')}:</span>
                         <span className="detail-value">{subscription.planName}</span>
                       </div>
                       <div className="detail-row">
-                        <span className="detail-label">Start Date:</span>
+                        <span className="detail-label">{t('profile.subscription.startDate')}:</span>
                         <span className="detail-value">{formatDate(subscription.startDate)}</span>
                       </div>
                       <div className="detail-row">
-                        <span className="detail-label">End Date:</span>
+                        <span className="detail-label">{t('profile.subscription.endDate')}:</span>
                         <span className="detail-value">
-                          {subscription.endDate ? formatDate(subscription.endDate) : 'Ongoing'}
+                          {subscription.endDate
+                            ? formatDate(subscription.endDate)
+                            : t('profile.subscription.ongoing')}
                         </span>
                       </div>
                       <div className="detail-row">
-                        <span className="detail-label">Status:</span>
+                        <span className="detail-label">{t('profile.subscription.status')}:</span>
                         <span
                           className="status-badge"
                           style={{ backgroundColor: getStatusColor(subscription.status) }}
                         >
-                          {subscription.status}
+                          {t(`dashboard.status.${subscription.status}`)}
                         </span>
                       </div>
                     </div>
@@ -1229,11 +1241,15 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       {subscription.remainingEntries !== undefined && (
                         <>
                           <div className="detail-row">
-                            <span className="detail-label">Total Visits:</span>
+                            <span className="detail-label">
+                              {t('admin.membership.totalVisits')}:
+                            </span>
                             <span className="detail-value">{subscription.totalEntries}</span>
                           </div>
                           <div className="detail-row">
-                            <span className="detail-label">Remaining Visits:</span>
+                            <span className="detail-label">
+                              {t('admin.membership.remainingVisits')}:
+                            </span>
                             <span
                               className="detail-value"
                               style={{
@@ -1250,16 +1266,18 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                             </span>
                           </div>
                           <div className="detail-row">
-                            <span className="detail-label">Used Visits:</span>
+                            <span className="detail-label">
+                              {t('admin.membership.usedVisits')}:
+                            </span>
                             <span className="detail-value">
-                              {subscription.totalEntries - subscription.remainingEntries}
+                              {(subscription.totalEntries || 0) - subscription.remainingEntries}
                             </span>
                           </div>
                         </>
                       )}
                       {subscription.nextPaymentDate && (
                         <div className="detail-row">
-                          <span className="detail-label">Next Payment:</span>
+                          <span className="detail-label">{t('admin.membership.nextPayment')}:</span>
                           <span className="detail-value">
                             {formatDate(subscription.nextPaymentDate)}
                           </span>
@@ -1267,7 +1285,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       )}
                       {daysLeft !== null && daysLeft >= 0 && (
                         <div className="detail-row">
-                          <span className="detail-label">Days Remaining:</span>
+                          <span className="detail-label">
+                            {t('admin.membership.daysRemaining')}:
+                          </span>
                           <span
                             className="detail-value"
                             style={{
@@ -1288,25 +1308,25 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       className="edit-btn"
                       onClick={() => handleEditSubscription(subscription.id)}
                     >
-                      ✏️ Edit
+                      ✏️ {t('admin.membership.edit')}
                     </button>
                     <button
                       className="renew-btn"
                       onClick={() => handleRenewSubscription(subscription.id)}
                     >
-                      🔄 Renew
+                      🔄 {t('admin.membership.renew')}
                     </button>
                     <button
                       className="suspend-btn"
                       onClick={() => handleSuspendSubscription(subscription.id)}
                     >
-                      ⏸️ Suspend
+                      ⏸️ {t('admin.membership.suspend')}
                     </button>
                     <button
                       className="delete-btn"
                       onClick={() => handleCancelSubscription(subscription.id)}
                     >
-                      🗑️ Cancel
+                      🗑️ {t('admin.membership.cancel')}
                     </button>
                   </div>
                 </div>
@@ -1321,9 +1341,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const renderCompaniesTab = () => (
     <div className="tab-content">
       <div className="section-header">
-        <h3>Company Partnerships</h3>
+        <h3>{t('admin.membership.companies')}</h3>
         <button className="add-btn" onClick={() => setShowCreateCompanyModal(true)}>
-          ➕ Add Company
+          ➕ {t('admin.membership.createCompany')}
         </button>
       </div>
 
@@ -1336,49 +1356,49 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 className="status-badge"
                 style={{ backgroundColor: getStatusColor(company.status) }}
               >
-                {company.status}
+                {t(`dashboard.status.${company.status}`)}
               </span>
             </div>
 
             <div className="company-details">
               <div className="detail-row">
                 <span className="detail-icon">👤</span>
-                <span className="detail-label">Contact:</span>
+                <span className="detail-label">{t('admin.membership.name')}:</span>
                 <span className="detail-value">{company.contactPerson}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">📧</span>
-                <span className="detail-label">Email:</span>
+                <span className="detail-label">{t('admin.membership.email')}:</span>
                 <span className="detail-value">{company.email}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">📱</span>
-                <span className="detail-label">Phone:</span>
+                <span className="detail-label">{t('admin.membership.phone')}:</span>
                 <span className="detail-value">{company.phone}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">📍</span>
-                <span className="detail-label">Address:</span>
+                <span className="detail-label">{t('admin.membership.address')}:</span>
                 <span className="detail-value">{company.address}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">💰</span>
-                <span className="detail-label">Discount:</span>
+                <span className="detail-label">{t('admin.membership.discount')}:</span>
                 <span className="detail-value">{company.discountPercentage}%</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">👥</span>
-                <span className="detail-label">Employees:</span>
+                <span className="detail-label">{t('admin.membership.employees')}:</span>
                 <span className="detail-value">{company.employeeCount}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">📊</span>
-                <span className="detail-label">Active Subs:</span>
+                <span className="detail-label">{t('admin.membership.activeSubs')}:</span>
                 <span className="detail-value">{company.activeSubscriptions}</span>
               </div>
               <div className="detail-row">
                 <span className="detail-icon">📅</span>
-                <span className="detail-label">Contract:</span>
+                <span className="detail-label">{t('admin.membership.contract')}:</span>
                 <span className="detail-value">
                   {formatDate(company.contractStartDate)} - {formatDate(company.contractEndDate)}
                 </span>
@@ -1387,17 +1407,17 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
             <div className="company-actions">
               <button className="edit-btn" onClick={() => handleEditCompany(company.id)}>
-                ✏️ Edit
+                ✏️ {t('admin.membership.edit')}
               </button>
               <button className="contact-btn" onClick={() => handleContactCompany(company)}>
-                📞 Contact
+                📞 {t('admin.membership.contact')}
               </button>
               {company.status !== 'active' && (
                 <button
                   className="activate-btn"
                   onClick={() => handleToggleCompanyStatus(company.id, 'active')}
                 >
-                  ✅ Activate
+                  ✅ {t('admin.membership.activate')}
                 </button>
               )}
               {company.status !== 'pending' && (
@@ -1405,7 +1425,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   className="pending-btn"
                   onClick={() => handleToggleCompanyStatus(company.id, 'pending')}
                 >
-                  ⏳ Pending
+                  ⏳ {t('dashboard.status.pending')}
                 </button>
               )}
               {company.status !== 'suspended' && (
@@ -1413,11 +1433,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   className="suspend-btn"
                   onClick={() => handleToggleCompanyStatus(company.id, 'suspended')}
                 >
-                  ⏸️ Suspend
+                  ⏸️ {t('admin.membership.suspend')}
                 </button>
               )}
               <button className="delete-btn" onClick={() => handleRemoveCompany(company.id)}>
-                🗑️ Remove
+                🗑️ {t('admin.membership.delete')}
               </button>
             </div>
           </div>
@@ -1434,7 +1454,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <button className="back-button" onClick={onBack}>
           ← Back to Reception
         </button>
-        <h2 className="membership-title">💳 Membership Manager</h2>
+        <h2 className="membership-title">💳 {t('admin.membership.title')}</h2>
       </div>
 
       {/* Stats Overview */}
@@ -1444,7 +1464,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="stat-icon">📋</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalPlans}</h3>
-              <p className="stat-label">Total Plans</p>
+              <p className="stat-label">{t('admin.membership.plans')}</p>
             </div>
           </div>
         )}
@@ -1453,7 +1473,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.activeSubscriptions}</h3>
-              <p className="stat-label">Active Subscriptions</p>
+              <p className="stat-label">{t('admin.membership.subscriptions')}</p>
             </div>
           </div>
         )}
@@ -1462,7 +1482,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="stat-icon">🏢</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.activeCompanies}</h3>
-              <p className="stat-label">Company Partners</p>
+              <p className="stat-label">{t('admin.membership.companies')}</p>
             </div>
           </div>
         )}
@@ -1484,7 +1504,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             className={`tab-btn ${activeTab === 'plans' ? 'active' : ''}`}
             onClick={() => setActiveTab('plans')}
           >
-            📋 Membership Plans
+            📋 {t('admin.membership.plans')}
           </button>
         )}
         {canAccessSubscriptions && (
@@ -1492,7 +1512,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             className={`tab-btn ${activeTab === 'subscriptions' ? 'active' : ''}`}
             onClick={() => setActiveTab('subscriptions')}
           >
-            📊 Subscriptions
+            📊 {t('admin.membership.subscriptions')}
           </button>
         )}
         {canAccessCompanies && (
@@ -1500,7 +1520,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             className={`tab-btn ${activeTab === 'companies' ? 'active' : ''}`}
             onClick={() => setActiveTab('companies')}
           >
-            🏢 Companies
+            🏢 {t('admin.membership.companies')}
           </button>
         )}
       </div>
@@ -1510,7 +1530,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <div className="search-filters">
           <input
             type="text"
-            placeholder={`Search ${activeTab}...`}
+            placeholder={t('admin.membership.searchPlaceholder', { tab: activeTab })}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
