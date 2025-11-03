@@ -733,7 +733,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
               </div>
             ) : (
               upcomingClasses.map((classItem) => {
-                const bookingKey = `${classItem.id}-${classItem.date}-${classItem.time}`;
+                const bookingKey = `${classItem.id}-${classItem.date}-${normalizeTime(
+                  classItem.time,
+                )}`;
                 const isBooked = userBookings.includes(bookingKey);
 
                 return (
