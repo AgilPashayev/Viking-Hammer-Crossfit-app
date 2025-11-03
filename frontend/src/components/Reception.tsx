@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import MemberManagement from './MemberManagement';
 import CheckInHistory from './CheckInHistory';
 import ClassManagement from './ClassManagement';
@@ -15,6 +16,7 @@ interface ReceptionProps {
 }
 
 const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
+  const { t } = useTranslation();
   const { stats, members, checkInMember, activities, getUpcomingBirthdays } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -47,13 +49,11 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
           }}
         >
           <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🔒</div>
-          <h2 style={{ color: '#1a237e', marginBottom: '16px' }}>Access Denied</h2>
-          <p style={{ color: '#666', marginBottom: '8px' }}>
-            You don't have permission to access the Reception Dashboard.
-          </p>
-          <p style={{ color: '#666' }}>
-            This area is restricted to Reception and Sparta staff only.
-          </p>
+          <h2 style={{ color: '#1a237e', marginBottom: '16px' }}>
+            {t('admin.membership.accessDenied')}
+          </h2>
+          <p style={{ color: '#666', marginBottom: '8px' }}>{t('admin.membership.noPermission')}</p>
+          <p style={{ color: '#666' }}>{t('admin.membership.contactAdmin')}</p>
           {onNavigate && (
             <button
               onClick={() => onNavigate('dashboard')}
@@ -68,7 +68,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                 fontSize: '1rem',
               }}
             >
-              ← Back to Dashboard
+              ← {t('dashboard.backToDashboard')}
             </button>
           )}
         </div>
@@ -551,16 +551,16 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
             <span>R</span>
           </div>
           <div className="welcome-text">
-            <h1>Reception Dashboard</h1>
-            <p>Manage your gym operations efficiently</p>
+            <h1>{t('admin.reception.title')}</h1>
+            <p>{t('admin.reception.subtitle')}</p>
           </div>
         </div>
         <div className="quick-actions">
           <button className="btn btn-primary qr-scan-btn" onClick={handleQRScanClick}>
             <span className="icon">📱</span>
             <span className="btn-text">
-              <strong>Scan Member QR</strong>
-              <small>Check-in members quickly</small>
+              <strong>{t('admin.reception.scanQR')}</strong>
+              <small>{t('admin.reception.scanQRSubtitle')}</small>
             </span>
           </button>
         </div>
@@ -571,42 +571,42 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
           <div className="stat-icon">👥</div>
           <div className="stat-content">
             <h3>{stats.totalMembers}</h3>
-            <p>Total Members</p>
+            <p>{t('admin.reception.totalMembers')}</p>
           </div>
         </div>
         <div className="stat-card success clickable" onClick={() => setActiveSection('checkins')}>
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <h3>{stats.checkedInToday}</h3>
-            <p>Checked In Today</p>
+            <p>{t('admin.reception.checkedInToday')}</p>
           </div>
         </div>
         <div className="stat-card info clickable" onClick={() => setActiveSection('classes')}>
           <div className="stat-icon">🏋️</div>
           <div className="stat-content">
             <h3>{stats.instructors}</h3>
-            <p>Instructors</p>
+            <p>{t('admin.reception.instructors')}</p>
           </div>
         </div>
         <div className="stat-card warning clickable" onClick={() => setActiveSection('classes')}>
           <div className="stat-icon">📋</div>
           <div className="stat-content">
             <h3>{stats.activeClasses}</h3>
-            <p>Active Classes</p>
+            <p>{t('admin.reception.activeClasses')}</p>
           </div>
         </div>
         <div className="stat-card danger clickable" onClick={() => setActiveSection('memberships')}>
           <div className="stat-icon">⏰</div>
           <div className="stat-content">
             <h3>{stats.expiringMemberships}</h3>
-            <p>Expiring Soon (7 days)</p>
+            <p>{t('admin.reception.expiringSoon')}</p>
           </div>
         </div>
         <div className="stat-card birthday clickable" onClick={() => setActiveSection('birthdays')}>
           <div className="stat-icon">🎂</div>
           <div className="stat-content">
             <h3>{stats.upcomingBirthdays}</h3>
-            <p>Upcoming Birthdays</p>
+            <p>{t('admin.reception.upcomingBirthdays')}</p>
           </div>
         </div>
       </div>
@@ -615,50 +615,58 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
         <div className="section-grid">
           <div className="management-card" onClick={() => setActiveSection('members')}>
             <div className="card-icon">👥</div>
-            <h3>Member Management</h3>
-            <p>Add, update, and manage member profiles</p>
-            <div className="card-badge">{stats.totalMembers} Members</div>
+            <h3>{t('admin.reception.memberManagement')}</h3>
+            <p>{t('admin.reception.memberManagementDesc')}</p>
+            <div className="card-badge">
+              {stats.totalMembers} {t('admin.reception.members')}
+            </div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('checkins')}>
             <div className="card-icon">📊</div>
-            <h3>Check-In History</h3>
-            <p>View and analyze member check-in data</p>
-            <div className="card-badge">{stats.checkedInToday} Today</div>
+            <h3>{t('admin.reception.checkInHistory')}</h3>
+            <p>{t('admin.reception.checkInHistoryDesc')}</p>
+            <div className="card-badge">
+              {stats.checkedInToday} {t('admin.reception.today')}
+            </div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('classes')}>
             <div className="card-icon">🏋️‍♂️</div>
-            <h3>Class Management</h3>
-            <p>Assign instructors and manage class schedules</p>
-            <div className="card-badge">{stats.activeClasses} Active</div>
+            <h3>{t('admin.reception.classManagement')}</h3>
+            <p>{t('admin.reception.classManagementDesc')}</p>
+            <div className="card-badge">
+              {stats.activeClasses} {t('admin.reception.active')}
+            </div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('announcements')}>
             <div className="card-icon">📢</div>
-            <h3>Announcements</h3>
-            <p>Send notifications to all members</p>
-            <div className="card-badge">New</div>
+            <h3>{t('admin.reception.announcements')}</h3>
+            <p>{t('admin.reception.announcementsDesc')}</p>
+            <div className="card-badge">{t('admin.reception.new')}</div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('memberships')}>
             <div className="card-icon">💎</div>
-            <h3>Membership Plans</h3>
-            <p>Manage subscription plans and pricing</p>
-            <div className="card-badge">{stats.plansCount} Plans</div>
+            <h3>{t('admin.reception.membershipPlans')}</h3>
+            <p>{t('admin.reception.membershipPlansDesc')}</p>
+            <div className="card-badge">
+              {stats.plansCount} {t('admin.reception.plans')}
+            </div>
           </div>
 
           <div className="management-card" onClick={() => setActiveSection('birthdays')}>
             <div className="card-icon">🎉</div>
-            <h3>Upcoming Birthdays</h3>
-            <p>Keep members happy with birthday wishes</p>
+            <h3>{t('admin.reception.birthdaysCard')}</h3>
+            <p>{t('admin.reception.birthdaysCardDesc')}</p>
             <div className="card-badge">{stats.upcomingBirthdays} This Week</div>
           </div>
         </div>
       </div>
 
       <div className="recent-activity">
-        <h3>Recent Activity</h3>
+        <h3>{t('admin.reception.recentActivity')}</h3>
         <div className="activity-list">
           {buildActivityFeed().map((item) => {
             const m = iconFor(item.type);

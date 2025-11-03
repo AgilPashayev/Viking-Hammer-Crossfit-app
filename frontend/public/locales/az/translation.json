@@ -409,6 +409,41 @@
       "accessDenied": "Giriş Qadağandır",
       "noPermission": "Üzvlük İdarəçiliyinə giriş icazəniz yoxdur.",
       "contactAdmin": "Bunun səhv olduğunu düşünürsünüzsə, administratorla əlaqə saxlayın."
+    },
+    "reception": {
+      "title": "Qəbul Paneli",
+      "subtitle": "İdman zalı əməliyyatlarınızı səmərəli idarə edin",
+      "scanQR": "Üzv QR Skan Et",
+      "scanQRSubtitle": "Üzvləri tez qeydiyyatdan keçirin",
+      "totalMembers": "Ümumi Üzvlər",
+      "checkedInToday": "Bu Gün Qeydiyyatdan Keçənlər",
+      "instructors": "Təlimətiçilər",
+      "activeClasses": "Aktiv Siniflər",
+      "expiringSoon": "Tezliklə Bitir (7 gün)",
+      "upcomingBirthdays": "Yaxınlaşan Ad Günləri",
+      "memberManagement": "Üzv İdarəçiliyə",
+      "memberManagementDesc": "Üzv profilləri əlavə edin, yeniləyin və idarə edin",
+      "checkInHistory": "Qeydiyyat Tarixçəsi",
+      "checkInHistoryDesc": "Üzv qeydiyyat məlumatlarına baxın və təhlil edin",
+      "classManagement": "Sinif İdarəçiliyə",
+      "classManagementDesc": "Təlimətiçiləri təyin edin və sinif cədvəllərini idarə edin",
+      "announcements": "Elanlar",
+      "announcementsDesc": "Bütün üzvlərə bildirişlər göndərin",
+      "membershipPlans": "Üzvlük Planları",
+      "membershipPlansDesc": "Abunə planları və qiymətləri idarə edin",
+      "birthdaysCard": "Yaxınlaşan Ad Günləri",
+      "birthdaysCardDesc": "Üzvlərin xüsusi günlərini qeyd edin",
+      "members": "Üzvlər",
+      "today": "Bu Gün",
+      "active": "Aktiv",
+      "plans": "Planlar",
+      "new": "Yeni",
+      "recentActivity": "Son Fəaliyyətlər",
+      "viewAll": "Hamısına Bax"
+    },
+    "sparta": {
+      "title": "Sparta Paneli",
+      "subtitle": "Tam sistem nəzarəti və idarəçiliyə"
     }
   }
 }

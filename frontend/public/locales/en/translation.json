@@ -409,6 +409,41 @@
       "accessDenied": "Access Denied",
       "noPermission": "You don't have permission to access Membership Manager.",
       "contactAdmin": "Please contact your administrator if you believe this is an error."
+    },
+    "reception": {
+      "title": "Reception Dashboard",
+      "subtitle": "Manage your gym operations efficiently",
+      "scanQR": "Scan Member QR",
+      "scanQRSubtitle": "Check-in members quickly",
+      "totalMembers": "Total Members",
+      "checkedInToday": "Checked In Today",
+      "instructors": "Instructors",
+      "activeClasses": "Active Classes",
+      "expiringSoon": "Expiring Soon (7 days)",
+      "upcomingBirthdays": "Upcoming Birthdays",
+      "memberManagement": "Member Management",
+      "memberManagementDesc": "Add, update, and manage member profiles",
+      "checkInHistory": "Check-In History",
+      "checkInHistoryDesc": "View and analyze member check-in data",
+      "classManagement": "Class Management",
+      "classManagementDesc": "Assign instructors and manage class schedules",
+      "announcements": "Announcements",
+      "announcementsDesc": "Send notifications to all members",
+      "membershipPlans": "Membership Plans",
+      "membershipPlansDesc": "Manage subscription plans and pricing",
+      "birthdaysCard": "Upcoming Birthdays",
+      "birthdaysCardDesc": "Celebrate member special days",
+      "members": "Members",
+      "today": "Today",
+      "active": "Active",
+      "plans": "Plans",
+      "new": "New",
+      "recentActivity": "Recent Activity",
+      "viewAll": "View All"
+    },
+    "sparta": {
+      "title": "Sparta Dashboard",
+      "subtitle": "Full system control and management"
     }
   }
 }

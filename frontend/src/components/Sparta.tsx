@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import MemberManagement from './MemberManagement';
 import CheckInHistory from './CheckInHistory';
 import ClassManagement from './ClassManagement';
@@ -15,6 +16,7 @@ interface SpartaProps {
 }
 
 const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
+  const { t } = useTranslation();
   const { stats, members, checkInMember, activities, getUpcomingBirthdays } = useData();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showQRScanner, setShowQRScanner] = useState(false);
@@ -47,11 +49,11 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           }}
         >
           <div style={{ fontSize: '4rem', marginBottom: '20px' }}>⚔️🔒</div>
-          <h2 style={{ color: '#1a237e', marginBottom: '16px' }}>Access Denied</h2>
-          <p style={{ color: '#666', marginBottom: '8px' }}>
-            You don't have permission to access the Sparta Dashboard.
-          </p>
-          <p style={{ color: '#666' }}>This area is restricted to Sparta staff only.</p>
+          <h2 style={{ color: '#1a237e', marginBottom: '16px' }}>
+            {t('admin.membership.accessDenied')}
+          </h2>
+          <p style={{ color: '#666', marginBottom: '8px' }}>{t('admin.membership.noPermission')}</p>
+          <p style={{ color: '#666' }}>{t('admin.membership.contactAdmin')}</p>
           {onNavigate && (
             <button
               onClick={() => onNavigate('dashboard')}
@@ -66,7 +68,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                 fontSize: '1rem',
               }}
             >
-              ← Back to Dashboard
+              ← {t('dashboard.backToDashboard')}
             </button>
           )}
         </div>
@@ -537,8 +539,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
         <div className="sparta-welcome">
           <div className="sparta-avatar">⚔️</div>
           <div className="welcome-text">
-            <h1>Sparta Dashboard</h1>
-            <p className="subtitle">This is a SPARTAAA!!!</p>
+            <h1>{t('admin.sparta.title')}</h1>
+            <p className="subtitle">{t('admin.sparta.subtitle')}</p>
           </div>
         </div>
 
@@ -547,8 +549,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card primary" onClick={() => setActiveSection('members')}>
             <div className="card-icon">👥</div>
             <div className="card-content">
-              <h3>Manage Members</h3>
-              <p>Add, edit, and view member profiles</p>
+              <h3>{t('admin.reception.memberManagement')}</h3>
+              <p>{t('admin.reception.memberManagementDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -556,8 +558,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card secondary" onClick={() => setActiveSection('classes')}>
             <div className="card-icon">🏋️</div>
             <div className="card-content">
-              <h3>Class Management</h3>
-              <p>Schedule and manage fitness classes</p>
+              <h3>{t('admin.reception.classManagement')}</h3>
+              <p>{t('admin.reception.classManagementDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -565,8 +567,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card success" onClick={handleScanQR}>
             <div className="card-icon">📱</div>
             <div className="card-content">
-              <h3>QR Check-In</h3>
-              <p>Scan member QR codes for check-in</p>
+              <h3>{t('admin.reception.scanQR')}</h3>
+              <p>{t('admin.reception.scanQRSubtitle')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -574,8 +576,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card warning" onClick={() => setActiveSection('memberships')}>
             <div className="card-icon">💳</div>
             <div className="card-content">
-              <h3>Memberships</h3>
-              <p>Manage subscriptions and billing</p>
+              <h3>{t('admin.reception.membershipPlans')}</h3>
+              <p>{t('admin.reception.membershipPlansDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -583,8 +585,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card info" onClick={() => setActiveSection('announcements')}>
             <div className="card-icon">📢</div>
             <div className="card-content">
-              <h3>Announcements</h3>
-              <p>Create and manage gym announcements</p>
+              <h3>{t('admin.reception.announcements')}</h3>
+              <p>{t('admin.reception.announcementsDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -592,8 +594,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card purple" onClick={() => setActiveSection('birthdays')}>
             <div className="card-icon">🎂</div>
             <div className="card-content">
-              <h3>Birthdays</h3>
-              <p>View upcoming member birthdays</p>
+              <h3>{t('admin.reception.birthdaysCard')}</h3>
+              <p>{t('admin.reception.birthdaysCardDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -601,8 +603,8 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="action-card teal" onClick={() => setActiveSection('history')}>
             <div className="card-icon">📊</div>
             <div className="card-content">
-              <h3>Check-In History</h3>
-              <p>View member attendance records</p>
+              <h3>{t('admin.reception.checkInHistory')}</h3>
+              <p>{t('admin.reception.checkInHistoryDesc')}</p>
             </div>
             <div className="card-arrow">→</div>
           </div>
@@ -613,28 +615,28 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
           <div className="stat-card">
             <div className="stat-icon">👥</div>
             <div className="stat-value">{stats.totalMembers}</div>
-            <div className="stat-label">Total Members</div>
+            <div className="stat-label">{t('admin.reception.totalMembers')}</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-value">{stats.checkedInToday}</div>
-            <div className="stat-label">Check-ins Today</div>
+            <div className="stat-label">{t('admin.reception.checkedInToday')}</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🏋️</div>
             <div className="stat-value">{stats.activeClasses}</div>
-            <div className="stat-label">Active Classes</div>
+            <div className="stat-label">{t('admin.reception.activeClasses')}</div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">💪</div>
             <div className="stat-value">{stats.activeMembers}</div>
-            <div className="stat-label">Active Memberships</div>
+            <div className="stat-label">{t('admin.reception.totalMembers')}</div>
           </div>
         </div>
 
         {/* Recent Activity Feed */}
         <div className="activity-section">
-          <h2 className="section-title">📋 Recent Activity</h2>
+          <h2 className="section-title">📋 {t('admin.reception.recentActivity')}</h2>
           <div className="activity-feed">
             {currentActivities.length === 0 ? (
               <div className="no-activity">
