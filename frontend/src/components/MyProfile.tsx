@@ -1288,44 +1288,6 @@ const MyProfile: React.FC<MyProfileProps> = ({
               </div>
             </div>
 
-            <div className="settings-group">
-              <h4>🎨 Appearance</h4>
-              <div className="settings-list">
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <span className="setting-label">Theme</span>
-                    <span className="setting-description">Choose your preferred theme</span>
-                  </div>
-                  <select
-                    className="form-select"
-                    value={settings.theme}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, theme: e.target.value }))}
-                  >
-                    <option value="light">☀️ Light</option>
-                    <option value="dark">🌙 Dark</option>
-                    <option value="auto">🔄 Auto</option>
-                  </select>
-                </div>
-
-                <div className="setting-item">
-                  <div className="setting-info">
-                    <span className="setting-label">Language</span>
-                    <span className="setting-description">Select your preferred language</span>
-                  </div>
-                  <select
-                    className="form-select"
-                    value={settings.language}
-                    onChange={(e) => setSettings((prev) => ({ ...prev, language: e.target.value }))}
-                  >
-                    <option value="en">🇬🇧 English</option>
-                    <option value="az">🇦🇿 Azərbaycanca</option>
-                    <option value="ru">🇷🇺 Русский</option>
-                    <option value="tr">🇹🇷 Türkçe</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
             <div className="action-buttons">
               <button className="btn btn-success" onClick={handleSaveSettings}>
                 ✅ Save Notification Preferences
