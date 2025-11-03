@@ -660,9 +660,10 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
             />
           </div>
           <div className="welcome-text">
-            <h1>Welcome back, {userProfile.name}!</h1>
+            <h1>{t('dashboard.welcomeBack', { name: userProfile.name })}</h1>
             <p className="membership-info">
-              {userProfile.membershipType} • Member since {formatDate(userProfile.joinDate)}
+              {userProfile.membershipType} •{' '}
+              {t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })}
             </p>
           </div>
         </div>
@@ -670,8 +671,8 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           <button className="btn btn-primary qr-code-btn" onClick={handleGenerateQR}>
             <span className="icon">📱</span>
             <span className="btn-text">
-              <strong>My QR Code</strong>
-              <small>Tap to show your check-in code</small>
+              <strong>{t('dashboard.myQrCode')}</strong>
+              <small>{t('dashboard.showCheckInCode')}</small>
             </span>
           </button>
         </div>
@@ -683,21 +684,21 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           <div className="stat-icon">🏃‍♂️</div>
           <div className="stat-content">
             <h3>{userProfile.visitsThisMonth}</h3>
-            <p>Visits This Month</p>
+            <p>{t('dashboard.visitsThisMonth')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">💪</div>
           <div className="stat-content">
             <h3>{userProfile.totalVisits}</h3>
-            <p>Total Visits</p>
+            <p>{t('dashboard.totalVisits')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">⏰</div>
           <div className="stat-content">
             <h3>{upcomingClasses.length}</h3>
-            <p>Upcoming Classes</p>
+            <p>{t('dashboard.upcomingClassesCount')}</p>
           </div>
         </div>
         <div className="stat-card">

@@ -46,12 +46,19 @@
   },
   "dashboard": {
     "welcome": "Xoş gəlmisiniz, {{name}}!",
+    "welcomeBack": "Xoş gəldiniz, {{name}}!",
+    "memberSince": "{{date}} tarixindən üzv",
     "upcomingClasses": "Gələcək Dərslər",
     "myBookings": "Mənim Rezervasiyalarım",
     "announcements": "Son Elanlar",
     "noClasses": "Planlaşdırılmış dərs yoxdur",
     "noBookings": "Hələ rezervasiyanız yoxdur",
-    "noAnnouncements": "Elan yoxdur"
+    "noAnnouncements": "Elan yoxdur",
+    "myQrCode": "Mənim QR Kodum",
+    "showCheckInCode": "Giriş kodunu göstərmək üçün toxunun",
+    "visitsThisMonth": "Bu Ay Ziyarətlər",
+    "totalVisits": "Ümumi Ziyarətlər",
+    "upcomingClassesCount": "Gələcək Dərslər"
   },
   "classes": {
     "title": "Dərslər",

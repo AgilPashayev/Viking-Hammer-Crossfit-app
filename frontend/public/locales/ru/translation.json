@@ -46,12 +46,19 @@
   },
   "dashboard": {
     "welcome": "Добро пожаловать, {{name}}!",
+    "welcomeBack": "С возвращением, {{name}}!",
+    "memberSince": "Участник с {{date}}",
     "upcomingClasses": "Предстоящие занятия",
     "myBookings": "Мои бронирования",
     "announcements": "Последние объявления",
     "noClasses": "Нет запланированных занятий",
     "noBookings": "У вас пока нет бронирований",
-    "noAnnouncements": "Нет доступных объявлений"
+    "noAnnouncements": "Нет доступных объявлений",
+    "myQrCode": "Мой QR-код",
+    "showCheckInCode": "Нажмите, чтобы показать код регистрации",
+    "visitsThisMonth": "Посещений в этом месяце",
+    "totalVisits": "Всего посещений",
+    "upcomingClassesCount": "Предстоящие занятия"
   },
   "classes": {
     "title": "Занятия",

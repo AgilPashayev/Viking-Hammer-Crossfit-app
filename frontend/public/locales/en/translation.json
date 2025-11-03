@@ -46,12 +46,19 @@
   },
   "dashboard": {
     "welcome": "Welcome, {{name}}!",
+    "welcomeBack": "Welcome back, {{name}}!",
+    "memberSince": "Member since {{date}}",
     "upcomingClasses": "Upcoming Classes",
     "myBookings": "My Bookings",
     "announcements": "Latest Announcements",
     "noClasses": "No upcoming classes scheduled",
     "noBookings": "You have no bookings yet",
-    "noAnnouncements": "No announcements available"
+    "noAnnouncements": "No announcements available",
+    "myQrCode": "My QR Code",
+    "showCheckInCode": "Tap to show your check-in code",
+    "visitsThisMonth": "Visits This Month",
+    "totalVisits": "Total Visits",
+    "upcomingClassesCount": "Upcoming Classes"
   },
   "classes": {
     "title": "Classes",
