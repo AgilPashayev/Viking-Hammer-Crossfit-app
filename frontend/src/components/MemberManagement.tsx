@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useData, Member } from '../contexts/DataContext';
-import { formatDate } from '../utils/formatDate';
+import { formatDate } from '../utils/dateFormatter';
 import './MemberManagement.css';
 
 interface MemberManagementProps {
@@ -35,6 +35,8 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   const [showConfirmation, setShowConfirmation] = useState<boolean>(false);
   const [confirmationMessage, setConfirmationMessage] = useState<string>('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
+  const [memberToDelete, setMemberToDelete] = useState<Member | null>(null);
 
   const [newMember, setNewMember] = useState({
     firstName: '',
@@ -263,16 +265,19 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
   };
 
   const handleDeleteMember = async (member: Member) => {
-    if (
-      !window.confirm(`Are you sure you want to delete ${member.firstName} ${member.lastName}?`)
-    ) {
-      return;
-    }
+    setMemberToDelete(member);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteMember = async () => {
+    if (!memberToDelete) return;
 
     try {
-      await deleteMember(member.id);
+      await deleteMember(memberToDelete.id);
       await refreshMembers();
-      showToast('✅ Member deleted successfully!');
+      showToast(`✅ ${t('admin.memberManagement.deleteSuccess')}`);
+      setShowDeleteModal(false);
+      setMemberToDelete(null);
     } catch (error) {
       console.error('Failed to delete member:', error);
       const message = error instanceof Error ? error.message : 'Failed to delete member';
@@ -1036,6 +1041,77 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   : selectedMember
                   ? `⚡ ${t('admin.memberManagement.modal.actions.updateButton')}`
                   : `🛡️ ${t('admin.memberManagement.modal.actions.addButton')}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && memberToDelete && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-header">
+              <h3>⚠️ {t('admin.memberManagement.deleteModal.title')}</h3>
+              <button
+                className="close-btn"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setMemberToDelete(null);
+                }}
+              >
+                {t('admin.memberManagement.modal.closeButton')}
+              </button>
+            </div>
+
+            <div style={{ padding: '20px' }}>
+              <p style={{ fontSize: '16px', marginBottom: '20px' }}>
+                {t('admin.memberManagement.deleteModal.message', {
+                  name: `${memberToDelete.firstName} ${memberToDelete.lastName}`,
+                })}
+              </p>
+              <div
+                className="member-card"
+                style={{ marginBottom: '20px', border: '2px solid #ff4444' }}
+              >
+                <div className="member-header">
+                  <div className="member-avatar">
+                    <span>
+                      {memberToDelete.firstName.charAt(0)}
+                      {memberToDelete.lastName.charAt(0)}
+                    </span>
+                  </div>
+                  <div className="member-info">
+                    <h3>
+                      {memberToDelete.firstName} {memberToDelete.lastName}
+                    </h3>
+                    <p>{memberToDelete.email}</p>
+                    <p>{memberToDelete.phone}</p>
+                  </div>
+                </div>
+              </div>
+              <p style={{ color: '#ff4444', fontWeight: 'bold', marginBottom: '20px' }}>
+                {t('admin.memberManagement.deleteModal.warning')}
+              </p>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setMemberToDelete(null);
+                }}
+              >
+                ❌ {t('admin.memberManagement.deleteModal.cancel')}
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={confirmDeleteMember}
+                disabled={membersSaving}
+              >
+                {membersSaving
+                  ? `🔄 ${t('admin.memberManagement.modal.actions.working')}`
+                  : `🗑️ ${t('admin.memberManagement.deleteModal.confirm')}`}
               </button>
             </div>
           </div>

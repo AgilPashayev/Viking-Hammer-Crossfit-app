@@ -1,10 +1,26 @@
 // Centralized date formatting utility
-// Formats dates consistently as "Oct 23, 2025" throughout the application
+// Formats dates consistently with i18n support throughout the application
+
+import i18n from '../i18n/config';
 
 /**
- * Formats a date string or Date object to "Oct 23, 2025" format
+ * Get current locale for date formatting
+ * Maps i18n language codes to browser locale codes
+ */
+const getLocale = (): string => {
+  const language = i18n.language || 'en';
+  const localeMap: { [key: string]: string } = {
+    en: 'en-US',
+    az: 'az-AZ',
+    ru: 'ru-RU',
+  };
+  return localeMap[language] || 'en-US';
+};
+
+/**
+ * Formats a date string or Date object to localized format like "Oct 23, 2025" (en) or "23 Okt, 2025" (az)
  * @param dateValue - Date string (ISO format, YYYY-MM-DD, etc.) or Date object
- * @returns Formatted date string like "Oct 23, 2025"
+ * @returns Formatted date string
  */
 export const formatDate = (dateValue: string | Date | null | undefined): string => {
   try {
@@ -41,7 +57,7 @@ export const formatDate = (dateValue: string | Date | null | undefined): string 
       day: 'numeric', // "23", "1", "15"
     };
 
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -73,7 +89,7 @@ export const formatDateLong = (dateValue: string | Date | null | undefined): str
       day: 'numeric',
     };
 
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting date:', error);
     return 'Invalid date';
@@ -104,7 +120,7 @@ export const formatBirthday = (dateOfBirth: string | Date | null | undefined): s
       day: 'numeric',
     };
 
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting birthday:', error);
     return 'Invalid date';
@@ -135,7 +151,7 @@ export const formatBirthdayLong = (dateOfBirth: string | Date | null | undefined
       day: 'numeric',
     };
 
-    return date.toLocaleDateString('en-US', options);
+    return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting birthday:', error);
     return 'Invalid date';
@@ -163,14 +179,14 @@ export function formatBakuDateTime(date: string | Date | null | undefined): stri
 
     if (isNaN(dateObj.getTime())) return '—';
 
-    const dateStr = new Intl.DateTimeFormat('en-US', {
+    const dateStr = new Intl.DateTimeFormat(getLocale(), {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
       timeZone: BAKU_TIMEZONE,
     }).format(dateObj);
 
-    const timeStr = new Intl.DateTimeFormat('en-US', {
+    const timeStr = new Intl.DateTimeFormat(getLocale(), {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,
@@ -195,7 +211,7 @@ export function formatBakuDate(date: string | Date | null | undefined): string {
 
     if (isNaN(dateObj.getTime())) return '—';
 
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(getLocale(), {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -218,7 +234,7 @@ export function formatBakuTime(date: string | Date | null | undefined): string {
 
     if (isNaN(dateObj.getTime())) return '—';
 
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(getLocale(), {
       hour: '2-digit',
       minute: '2-digit',
       hour12: false,

@@ -592,7 +592,15 @@
         "inactive": "Inactive",
         "pending": "Pending",
         "suspended": "Suspended"
-      }
+      },
+      "deleteModal": {
+        "title": "Confirm Deletion",
+        "message": "Are you sure you want to delete {{name}}?",
+        "warning": "⚠️ This action cannot be undone. All member data will be permanently deleted.",
+        "confirm": "Yes, Delete Member",
+        "cancel": "Cancel"
+      },
+      "deleteSuccess": "Member deleted successfully!"
     }
   }
 }

@@ -592,7 +592,15 @@
         "inactive": "Qeyri-aktiv",
         "pending": "Gözləyir",
         "suspended": "Dayandırılıb"
-      }
+      },
+      "deleteModal": {
+        "title": "Silməni Təsdiqlə",
+        "message": "{{name}} adlı üzvü silmək istədiyinizə əminsiniz?",
+        "warning": "⚠️ Bu əməliyyat geri qaytarıla bilməz. Bütün üzv məlumatları həmişəlik silinəcək.",
+        "confirm": "Bəli, Üzvü Sil",
+        "cancel": "Ləğv Et"
+      },
+      "deleteSuccess": "Üzv uğurla silindi!"
     }
   }
 }
