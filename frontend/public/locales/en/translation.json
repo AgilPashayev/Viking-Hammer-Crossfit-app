@@ -18,7 +18,14 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
-    "details": "Details"
+    "details": "Details",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
   },
   "navigation": {
     "home": "Home",
@@ -67,6 +74,8 @@
   },
   "classes": {
     "title": "Classes",
+    "allClasses": "All Classes",
+    "browseClasses": "Browse and book any of our available classes",
     "className": "Class Name",
     "instructor": "Instructor",
     "with": "with",
@@ -76,12 +85,31 @@
     "capacity": "Capacity",
     "available": "Available",
     "book": "Book",
+    "bookClass": "Book Class",
     "booked": "Booked",
     "full": "Full",
-    "cancel": "Cancel Booking",
+    "cancel": "Cancel",
     "enrolledMembers": "Enrolled Members",
     "minutes": "{{count}} minutes",
-    "spotsLeft": "{{count}} spots left"
+    "spotsLeft": "{{count}} spots left",
+    "loadingClasses": "Loading classes...",
+    "noClassesFound": "No classes found matching your filters.",
+    "next": "Next",
+    "enrolled": "enrolled",
+    "filters": {
+      "category": "Category",
+      "allCategories": "All Categories",
+      "cardio": "Cardio",
+      "strength": "Strength",
+      "flexibility": "Flexibility",
+      "mixed": "Mixed",
+      "specialized": "Specialized",
+      "difficulty": "Difficulty",
+      "allLevels": "All Levels",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
   },
   "profile": {
     "title": "My Profile",

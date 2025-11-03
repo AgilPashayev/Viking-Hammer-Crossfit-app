@@ -18,7 +18,14 @@
     "confirm": "Təsdiq et",
     "yes": "Bəli",
     "no": "Xeyr",
-    "details": "Ətraflı"
+    "details": "Ətraflı",
+    "sunday": "Bazar",
+    "monday": "Bazar ertəsi",
+    "tuesday": "Çərşənbə axşamı",
+    "wednesday": "Çərşənbə",
+    "thursday": "Cümə axşamı",
+    "friday": "Cümə",
+    "saturday": "Şənbə"
   },
   "navigation": {
     "home": "Ana Səhifə",
@@ -67,6 +74,8 @@
   },
   "classes": {
     "title": "Dərslər",
+    "allClasses": "Bütün Dərslər",
+    "browseClasses": "Mövcud dərslərimizə baxın və rezerv edin",
     "className": "Dərs Adı",
     "instructor": "Məşqçi",
     "with": "ilə",
@@ -76,12 +85,31 @@
     "capacity": "Tutum",
     "available": "Mövcuddur",
     "book": "Rezerv et",
+    "bookClass": "Dərsi Rezerv et",
     "booked": "Rezerv edilib",
     "full": "Doludur",
-    "cancel": "Rezervi ləğv et",
-    "enrolledMembers": "Qeydiyyatdan keçmiş üzvlər",
+    "cancel": "Ləğv et",
+    "enrolledMembers": "Qeydiyyatdan Keçmiş Üzvlər",
     "minutes": "{{count}} dəqiqə",
-    "spotsLeft": "{{count}} yer qalıb"
+    "spotsLeft": "{{count}} yer qalıb",
+    "loadingClasses": "Dərslər yüklənir...",
+    "noClassesFound": "Filtrlərə uyğun dərs tapılmadı.",
+    "next": "Növbəti",
+    "enrolled": "qeydiyyatlı",
+    "filters": {
+      "category": "Kateqoriya",
+      "allCategories": "Bütün Kateqoriyalar",
+      "cardio": "Kardio",
+      "strength": "Güc",
+      "flexibility": "Çeviklik",
+      "mixed": "Qarışıq",
+      "specialized": "İxtisaslaşdırılmış",
+      "difficulty": "Çətinlik",
+      "allLevels": "Bütün Səviyyələr",
+      "beginner": "Başlanğıc",
+      "intermediate": "Orta",
+      "advanced": "Qabaqcıl"
+    }
   },
   "profile": {
     "title": "Mənim Profilim",

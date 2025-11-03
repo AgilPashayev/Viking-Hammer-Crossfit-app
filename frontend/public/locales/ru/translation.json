@@ -18,7 +18,14 @@
     "confirm": "Подтвердить",
     "yes": "Да",
     "no": "Нет",
-    "details": "Подробнее"
+    "details": "Подробнее",
+    "sunday": "Воскресенье",
+    "monday": "Понедельник",
+    "tuesday": "Вторник",
+    "wednesday": "Среда",
+    "thursday": "Четверг",
+    "friday": "Пятница",
+    "saturday": "Суббота"
   },
   "navigation": {
     "home": "Главная",
@@ -67,6 +74,8 @@
   },
   "classes": {
     "title": "Занятия",
+    "allClasses": "Все занятия",
+    "browseClasses": "Просмотрите и забронируйте любое из наших доступных занятий",
     "className": "Название занятия",
     "instructor": "Инструктор",
     "with": "с",
@@ -76,12 +85,31 @@
     "capacity": "Вместимость",
     "available": "Доступно",
     "book": "Забронировать",
+    "bookClass": "Забронировать занятие",
     "booked": "Забронировано",
     "full": "Заполнено",
-    "cancel": "Отменить бронирование",
+    "cancel": "Отменить",
     "enrolledMembers": "Записанные участники",
     "minutes": "{{count}} минут",
-    "spotsLeft": "Осталось мест: {{count}}"
+    "spotsLeft": "Осталось мест: {{count}}",
+    "loadingClasses": "Загрузка занятий...",
+    "noClassesFound": "Занятий по выбранным фильтрам не найдено.",
+    "next": "Следующее",
+    "enrolled": "записано",
+    "filters": {
+      "category": "Категория",
+      "allCategories": "Все категории",
+      "cardio": "Кардио",
+      "strength": "Силовая подготовка",
+      "flexibility": "Гибкость",
+      "mixed": "Смешанное",
+      "specialized": "Специализированное",
+      "difficulty": "Сложность",
+      "allLevels": "Все уровни",
+      "beginner": "Начальный",
+      "intermediate": "Средний",
+      "advanced": "Продвинутый"
+    }
   },
   "profile": {
     "title": "Мой профиль",
