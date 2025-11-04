@@ -984,14 +984,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">📚</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalClasses}</h3>
-              <p className="stat-label">Total Classes</p>
+              <p className="stat-label">{t('admin.classManagement.classes.stats.totalClasses')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.activeClasses}</h3>
-              <p className="stat-label">Active Classes</p>
+              <p className="stat-label">{t('admin.classManagement.classes.stats.activeClasses')}</p>
             </div>
           </div>
           <div className="stat-card">
@@ -1000,21 +1000,21 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <h3 className="stat-number">
                 {stats.currentEnrollment}/{stats.totalCapacity}
               </h3>
-              <p className="stat-label">Total Enrollment</p>
+              <p className="stat-label">{t('admin.classManagement.classes.stats.totalEnrollment')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🎯</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.fullClasses}</h3>
-              <p className="stat-label">Full Classes</p>
+              <p className="stat-label">{t('admin.classManagement.classes.stats.fullClasses')}</p>
             </div>
           </div>
         </div>
 
         <div className="section-header">
           <div>
-            <h3>Gym Classes Management</h3>
+            <h3>{t('admin.classManagement.classes.title')}</h3>
             <p
               style={{
                 margin: '5px 0 0 0',
@@ -1023,7 +1023,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 fontStyle: 'italic',
               }}
             >
-              Last updated: {lastRefresh.toLocaleTimeString()}
+              {t('admin.classManagement.classes.lastUpdated', { time: lastRefresh.toLocaleTimeString() })}
             </p>
           </div>
           <div className="header-actions">
@@ -1047,7 +1047,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 gap: '5px',
               }}
             >
-              🔄 {loading ? 'Refreshing...' : 'Refresh'}
+              🔄 {loading ? t('admin.classManagement.common.loading') : t('admin.classManagement.classes.refresh')}
             </button>
             <button
               className="add-btn"
@@ -1073,7 +1073,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 setShowAddClassModal(true);
               }}
             >
-              ➕ Add New Class
+              ➕ {t('admin.classManagement.classes.addButton')}
             </button>
           </div>
         </div>
@@ -1082,7 +1082,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           <div className="search-filters">
             <input
               type="text"
-              placeholder="Search classes..."
+              placeholder={t('admin.classManagement.classes.search.placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -1092,11 +1092,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               onChange={(e) => setFilterCategory(e.target.value)}
               className="filter-select"
             >
-              <option value="all">All Categories</option>
-              <option value="Cardio">Cardio</option>
-              <option value="Strength">Strength</option>
-              <option value="Flexibility">Flexibility</option>
-              <option value="Mixed">Mixed</option>
+              <option value="all">{t('admin.classManagement.classes.filters.allCategories')}</option>
+              <option value="Cardio">{t('admin.classManagement.classes.filters.cardio')}</option>
+              <option value="Strength">{t('admin.classManagement.classes.filters.strength')}</option>
+              <option value="Flexibility">{t('admin.classManagement.classes.filters.flexibility')}</option>
+              <option value="Mixed">{t('admin.classManagement.classes.filters.mixed')}</option>
               <option value="Specialized">Specialized</option>
             </select>
             <select
@@ -1104,9 +1104,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="filter-select"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
+              <option value="all">{t('admin.classManagement.classes.filters.allStatus')}</option>
+              <option value="active">{t('admin.classManagement.classes.filters.active')}</option>
+              <option value="inactive">{t('admin.classManagement.classes.filters.inactive')}</option>
               <option value="full">Full</option>
             </select>
           </div>
@@ -1743,9 +1743,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     <div className="class-management">
       <div className="class-management-header">
         <button className="back-button" onClick={onBack}>
-          ← Back to Reception
+          ← {t('admin.classManagement.backButton')}
         </button>
-        <h2 className="class-management-title">🏋️‍♂️ Class & Instructor Management</h2>
+        <h2 className="class-management-title">🏋️‍♂️ {t('admin.classManagement.pageTitle')}</h2>
       </div>
 
       <div className="tabs-navigation">
@@ -1753,19 +1753,19 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           className={`tab-btn ${activeTab === 'classes' ? 'active' : ''}`}
           onClick={() => setActiveTab('classes')}
         >
-          🏃‍♀️ Classes
+          🏃‍♀️ {t('admin.classManagement.tabs.classes')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'instructors' ? 'active' : ''}`}
           onClick={() => setActiveTab('instructors')}
         >
-          👨‍🏫 Instructors
+          👨‍🏫 {t('admin.classManagement.tabs.instructors')}
         </button>
         <button
           className={`tab-btn ${activeTab === 'schedule' ? 'active' : ''}`}
           onClick={() => setActiveTab('schedule')}
         >
-          📅 Schedule
+          📅 {t('admin.classManagement.tabs.schedule')}
         </button>
       </div>
 
@@ -1790,7 +1790,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5em' }}>{editingClass ? '✏️' : '➕'}</span>
                 <h3 style={{ margin: 0, fontSize: '1.4em', fontWeight: '600' }}>
-                  {editingClass ? 'Edit Class' : 'Add New Class'}
+                  {editingClass ? t('admin.classManagement.classModal.titleEdit') : t('admin.classManagement.classModal.titleAdd')}
                 </h3>
               </div>
               <button
@@ -1830,28 +1830,28 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               }}
             >
               <div className="form-group">
-                <label>Class Name:</label>
+                <label>{t('admin.classManagement.classModal.form.className')}:</label>
                 <input
                   type="text"
                   value={newClass.name || ''}
                   onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
-                  placeholder="Enter class name"
+                  placeholder={t('admin.classManagement.classModal.form.classNamePlaceholder')}
                 />
               </div>
 
               <div className="form-group">
-                <label>Description:</label>
+                <label>{t('admin.classManagement.classModal.form.description')}:</label>
                 <textarea
                   value={newClass.description || ''}
                   onChange={(e) => setNewClass({ ...newClass, description: e.target.value })}
-                  placeholder="Enter class description"
+                  placeholder={t('admin.classManagement.classModal.form.descriptionPlaceholder')}
                   rows={3}
                 />
               </div>
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Duration (minutes):</label>
+                  <label>{t('admin.classManagement.classModal.form.duration')}:</label>
                   <input
                     type="number"
                     value={newClass.duration || 60}
@@ -1862,7 +1862,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Max Capacity:</label>
+                  <label>{t('admin.classManagement.classModal.form.maxCapacity')}:</label>
                   <input
                     type="number"
                     value={newClass.maxCapacity || 20}
@@ -1875,36 +1875,36 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Category:</label>
+                  <label>{t('admin.classManagement.classModal.form.category')}:</label>
                   <select
                     value={newClass.category || 'Mixed'}
                     onChange={(e) => setNewClass({ ...newClass, category: e.target.value as any })}
                   >
-                    <option value="Cardio">Cardio</option>
-                    <option value="Strength">Strength</option>
-                    <option value="Flexibility">Flexibility</option>
-                    <option value="Mixed">Mixed</option>
+                    <option value="Cardio">{t('admin.classManagement.classes.filters.cardio')}</option>
+                    <option value="Strength">{t('admin.classManagement.classes.filters.strength')}</option>
+                    <option value="Flexibility">{t('admin.classManagement.classes.filters.flexibility')}</option>
+                    <option value="Mixed">{t('admin.classManagement.classes.filters.mixed')}</option>
                     <option value="Specialized">Specialized</option>
                   </select>
                 </div>
 
                 <div className="form-group">
-                  <label>Difficulty:</label>
+                  <label>{t('admin.classManagement.classModal.form.difficulty')}:</label>
                   <select
                     value={newClass.difficulty || 'Beginner'}
                     onChange={(e) =>
                       setNewClass({ ...newClass, difficulty: e.target.value as any })
                     }
                   >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
+                    <option value="Beginner">{t('admin.classManagement.classModal.form.beginner')}</option>
+                    <option value="Intermediate">{t('admin.classManagement.classModal.form.intermediate')}</option>
+                    <option value="Advanced">{t('admin.classManagement.classModal.form.advanced')}</option>
                   </select>
                 </div>
               </div>
 
               <div className="form-group">
-                <label>Price (AZN):</label>
+                <label>{t('admin.classManagement.classModal.form.price')}:</label>
                 <input
                   type="number"
                   min="0"
@@ -1920,27 +1920,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       setNewClass({ ...newClass, price: isNaN(numValue) ? 0 : numValue });
                     }
                   }}
-                  placeholder="0"
+                  placeholder={t('admin.classManagement.classModal.form.pricePlaceholder')}
                 />
               </div>
 
               {/* Schedule Section */}
               <div className="form-group schedule-builder">
-                <label className="schedule-builder-label">Weekly Schedule:</label>
+                <label className="schedule-builder-label">{t('admin.classManagement.classModal.form.schedule')}:</label>
                 <p className="schedule-helper-text">
-                  Select weekdays and set time for recurring classes (24-hour format)
+                  {t('admin.classManagement.classModal.form.scheduleHelper')}
                 </p>
 
                 {/* Weekday Checkboxes */}
                 <div className="weekday-checkboxes">
                   {[
-                    'Monday',
-                    'Tuesday',
-                    'Wednesday',
-                    'Thursday',
-                    'Friday',
-                    'Saturday',
-                    'Sunday',
+                    { name: 'Monday', key: 'monday' },
+                    { name: 'Tuesday', key: 'tuesday' },
+                    { name: 'Wednesday', key: 'wednesday' },
+                    { name: 'Thursday', key: 'thursday' },
+                    { name: 'Friday', key: 'friday' },
+                    { name: 'Saturday', key: 'saturday' },
+                    { name: 'Sunday', key: 'sunday' },
                   ].map((day, arrayIndex) => {
                     // Map display order to actual dayOfWeek values (0=Sunday, 1=Monday... 6=Saturday)
                     const dayOfWeekValue = arrayIndex === 6 ? 0 : arrayIndex + 1;
@@ -1980,7 +1980,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             }
                           }}
                         />
-                        <span className="weekday-label">{day.slice(0, 3)}</span>
+                        <span className="weekday-label">{t(`admin.classManagement.schedule.days.${day.key}`).slice(0, 3)}</span>
                       </label>
                     );
                   })}
@@ -1990,21 +1990,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 {newClass.schedule && newClass.schedule.length > 0 && (
                   <div className="schedule-times">
                     <div className="schedule-times-header">
-                      <span>⏰ Set time for selected days (24-hour format):</span>
+                      <span>⏰ {t('admin.classManagement.classModal.form.setTimeHelper')}:</span>
                     </div>
                     {(() => {
                       console.log(
                         'Rendering schedule times. newClass.schedule:',
                         newClass.schedule,
                       );
-                      return newClass.schedule.map((scheduleItem, idx) => (
+                      return newClass.schedule.map((scheduleItem, idx) => {
+                        const dayNames = [
+                          t('admin.classManagement.schedule.days.sunday'),
+                          t('admin.classManagement.schedule.days.monday'),
+                          t('admin.classManagement.schedule.days.tuesday'),
+                          t('admin.classManagement.schedule.days.wednesday'),
+                          t('admin.classManagement.schedule.days.thursday'),
+                          t('admin.classManagement.schedule.days.friday'),
+                          t('admin.classManagement.schedule.days.saturday'),
+                        ];
+                        return (
                         <div key={idx} className="schedule-time-row">
                           <span className="day-name-in-schedule">
-                            {
-                              ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
-                                scheduleItem.dayOfWeek
-                              ]
-                            }
+                            {dayNames[scheduleItem.dayOfWeek].slice(0, 3)}
                           </span>
                           <div className="time-inputs-group">
                             <input
@@ -2028,7 +2034,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                                 setNewClass({ ...newClass, schedule: updatedSchedule });
                               }}
                             />
-                            <span className="time-separator">to</span>
+                            <span className="time-separator">{t('admin.classManagement.classModal.form.timeTo')}</span>
                             <input
                               type="time"
                               value={scheduleItem.endTime}
@@ -2052,7 +2058,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             />
                           </div>
                         </div>
-                      ));
+                        );
+                      });
                     })()}
                   </div>
                 )}
@@ -2091,7 +2098,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#5a6268')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = '#6c757d')}
               >
-                Cancel
+                {t('admin.classManagement.classModal.actions.cancel')}
               </button>
               <button
                 className="confirm-btn"
@@ -2117,7 +2124,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.2)';
                 }}
               >
-                {editingClass ? '✏️ Update Class' : '➕ Add Class'}
+                {editingClass ? `✏️ ${t('admin.classManagement.classModal.actions.update')}` : `➕ ${t('admin.classManagement.classModal.actions.save')}`}
               </button>
             </div>
           </div>

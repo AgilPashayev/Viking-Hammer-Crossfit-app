@@ -686,6 +686,7 @@
         "title": "İdman Zalı Sinifləri Idarəetməsi",
         "lastUpdated": "Son yenilənmə: {{time}}",
         "addButton": "Yeni Sinif Əlavə Et",
+        "refresh": "Yenilə",
         "stats": {
           "totalClasses": "Ümumi Siniflər",
           "activeClasses": "Aktiv Siniflər",
@@ -753,10 +754,13 @@
           "status": "Status",
           "instructors": "Təlimçilər",
           "schedule": "Sinif Cədvəli",
+          "scheduleHelper": "Həftə günlərini seçin və təkrarlanan siniflər üçün vaxt təyin edin (24 saatlıq format)",
+          "setTimeHelper": "Seçilmiş günlər üçün vaxt təyin edin (24 saatlıq format)",
           "addScheduleSlot": "Cədvəl Slotu Əlavə Et",
           "dayOfWeek": "Gün",
           "startTime": "Başlama Vaxtı",
           "endTime": "Bitmə Vaxtı",
+          "timeTo": "-dən",
           "removeSlot": "Sil"
         },
         "actions": {
