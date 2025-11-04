@@ -1,11 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
-
-// Import translation files
-import enTranslation from '../../public/locales/en/translation.json';
-import azTranslation from '../../public/locales/az/translation.json';
-import ruTranslation from '../../public/locales/ru/translation.json';
+import HttpBackend from 'i18next-http-backend';
 
 // Language detection configuration
 const detectionOptions = {
@@ -23,6 +19,9 @@ const detectionOptions = {
 };
 
 i18n
+  // Load translations from public folder
+  .use(HttpBackend)
+
   // Detect user language
   .use(LanguageDetector)
 
@@ -31,17 +30,9 @@ i18n
 
   // Initialize i18next
   .init({
-    // Translation resources
-    resources: {
-      en: {
-        translation: enTranslation,
-      },
-      az: {
-        translation: azTranslation,
-      },
-      ru: {
-        translation: ruTranslation,
-      },
+    // HTTP backend configuration
+    backend: {
+      loadPath: '/locales/{{lng}}/translation.json',
     },
 
     // Fallback language chain: az → ru → en

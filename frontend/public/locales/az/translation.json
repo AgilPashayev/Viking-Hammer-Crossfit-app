@@ -1172,6 +1172,163 @@
           "description": "Başlamaq üçün ilk elanınızı yaradın!"
         }
       }
+    },
+    "announcementManager": {
+      "header": {
+        "backButton": "← Qəbula Qayıt",
+        "title": "Elanların İdarə Edilməsi"
+      },
+      "stats": {
+        "total": "Ümumi Elanlar",
+        "published": "Dərc Edilmiş",
+        "drafts": "Qaralamalar",
+        "scheduled": "Planlaşdırılmış",
+        "totalViews": "Ümumi Baxışlar",
+        "readRate": "Oxunma Dərəcəsi"
+      },
+      "controls": {
+        "createButton": "+ Yeni Elan Yarat",
+        "searchPlaceholder": "Elanları axtar..."
+      },
+      "filters": {
+        "type": {
+          "all": "Bütün Növlər",
+          "general": "Ümumi",
+          "class": "Sinif",
+          "maintenance": "Təmir",
+          "event": "Tədbir",
+          "promotion": "Təşviqat"
+        },
+        "status": {
+          "all": "Bütün Statuslar",
+          "draft": "Qaralama",
+          "published": "Dərc Edilmiş",
+          "scheduled": "Planlaşdırılmış",
+          "expired": "Müddəti Bitmiş"
+        },
+        "priority": {
+          "all": "Bütün Prioritetlər",
+          "low": "Aşağı",
+          "normal": "Normal",
+          "high": "Yüksək",
+          "urgent": "Təcili"
+        }
+      },
+      "emptyState": {
+        "title": "Hələ Elan Yoxdur",
+        "description": "Üzvləri məlumatlandırmaq üçün ilk elanınızı yaradın!"
+      },
+      "card": {
+        "recipients": "Alıcılar",
+        "created": "Yaradılıb",
+        "published": "Dərc Edilib",
+        "scheduled": "Planlaşdırılıb",
+        "views": "baxış",
+        "reads": "oxunub"
+      },
+      "recipientTypes": {
+        "all": "Bütün Üzvlər",
+        "members": "Yalnız Üzvlər",
+        "instructors": "Yalnız Təlimatçılar",
+        "staff": "Yalnız İşçilər",
+        "custom": "Xüsusi Siyahı"
+      },
+      "actions": {
+        "preview": "👁️ Önizləmə",
+        "edit": "✏️ Redaktə Et",
+        "publish": "📤 Dərc Et",
+        "delete": "🗑️ Sil"
+      },
+      "modal": {
+        "createTitle": "Yeni Elan Yarat",
+        "editTitle": "Elanı Redaktə Et",
+        "previewTitle": "Elanın Önizləməsi",
+        "close": "✕",
+        "cancel": "Ləğv Et",
+        "save": "Yadda Saxla",
+        "update": "Elanı Yenilə",
+        "publish": "Dərc Et",
+        "fields": {
+          "title": "Başlıq",
+          "titlePlaceholder": "Elan başlığını daxil edin",
+          "content": "Məzmun",
+          "contentPlaceholder": "Elan məzmununu daxil edin",
+          "type": "Növ",
+          "priority": "Prioritet",
+          "recipients": "Alıcılar",
+          "status": "Status",
+          "scheduledDate": "Planlaşdırılmış Tarix",
+          "scheduledPlaceholder": "Planlaşdırılmış tarixi seçin",
+          "tags": "Teqlər (vergüllə ayrılmış)",
+          "tagsPlaceholder": "məsələn: siniflər, təşviqat, təmir",
+          "expiryDate": "Son Tarix (ixtiyari)",
+          "expiryPlaceholder": "Son tarixi seçin",
+          "datePreview": "Önizləmə"
+        },
+        "typeOptions": {
+          "general": "Ümumi",
+          "class": "Sinif",
+          "maintenance": "Təmir",
+          "event": "Tədbir",
+          "promotion": "Təşviqat"
+        },
+        "priorityOptions": {
+          "low": "Aşağı",
+          "normal": "Normal",
+          "high": "Yüksək",
+          "urgent": "Təcili"
+        },
+        "recipientOptions": {
+          "all": "Bütün İstifadəçilər",
+          "members": "Yalnız Üzvlər",
+          "instructors": "Yalnız Təlimatçılar",
+          "staff": "Yalnız İşçilər",
+          "custom": "Xüsusi Seçim"
+        },
+        "statusOptions": {
+          "draft": "Qaralama Olaraq Saxla",
+          "published": "Dərhal Dərc Et",
+          "scheduled": "Sonraya Planlaşdır"
+        },
+        "previewDetails": {
+          "recipients": "Alıcılar",
+          "createdBy": "Yaradıb",
+          "created": "Yaradılıb",
+          "published": "Dərc Edilib",
+          "expires": "Bitmə Tarixi"
+        }
+      },
+      "deleteModal": {
+        "title": "Silməyi Təsdiq Et",
+        "question": "Bu elanı silmək istədiyinizdən əminsiniz?",
+        "infoTitle": "Başlıq",
+        "infoType": "Növ",
+        "infoStatus": "Status",
+        "warning": "Bu əməliyyat geri qaytarıla bilməz. Elan həmişəlik silinəcək.",
+        "cancel": "Ləğv Et",
+        "confirm": "Bəli, Sil"
+      },
+      "badges": {
+        "priority": {
+          "low": "Aşağı",
+          "normal": "Normal",
+          "high": "Yüksək",
+          "urgent": "Təcili"
+        },
+        "status": {
+          "draft": "Qaralama",
+          "published": "Dərc Edilmiş",
+          "scheduled": "Planlaşdırılmış",
+          "expired": "Müddəti Bitmiş"
+        },
+        "type": {
+          "general": "Ümumi",
+          "class": "Sinif",
+          "maintenance": "Təmir",
+          "event": "Tədbir",
+          "promotion": "Təşviqat"
+        }
+      }
     }
   }
 }

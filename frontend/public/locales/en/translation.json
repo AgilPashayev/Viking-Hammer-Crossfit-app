@@ -1172,6 +1172,163 @@
           "description": "Create your first announcement to get started!"
         }
       }
+    },
+    "announcementManager": {
+      "header": {
+        "backButton": "← Back to Reception",
+        "title": "Announcement Management"
+      },
+      "stats": {
+        "total": "Total Announcements",
+        "published": "Published",
+        "drafts": "Drafts",
+        "scheduled": "Scheduled",
+        "totalViews": "Total Views",
+        "readRate": "Read Rate"
+      },
+      "controls": {
+        "createButton": "+ Create New Announcement",
+        "searchPlaceholder": "Search announcements..."
+      },
+      "filters": {
+        "type": {
+          "all": "All Types",
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        },
+        "status": {
+          "all": "All Status",
+          "draft": "Draft",
+          "published": "Published",
+          "scheduled": "Scheduled",
+          "expired": "Expired"
+        },
+        "priority": {
+          "all": "All Priorities",
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        }
+      },
+      "emptyState": {
+        "title": "No Announcements Yet",
+        "description": "Create your first announcement to keep members informed!"
+      },
+      "card": {
+        "recipients": "Recipients",
+        "created": "Created",
+        "published": "Published",
+        "scheduled": "Scheduled for",
+        "views": "views",
+        "reads": "reads"
+      },
+      "recipientTypes": {
+        "all": "All Members",
+        "members": "Members Only",
+        "instructors": "Instructors Only",
+        "staff": "Staff Only",
+        "custom": "Custom List"
+      },
+      "actions": {
+        "preview": "👁️ Preview",
+        "edit": "✏️ Edit",
+        "publish": "📤 Publish",
+        "delete": "🗑️ Delete"
+      },
+      "modal": {
+        "createTitle": "Create New Announcement",
+        "editTitle": "Edit Announcement",
+        "previewTitle": "Announcement Preview",
+        "close": "✕",
+        "cancel": "Cancel",
+        "save": "Save",
+        "update": "Update Announcement",
+        "publish": "Publish",
+        "fields": {
+          "title": "Title",
+          "titlePlaceholder": "Enter announcement title",
+          "content": "Content",
+          "contentPlaceholder": "Enter announcement content",
+          "type": "Type",
+          "priority": "Priority",
+          "recipients": "Recipients",
+          "status": "Status",
+          "scheduledDate": "Scheduled Date",
+          "scheduledPlaceholder": "Select scheduled date",
+          "tags": "Tags (comma-separated)",
+          "tagsPlaceholder": "e.g., classes, promotion, maintenance",
+          "expiryDate": "Expiry Date (optional)",
+          "expiryPlaceholder": "Select expiry date",
+          "datePreview": "Preview"
+        },
+        "typeOptions": {
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        },
+        "priorityOptions": {
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        },
+        "recipientOptions": {
+          "all": "All Users",
+          "members": "Members Only",
+          "instructors": "Instructors Only",
+          "staff": "Staff Only",
+          "custom": "Custom Selection"
+        },
+        "statusOptions": {
+          "draft": "Save as Draft",
+          "published": "Publish Immediately",
+          "scheduled": "Schedule for Later"
+        },
+        "previewDetails": {
+          "recipients": "Recipients",
+          "createdBy": "Created by",
+          "created": "Created",
+          "published": "Published",
+          "expires": "Expires"
+        }
+      },
+      "deleteModal": {
+        "title": "Confirm Delete",
+        "question": "Are you sure you want to delete this announcement?",
+        "infoTitle": "Title",
+        "infoType": "Type",
+        "infoStatus": "Status",
+        "warning": "This action cannot be undone. The announcement will be permanently deleted.",
+        "cancel": "Cancel",
+        "confirm": "Yes, Delete"
+      },
+      "badges": {
+        "priority": {
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        },
+        "status": {
+          "draft": "Draft",
+          "published": "Published",
+          "scheduled": "Scheduled",
+          "expired": "Expired"
+        },
+        "type": {
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        }
+      }
     }
   }
 }
