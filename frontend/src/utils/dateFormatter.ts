@@ -11,10 +11,34 @@ const getLocale = (): string => {
   const language = i18n.language || 'en';
   const localeMap: { [key: string]: string } = {
     en: 'en-US',
-    az: 'az-AZ',
+    az: 'az-Latn-AZ', // Use Latin script for better formatting
     ru: 'ru-RU',
   };
   return localeMap[language] || 'en-US';
+};
+
+/**
+ * Month names in Azerbaijani (short form)
+ */
+const azMonthsShort = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'İyn', 'İyl', 'Avq', 'Sen', 'Okt', 'Noy', 'Dek'];
+
+/**
+ * Month names in Azerbaijani (long form)
+ */
+const azMonthsLong = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+
+/**
+ * Custom date formatter for Azerbaijani to produce "25 Okt, 2025" format
+ */
+const formatAzerbaijaniDate = (date: Date, includeYear: boolean = true, longMonth: boolean = false): string => {
+  const day = date.getDate();
+  const month = longMonth ? azMonthsLong[date.getMonth()] : azMonthsShort[date.getMonth()];
+  const year = date.getFullYear();
+  
+  if (includeYear) {
+    return `${day} ${month}, ${year}`;
+  }
+  return `${day} ${month}`;
 };
 
 /**
@@ -57,6 +81,11 @@ export const formatDate = (dateValue: string | Date | null | undefined): string 
       day: 'numeric', // "23", "1", "15"
     };
 
+    // Use custom formatter for Azerbaijani
+    if (i18n.language === 'az') {
+      return formatAzerbaijaniDate(date, true, false);
+    }
+
     return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -89,6 +118,11 @@ export const formatDateLong = (dateValue: string | Date | null | undefined): str
       day: 'numeric',
     };
 
+    // Use custom formatter for Azerbaijani
+    if (i18n.language === 'az') {
+      return formatAzerbaijaniDate(date, true, true);
+    }
+
     return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -119,6 +153,11 @@ export const formatBirthday = (dateOfBirth: string | Date | null | undefined): s
       month: 'short',
       day: 'numeric',
     };
+
+    // Use custom formatter for Azerbaijani
+    if (i18n.language === 'az') {
+      return formatAzerbaijaniDate(date, false, false);
+    }
 
     return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
@@ -151,6 +190,11 @@ export const formatBirthdayLong = (dateOfBirth: string | Date | null | undefined
       day: 'numeric',
     };
 
+    // Use custom formatter for Azerbaijani
+    if (i18n.language === 'az') {
+      return formatAzerbaijaniDate(date, false, true);
+    }
+
     return date.toLocaleDateString(getLocale(), options);
   } catch (error) {
     console.error('Error formatting birthday:', error);
@@ -178,6 +222,18 @@ export function formatBakuDateTime(date: string | Date | null | undefined): stri
     const dateObj = typeof date === 'string' ? new Date(date) : date;
 
     if (isNaN(dateObj.getTime())) return '—';
+
+    // For Azerbaijani, use custom formatter
+    if (i18n.language === 'az') {
+      const dateStr = formatAzerbaijaniDate(dateObj, true, false);
+      const timeStr = new Intl.DateTimeFormat('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        timeZone: BAKU_TIMEZONE,
+      }).format(dateObj);
+      return `${dateStr} ${timeStr}`;
+    }
 
     const dateStr = new Intl.DateTimeFormat(getLocale(), {
       month: 'short',
@@ -210,6 +266,11 @@ export function formatBakuDate(date: string | Date | null | undefined): string {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
 
     if (isNaN(dateObj.getTime())) return '—';
+
+    // For Azerbaijani, use custom formatter
+    if (i18n.language === 'az') {
+      return formatAzerbaijaniDate(dateObj, true, false);
+    }
 
     return new Intl.DateTimeFormat(getLocale(), {
       month: 'short',
