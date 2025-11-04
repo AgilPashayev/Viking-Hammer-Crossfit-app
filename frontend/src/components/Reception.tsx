@@ -747,7 +747,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
             <div className="activity-item">
               <div className="activity-icon info">ℹ️</div>
               <div className="activity-content">
-                <p>No recent activity yet</p>
+                <p>{t('admin.reception.noRecentActivity')}</p>
                 <span>—</span>
               </div>
             </div>
@@ -763,7 +763,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
         <div className="qr-scanner-modal">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>QR Code Scanner</h3>
+              <h3>{t('admin.reception.qrScanner.title')}</h3>
               <button
                 className="btn-close"
                 onClick={() => {
@@ -777,9 +777,9 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
             <div className="modal-body">
               {!cameraActive && !scanResult && (
                 <div className="scanner-controls">
-                  <p>Position the QR code in front of your camera</p>
+                  <p>{t('admin.reception.qrPositionText')}</p>
                   <button className="btn btn-primary" onClick={startCamera}>
-                    📷 Start Camera
+                    📷 {t('admin.reception.qrScanner.startCamera')}
                   </button>
                 </div>
               )}
@@ -795,10 +795,12 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                   <canvas ref={canvasRef} style={{ display: 'none' }} />
                   <div className="scanner-controls">
                     <p style={{ color: '#2ecc71', fontWeight: 'bold', marginTop: '10px' }}>
-                      {isScanning ? '🔄 Scanning for QR codes...' : '📱 Scanning automatically...'}
+                      {isScanning
+                        ? `🔄 ${t('admin.reception.qrScanner.scanning')}`
+                        : `📱 ${t('admin.reception.qrScanner.scanningAuto')}`}
                     </p>
                     <button className="btn btn-secondary" onClick={stopCamera}>
-                      🛑 Stop Camera
+                      🛑 {t('admin.reception.qrScanner.stopCamera')}
                     </button>
                   </div>
                 </div>
@@ -807,7 +809,11 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
               {scanResult && (
                 <div className="scan-result">
                   <div className={`result-message ${scanResult.success ? 'success' : 'error'}`}>
-                    <h4>{scanResult.success ? '✅ Check-In Successful' : '❌ Check-In Failed'}</h4>
+                    <h4>
+                      {scanResult.success
+                        ? `✅ ${t('admin.reception.qrScanner.checkInSuccessful')}`
+                        : `❌ ${t('admin.reception.qrScanner.checkInFailed')}`}
+                    </h4>
                     <p>{scanResult.message}</p>
                   </div>
                   <button
@@ -818,7 +824,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                       setShowQRScanner(true);
                     }}
                   >
-                    🔄 Scan Another
+                    🔄 {t('admin.reception.qrScanner.scanAnother')}
                   </button>
                 </div>
               )}
@@ -831,7 +837,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
         <div className="qr-scanner-modal">
           <div className="modal-content" style={{ maxWidth: '500px' }}>
             <div className="modal-header">
-              <h3>Member Check-In Confirmation</h3>
+              <h3>{t('admin.reception.qrScanner.confirmationTitle')}</h3>
               <button className="btn-close" onClick={handleCancelCheckIn}>
                 ×
               </button>
@@ -882,7 +888,9 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                       marginBottom: '12px',
                     }}
                   >
-                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Membership Type:</span>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                      {t('admin.reception.qrScanner.membershipType')}
+                    </span>
                     <span style={{ color: '#3498db', fontWeight: '600' }}>
                       {scannedMemberData.membershipType || 'N/A'}
                     </span>
@@ -895,7 +903,9 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                       marginBottom: '12px',
                     }}
                   >
-                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Status:</span>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                      {t('admin.reception.qrScanner.status')}
+                    </span>
                     <span
                       style={{
                         color:
@@ -903,7 +913,9 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                         fontWeight: '600',
                       }}
                     >
-                      {scannedMemberData.membershipStatus === 'active' ? '✓ Active' : '✗ Inactive'}
+                      {scannedMemberData.membershipStatus === 'active'
+                        ? `✓ ${t('admin.reception.qrScanner.active')}`
+                        : `✗ ${t('admin.reception.qrScanner.inactive')}`}
                     </span>
                   </div>
 
@@ -914,7 +926,9 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                       marginBottom: '12px',
                     }}
                   >
-                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>Visits This Month:</span>
+                    <span style={{ fontWeight: '600', color: '#2c3e50' }}>
+                      {t('admin.reception.qrScanner.visitsThisMonth')}
+                    </span>
                     <span style={{ color: '#34495e', fontWeight: '600' }}>
                       {scannedMemberData.monthlyCheckInCount || 0}
                     </span>
@@ -930,7 +944,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                         }}
                       >
                         <span style={{ fontWeight: '600', color: '#2c3e50' }}>
-                          Remaining Visits:
+                          {t('admin.reception.qrScanner.remainingVisits')}
                         </span>
                         <span
                           style={{
@@ -975,7 +989,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                       onClick={handleConfirmCheckIn}
                       style={{ flex: 1, padding: '12px 24px', fontSize: '16px', fontWeight: '600' }}
                     >
-                      ✓ Confirm Check-In
+                      ✓ {t('admin.reception.qrScanner.confirmCheckIn')}
                     </button>
                   ) : (
                     <div
@@ -988,9 +1002,11 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                         textAlign: 'center',
                       }}
                     >
-                      <strong style={{ color: '#856404' }}>⚠️ Cannot Check-In</strong>
+                      <strong style={{ color: '#856404' }}>
+                        ⚠️ {t('admin.reception.qrScanner.cannotCheckIn')}
+                      </strong>
                       <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#856404' }}>
-                        Monthly limit reached or membership expired
+                        {t('admin.reception.qrScanner.limitReached')}
                       </p>
                     </div>
                   )}
@@ -999,7 +1015,7 @@ const Reception: React.FC<ReceptionProps> = ({ onNavigate, user }) => {
                     onClick={handleCancelCheckIn}
                     style={{ flex: 1, padding: '12px 24px', fontSize: '16px' }}
                   >
-                    Cancel
+                    {t('admin.reception.qrScanner.cancel')}
                   </button>
                 </div>
               </div>

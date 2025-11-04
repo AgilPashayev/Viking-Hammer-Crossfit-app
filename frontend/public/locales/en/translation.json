@@ -469,6 +469,29 @@
         "hoursAgo": "{{count}} hours ago",
         "dayAgo": "{{count}} day ago",
         "daysAgo": "{{count}} days ago"
+      },
+      "noRecentActivity": "No recent activity yet",
+      "qrPositionText": "Position the QR code in front of your camera",
+      "qrScanner": {
+        "title": "QR Code Scanner",
+        "startCamera": "Start Camera",
+        "stopCamera": "Stop Camera",
+        "scanning": "Scanning for QR codes...",
+        "scanningAuto": "Scanning automatically...",
+        "checkInSuccessful": "Check-In Successful",
+        "checkInFailed": "Check-In Failed",
+        "scanAnother": "Scan Another",
+        "confirmationTitle": "Member Check-In Confirmation",
+        "membershipType": "Membership Type:",
+        "status": "Status:",
+        "visitsThisMonth": "Visits This Month:",
+        "remainingVisits": "Remaining Visits:",
+        "active": "Active",
+        "inactive": "Inactive",
+        "confirmCheckIn": "Confirm Check-In",
+        "cannotCheckIn": "Cannot Check-In",
+        "limitReached": "Monthly limit reached or membership expired",
+        "cancel": "Cancel"
       }
     },
     "sparta": {

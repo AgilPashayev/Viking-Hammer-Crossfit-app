@@ -469,6 +469,29 @@
         "hoursAgo": "{{count}} часов назад",
         "dayAgo": "{{count}} день назад",
         "daysAgo": "{{count}} дней назад"
+      },
+      "noRecentActivity": "Пока нет недавней активности",
+      "qrPositionText": "Расположите QR-код перед камерой",
+      "qrScanner": {
+        "title": "Сканер QR-кодов",
+        "startCamera": "Запустить Камеру",
+        "stopCamera": "Остановить Камеру",
+        "scanning": "Поиск QR-кодов...",
+        "scanningAuto": "Автоматическое сканирование...",
+        "checkInSuccessful": "Регистрация Успешна",
+        "checkInFailed": "Регистрация Не Удалась",
+        "scanAnother": "Сканировать Еще",
+        "confirmationTitle": "Подтверждение Регистрации Участника",
+        "membershipType": "Тип Членства:",
+        "status": "Статус:",
+        "visitsThisMonth": "Посещений в Этом Месяце:",
+        "remainingVisits": "Оставшихся Посещений:",
+        "active": "Активен",
+        "inactive": "Неактивен",
+        "confirmCheckIn": "Подтвердить Регистрацию",
+        "cannotCheckIn": "Невозможно Зарегистрироваться",
+        "limitReached": "Достигнут месячный лимит или истек срок членства",
+        "cancel": "Отмена"
       }
     },
     "sparta": {

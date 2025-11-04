@@ -469,6 +469,29 @@
         "hoursAgo": "{{count}} saat əvvəl",
         "dayAgo": "{{count}} gün əvvəl",
         "daysAgo": "{{count}} gün əvvəl"
+      },
+      "noRecentActivity": "Hələ heç bir fəaliyyət yoxdur",
+      "qrPositionText": "QR kodu kameranızın qarşısında yerləşdirin",
+      "qrScanner": {
+        "title": "QR Kod Skaneri",
+        "startCamera": "Kameranı Başlat",
+        "stopCamera": "Kameranı Dayandır",
+        "scanning": "QR kodlar axtarılır...",
+        "scanningAuto": "Avtomatik skan edilir...",
+        "checkInSuccessful": "Qeydiyyat Uğurlu",
+        "checkInFailed": "Qeydiyyat Uğursuz",
+        "scanAnother": "Digərini Skan Et",
+        "confirmationTitle": "Üzv Qeydiyyat Təsdiqi",
+        "membershipType": "Üzvlük Növü:",
+        "status": "Status:",
+        "visitsThisMonth": "Bu Ay Ziyarət:",
+        "remainingVisits": "Qalan Ziyarətlər:",
+        "active": "Aktiv",
+        "inactive": "Qeyri-aktiv",
+        "confirmCheckIn": "Qeydiyyatı Təsdiqlə",
+        "cannotCheckIn": "Qeydiyyat Mümkün Deyil",
+        "limitReached": "Aylıq limit dolub və ya üzvlük müddəti bitib",
+        "cancel": "Ləğv Et"
       }
     },
     "sparta": {
