@@ -1073,7 +1073,28 @@
       },
       "scheduleAssignModal": {
         "title": "{{name}} üçün Sinif Təyinatı",
-        "subtitle": "Təlimçinin sinif cədvəlini idarə edin"
+        "subtitle": "Təlimçinin sinif cədvəlini idarə edin",
+        "availableClasses": "Mövcud Siniflər",
+        "helpText": "Təlimçidən sinifləri təyin etmək və ya silmək üçün klikləyin",
+        "currentlyAssigned": "Hazırda Təyin Edilmiş"
+      },
+      "deleteScheduleModal": {
+        "title": "Cədvəl Slotunu Silmə Təsdiqi",
+        "message": "Bu cədvəl slotunu həmişəlik silmək istədiyinizə əminsiniz?",
+        "slotDetails": "Cədvəl Slotu Təfərrüatları",
+        "class": "Sinif",
+        "instructor": "Təlimçi",
+        "date": "Tarix",
+        "time": "Vaxt",
+        "enrolledMembers": "Qeydiyyatlı Üzvlər",
+        "warningTitle": "Bu əməliyyat geri qaytarıla bilməz və",
+        "consequence1": "Planlaşdırılmış sessiya ləğv ediləcək",
+        "consequence2": "Qeydiyyatlı üzvlər bu slotdan silinəcək",
+        "actions": {
+          "cancel": "Ləğv Et",
+          "delete": "Slotu Sil"
+        },
+        "errorMessage": "Cədvəl slotunu silmə xətası. Lütfən yenidən cəhd edin."
       },
       "common": {
         "loading": "Yüklənir...",

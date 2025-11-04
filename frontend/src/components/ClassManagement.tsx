@@ -117,6 +117,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     details: string;
   } | null>(null);
 
+  // Schedule slot deletion states
+  const [showDeleteScheduleModal, setShowDeleteScheduleModal] = useState(false);
+  const [scheduleSlotToDelete, setScheduleSlotToDelete] = useState<ScheduleSlot | null>(null);
+
   // Notification modal state
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState('');
@@ -1700,31 +1704,31 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     );
   };
 
-  const handleDeleteScheduleSlot = async (slotId: string) => {
-    const slotToDelete = scheduleSlots.find((s) => s.id === slotId);
-    const slotInfo = slotToDelete
-      ? `\n• Class: ${
-          classes.find((c) => c.id === slotToDelete.classId)?.name || 'Unknown'
-        }\n• Date: ${slotToDelete.date}\n• Time: ${slotToDelete.startTime}-${slotToDelete.endTime}`
-      : '';
+  const handleDeleteScheduleSlot = (slotId: string) => {
+    const slot = scheduleSlots.find((s) => s.id === slotId);
+    if (!slot) return;
+    setScheduleSlotToDelete(slot);
+    setShowDeleteScheduleModal(true);
+  };
 
-    if (
-      confirm(
-        `⚠️ Delete Schedule Slot\n\nAre you sure you want to permanently delete this schedule slot?${slotInfo}\n\nThis action cannot be undone and will:\n• Cancel the scheduled session\n• Remove enrolled members from this slot\n\nClick OK to confirm deletion or Cancel to keep the schedule slot.`,
-      )
-    ) {
-      try {
-        const result = await scheduleService.delete(slotId);
-        if (result.success) {
-          setScheduleSlots(scheduleSlots.filter((s) => s.id !== slotId));
-          logActivity({
-            type: 'schedule_deleted',
-            message: `Schedule slot deleted`,
-          });
-        }
-      } catch (error) {
-        console.error('Error deleting schedule slot:', error);
+  const confirmDeleteScheduleSlot = async () => {
+    if (!scheduleSlotToDelete) return;
+
+    try {
+      const result = await scheduleService.delete(scheduleSlotToDelete.id);
+      if (result.success) {
+        setScheduleSlots(scheduleSlots.filter((s) => s.id !== scheduleSlotToDelete.id));
+        const deletedClass = classes.find((c) => c.id === scheduleSlotToDelete.classId);
+        logActivity({
+          type: 'schedule_deleted',
+          message: `Schedule slot deleted: ${deletedClass?.name || 'Unknown Class'} on ${scheduleSlotToDelete.date}`,
+        });
+        setShowDeleteScheduleModal(false);
+        setScheduleSlotToDelete(null);
       }
+    } catch (error) {
+      console.error('Error deleting schedule slot:', error);
+      alert(t('admin.classManagement.deleteScheduleModal.errorMessage') || 'Error deleting schedule slot');
     }
   };
 
@@ -2633,17 +2637,17 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div>
                   <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
-                    📚 Available Classes: {classes.length}
+                    📚 {t('admin.classManagement.scheduleAssignModal.availableClasses')}: {classes.length}
                   </div>
                   <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
-                    Click to assign or remove classes from this instructor
+                    {t('admin.classManagement.scheduleAssignModal.helpText')}
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '1.3em', fontWeight: 'bold' }}>
                     {classes.filter((c) => c.instructors.includes(instructorToSchedule.id)).length}
                   </div>
-                  <div style={{ fontSize: '0.8em', opacity: 0.9 }}>Currently Assigned</div>
+                  <div style={{ fontSize: '0.8em', opacity: 0.9 }}>{t('admin.classManagement.scheduleAssignModal.currentlyAssigned')}</div>
                 </div>
               </div>
 
@@ -3588,6 +3592,93 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="modal-footer">
               <button className="cancel-btn" onClick={handleCloseClassEnrollmentModal}>
                 {t('admin.classManagement.classEnrolledModal.actions.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Schedule Slot Modal */}
+      {showDeleteScheduleModal && scheduleSlotToDelete && (
+        <div className="modal-overlay" onClick={() => setShowDeleteScheduleModal(false)}>
+          <div className="modal delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header delete-header">
+              <h2>⚠️ {t('admin.classManagement.deleteScheduleModal.title')}</h2>
+              <button className="close-btn" onClick={() => setShowDeleteScheduleModal(false)}>
+                ✕
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <p className="warning-message">
+                {t('admin.classManagement.deleteScheduleModal.message')}
+              </p>
+
+              <div className="slot-info-box">
+                <h4>📅 {t('admin.classManagement.deleteScheduleModal.slotDetails')}</h4>
+                <div className="info-grid">
+                  <div className="info-row">
+                    <span className="info-label">
+                      {t('admin.classManagement.deleteScheduleModal.class')}:
+                    </span>
+                    <span className="info-value">
+                      {classes.find((c) => c.id === scheduleSlotToDelete.classId)?.name || 'Unknown Class'}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">
+                      {t('admin.classManagement.deleteScheduleModal.instructor')}:
+                    </span>
+                    <span className="info-value">
+                      {instructors.find((i) => i.id === scheduleSlotToDelete.instructorId)?.name || t('admin.classManagement.schedule.unknownInstructor')}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">
+                      {t('admin.classManagement.deleteScheduleModal.date')}:
+                    </span>
+                    <span className="info-value">{formatDate(scheduleSlotToDelete.date)}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">
+                      {t('admin.classManagement.deleteScheduleModal.time')}:
+                    </span>
+                    <span className="info-value">
+                      {scheduleSlotToDelete.startTime} - {scheduleSlotToDelete.endTime}
+                    </span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">
+                      {t('admin.classManagement.deleteScheduleModal.enrolledMembers')}:
+                    </span>
+                    <span className="info-value">
+                      {scheduleSlotToDelete.enrolledMembers.length}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="warning-box">
+                <h4>⚠️ {t('admin.classManagement.deleteScheduleModal.warningTitle')}</h4>
+                <ul>
+                  <li>{t('admin.classManagement.deleteScheduleModal.consequence1')}</li>
+                  <li>{t('admin.classManagement.deleteScheduleModal.consequence2')}</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setShowDeleteScheduleModal(false);
+                  setScheduleSlotToDelete(null);
+                }}
+              >
+                {t('admin.classManagement.deleteScheduleModal.actions.cancel')}
+              </button>
+              <button className="delete-btn danger-btn" onClick={confirmDeleteScheduleSlot}>
+                🗑️ {t('admin.classManagement.deleteScheduleModal.actions.delete')}
               </button>
             </div>
           </div>

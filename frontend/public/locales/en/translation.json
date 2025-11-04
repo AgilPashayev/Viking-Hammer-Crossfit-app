@@ -1073,7 +1073,28 @@
       },
       "scheduleAssignModal": {
         "title": "Class Assignment for {{name}}",
-        "subtitle": "Manage instructor's class schedule"
+        "subtitle": "Manage instructor's class schedule",
+        "availableClasses": "Available Classes",
+        "helpText": "Click to assign or remove classes from this instructor",
+        "currentlyAssigned": "Currently Assigned"
+      },
+      "deleteScheduleModal": {
+        "title": "Delete Schedule Slot Confirmation",
+        "message": "Are you sure you want to permanently delete this schedule slot?",
+        "slotDetails": "Schedule Slot Details",
+        "class": "Class",
+        "instructor": "Instructor",
+        "date": "Date",
+        "time": "Time",
+        "enrolledMembers": "Enrolled Members",
+        "warningTitle": "This action cannot be undone and will",
+        "consequence1": "Cancel the scheduled session",
+        "consequence2": "Remove enrolled members from this slot",
+        "actions": {
+          "cancel": "Cancel",
+          "delete": "Delete Slot"
+        },
+        "errorMessage": "Error deleting schedule slot. Please try again."
       },
       "common": {
         "loading": "Loading...",
