@@ -601,6 +601,78 @@
         "cancel": "Ləğv Et"
       },
       "deleteSuccess": "Üzv uğurla silindi!"
+    },
+    "checkInHistory": {
+      "pageTitle": "Viking Ordusu Giriş Tarixçəsi",
+      "backButton": "Komanda Mərkəzinə Qayıt",
+      "stats": {
+        "weeklyCheckIn": "Həftəlik Giriş",
+        "resetsMonday": "Bazar ertəsi saat 2-də sıfırlanır",
+        "todayCheckIn": "Bugünkü Giriş",
+        "activeInstructors": "Aktiv Təlimçilər"
+      },
+      "filters": {
+        "advancedButton": "Ətraflı Döyüş Filterləri",
+        "searchPlaceholder": "Viking döyüşçülərini axtar...",
+        "today": "Bu Gün",
+        "thisWeek": "Bu Həftə",
+        "thisMonth": "Bu Ay",
+        "thisYear": "Bu İl",
+        "statusLabel": "Status:",
+        "allStatus": "Bütün Statuslar",
+        "inBattle": "Döyüşdə",
+        "battleComplete": "Döyüş Tamamlandı",
+        "membershipLabel": "Üzvlük Növü:",
+        "allTypes": "Bütün Növlər",
+        "singleBattle": "Tək Döyüş",
+        "monthlyWarrior": "Aylıq Döyüşçü",
+        "unlimitedViking": "Limitsiz Viking",
+        "companyArmy": "Şirkət Ordusu",
+        "fromDateLabel": "Tarixdən:",
+        "toDateLabel": "Tarixə qədər:",
+        "applyButton": "Döyüş Filterlərini Tətbiq Et",
+        "clearButton": "Hamısını Təmizlə",
+        "appliedFiltersLabel": "Tətbiq Edilən Filterlər:",
+        "statusFilter": "Status: {{status}}",
+        "typeFilter": "Növ: {{type}}",
+        "fromFilter": "Tarixdən: {{date}}",
+        "toFilter": "Tarixə: {{date}}"
+      },
+      "table": {
+        "nameColumn": "Ad",
+        "membershipColumn": "Üzvlük Növü",
+        "statusColumn": "Status",
+        "phoneColumn": "Telefon Nömrəsi",
+        "checkInColumn": "Giriş Vaxtı"
+      },
+      "emptyState": {
+        "title": "Giriş Tapılmadı",
+        "description": "Daha çox döyüşçü fəaliyyətini görmək üçün filterlərinizi tənzimləyin."
+      },
+      "memberPopup": {
+        "title": "Üzv Məlumatı",
+        "closeButton": "×",
+        "emailLabel": "E-poçt:",
+        "phoneLabel": "Telefon:",
+        "membershipLabel": "Üzvlük:",
+        "statusLabel": "Status:",
+        "joinedLabel": "Qoşulub:",
+        "lastCheckInLabel": "Son Giriş:",
+        "visitStatsTitle": "Ziyarət Statistikası",
+        "today": "Bu Gün",
+        "thisWeek": "Bu Həftə",
+        "thisMonth": "Bu Ay",
+        "thisYear": "Bu İl",
+        "allTime": "Bütün Vaxtlar",
+        "checkInHistoryTitle": "Giriş Tarixçəsi",
+        "noHistory": "Giriş tarixçəsi mövcud deyil",
+        "showingRecent": "Ümumi {{total}} girişdən 10 ən son giriş göstərilir"
+      },
+      "status": {
+        "active": "Aktiv",
+        "completed": "Tamamlandı"
+      },
+      "noValue": "—"
     }
   }
 }

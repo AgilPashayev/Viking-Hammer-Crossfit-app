@@ -601,6 +601,78 @@
         "cancel": "Cancel"
       },
       "deleteSuccess": "Member deleted successfully!"
+    },
+    "checkInHistory": {
+      "pageTitle": "Viking Army Check-In History",
+      "backButton": "Back to Command Center",
+      "stats": {
+        "weeklyCheckIn": "Weekly Check-In",
+        "resetsMonday": "Resets Monday 2am",
+        "todayCheckIn": "Today's Check-In",
+        "activeInstructors": "Active Instructors"
+      },
+      "filters": {
+        "advancedButton": "Advanced Battle Filters",
+        "searchPlaceholder": "Search Viking warriors...",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "thisYear": "This Year",
+        "statusLabel": "Status:",
+        "allStatus": "All Status",
+        "inBattle": "In Battle",
+        "battleComplete": "Battle Complete",
+        "membershipLabel": "Membership Type:",
+        "allTypes": "All Types",
+        "singleBattle": "Single Battle",
+        "monthlyWarrior": "Monthly Warrior",
+        "unlimitedViking": "Unlimited Viking",
+        "companyArmy": "Company Army",
+        "fromDateLabel": "From Date:",
+        "toDateLabel": "To Date:",
+        "applyButton": "Apply Battle Filters",
+        "clearButton": "Clear All",
+        "appliedFiltersLabel": "Applied Filters:",
+        "statusFilter": "Status: {{status}}",
+        "typeFilter": "Type: {{type}}",
+        "fromFilter": "From: {{date}}",
+        "toFilter": "To: {{date}}"
+      },
+      "table": {
+        "nameColumn": "Name",
+        "membershipColumn": "Membership Type",
+        "statusColumn": "Status",
+        "phoneColumn": "Phone Number",
+        "checkInColumn": "Check-In Time"
+      },
+      "emptyState": {
+        "title": "No Check-Ins Found",
+        "description": "Try adjusting your filters to see more warrior activity."
+      },
+      "memberPopup": {
+        "title": "Member Information",
+        "closeButton": "×",
+        "emailLabel": "Email:",
+        "phoneLabel": "Phone:",
+        "membershipLabel": "Membership:",
+        "statusLabel": "Status:",
+        "joinedLabel": "Joined:",
+        "lastCheckInLabel": "Last Check-In:",
+        "visitStatsTitle": "Visit Statistics",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "thisYear": "This Year",
+        "allTime": "All Time",
+        "checkInHistoryTitle": "Check-In History",
+        "noHistory": "No check-in history available",
+        "showingRecent": "Showing 10 most recent check-ins out of {{total}} total"
+      },
+      "status": {
+        "active": "Active",
+        "completed": "Completed"
+      },
+      "noValue": "—"
     }
   }
 }

@@ -601,6 +601,78 @@
         "cancel": "Отмена"
       },
       "deleteSuccess": "Участник успешно удален!"
+    },
+    "checkInHistory": {
+      "pageTitle": "История Посещений Армии Викингов",
+      "backButton": "Вернуться в Командный Центр",
+      "stats": {
+        "weeklyCheckIn": "Недельные Посещения",
+        "resetsMonday": "Сброс по понедельникам в 2:00",
+        "todayCheckIn": "Сегодняшние Посещения",
+        "activeInstructors": "Активные Инструкторы"
+      },
+      "filters": {
+        "advancedButton": "Расширенные Боевые Фильтры",
+        "searchPlaceholder": "Поиск воинов викингов...",
+        "today": "Сегодня",
+        "thisWeek": "Эта Неделя",
+        "thisMonth": "Этот Месяц",
+        "thisYear": "Этот Год",
+        "statusLabel": "Статус:",
+        "allStatus": "Все Статусы",
+        "inBattle": "В Бою",
+        "battleComplete": "Бой Завершен",
+        "membershipLabel": "Тип Членства:",
+        "allTypes": "Все Типы",
+        "singleBattle": "Одиночный Бой",
+        "monthlyWarrior": "Ежемесячный Воин",
+        "unlimitedViking": "Безлимитный Викинг",
+        "companyArmy": "Корпоративная Армия",
+        "fromDateLabel": "С Даты:",
+        "toDateLabel": "По Дату:",
+        "applyButton": "Применить Боевые Фильтры",
+        "clearButton": "Очистить Все",
+        "appliedFiltersLabel": "Примененные Фильтры:",
+        "statusFilter": "Статус: {{status}}",
+        "typeFilter": "Тип: {{type}}",
+        "fromFilter": "С: {{date}}",
+        "toFilter": "По: {{date}}"
+      },
+      "table": {
+        "nameColumn": "Имя",
+        "membershipColumn": "Тип Членства",
+        "statusColumn": "Статус",
+        "phoneColumn": "Номер Телефона",
+        "checkInColumn": "Время Посещения"
+      },
+      "emptyState": {
+        "title": "Посещения Не Найдены",
+        "description": "Попробуйте изменить фильтры, чтобы увидеть больше активности воинов."
+      },
+      "memberPopup": {
+        "title": "Информация об Участнике",
+        "closeButton": "×",
+        "emailLabel": "Эл. почта:",
+        "phoneLabel": "Телефон:",
+        "membershipLabel": "Членство:",
+        "statusLabel": "Статус:",
+        "joinedLabel": "Присоединился:",
+        "lastCheckInLabel": "Последнее Посещение:",
+        "visitStatsTitle": "Статистика Посещений",
+        "today": "Сегодня",
+        "thisWeek": "Эта Неделя",
+        "thisMonth": "Этот Месяц",
+        "thisYear": "Этот Год",
+        "allTime": "За Все Время",
+        "checkInHistoryTitle": "История Посещений",
+        "noHistory": "История посещений отсутствует",
+        "showingRecent": "Показаны 10 последних посещений из {{total}}"
+      },
+      "status": {
+        "active": "Активный",
+        "completed": "Завершено"
+      },
+      "noValue": "—"
     }
   }
 }

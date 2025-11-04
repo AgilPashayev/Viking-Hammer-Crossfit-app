@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useData, CheckIn } from '../contexts/DataContext';
+import { formatDate, formatBakuTime } from '../utils/dateFormatter';
 import './CheckInHistory.css';
 
 interface CheckInHistoryProps {
@@ -7,6 +9,7 @@ interface CheckInHistoryProps {
 }
 
 const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const { checkIns, getTodayCheckIns, getWeeklyCheckIns, stats, members } = useData();
   
   const [filteredCheckIns, setFilteredCheckIns] = useState<CheckIn[]>(checkIns);
@@ -90,16 +93,6 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     setFilteredCheckIns(filtered);
   }, [checkIns, timeFilter, searchTerm, statusFilter, membershipFilter, customDateRange]);
 
-  const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-  };
-
-  const formatDate = (timeString: string) => {
-    const date = new Date(timeString);
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-    return date.toLocaleDateString('en-US', options);
-  };
-
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -176,10 +169,10 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
     <div className="checkin-history">
       <div className="page-header">
         <div className="page-title">
-          <h2>🛡️ Viking Army Check-In History</h2>
+          <h2>🛡️ {t('admin.checkInHistory.pageTitle')}</h2>
         </div>
         <button className="btn btn-secondary btn-back" onClick={onBack}>
-          🏠 Back to Command Center
+          🏠 {t('admin.checkInHistory.backButton')}
         </button>
       </div>
 
@@ -188,15 +181,15 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
           <div className="stat-icon">⚔️</div>
           <div className="stat-content">
             <h3>{localStats.total}</h3>
-            <p>Weekly Check-In</p>
-            <small>Resets Monday 2am</small>
+            <p>{t('admin.checkInHistory.stats.weeklyCheckIn')}</p>
+            <small>{t('admin.checkInHistory.stats.resetsMonday')}</small>
           </div>
         </div>
         <div className="stat-card success">
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <h3>{localStats.today}</h3>
-            <p>Today's Check-In</p>
+            <p>{t('admin.checkInHistory.stats.todayCheckIn')}</p>
           </div>
         </div>
         <div className="stat-card warning">
@@ -207,7 +200,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
               const today = new Date();
               return checkInDate.toDateString() === today.toDateString() && c.role === 'instructor';
             }).length}</h3>
-            <p>Active Instructors</p>
+            <p>{t('admin.checkInHistory.stats.activeInstructors')}</p>
           </div>
         </div>
       </div>
@@ -218,13 +211,13 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
             className="btn btn-outline advanced-filter-btn"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
           >
-            🔍 Advanced Battle Filters
+            🔍 {t('admin.checkInHistory.filters.advancedButton')}
           </button>
 
           <div className="search-section">
             <input
               type="text"
-              placeholder="Search Viking warriors..."
+              placeholder={t('admin.checkInHistory.filters.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -236,25 +229,25 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
               className={`filter-btn ${timeFilter === 'today' ? 'active' : ''}`}
               onClick={() => setTimeFilter('today')}
             >
-              Today
+              {t('admin.checkInHistory.filters.today')}
             </button>
             <button
               className={`filter-btn ${timeFilter === 'week' ? 'active' : ''}`}
               onClick={() => setTimeFilter('week')}
             >
-              This Week
+              {t('admin.checkInHistory.filters.thisWeek')}
             </button>
             <button
               className={`filter-btn ${timeFilter === 'month' ? 'active' : ''}`}
               onClick={() => setTimeFilter('month')}
             >
-              This Month
+              {t('admin.checkInHistory.filters.thisMonth')}
             </button>
             <button
               className={`filter-btn ${timeFilter === 'year' ? 'active' : ''}`}
               onClick={() => setTimeFilter('year')}
             >
-              This Year
+              {t('admin.checkInHistory.filters.thisYear')}
             </button>
           </div>
         </div>
@@ -264,37 +257,37 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
             <div className="advanced-filter-content">
               <div className="filter-row">
                 <div className="filter-group">
-                  <label>Status:</label>
+                  <label>{t('admin.checkInHistory.filters.statusLabel')}</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="filter-select"
                   >
-                    <option value="all">All Status</option>
-                    <option value="active">🏋️‍♂️ In Battle</option>
-                    <option value="completed">✅ Battle Complete</option>
+                    <option value="all">{t('admin.checkInHistory.filters.allStatus')}</option>
+                    <option value="active">🏋️‍♂️ {t('admin.checkInHistory.filters.inBattle')}</option>
+                    <option value="completed">✅ {t('admin.checkInHistory.filters.battleComplete')}</option>
                   </select>
                 </div>
                 
                 <div className="filter-group">
-                  <label>Membership Type:</label>
+                  <label>{t('admin.checkInHistory.filters.membershipLabel')}</label>
                   <select
                     value={membershipFilter}
                     onChange={(e) => setMembershipFilter(e.target.value)}
                     className="filter-select"
                   >
-                    <option value="all">All Types</option>
-                    <option value="Single">Single Battle</option>
-                    <option value="Monthly">Monthly Warrior</option>
-                    <option value="Monthly Unlimited">Unlimited Viking</option>
-                    <option value="Company">Company Army</option>
+                    <option value="all">{t('admin.checkInHistory.filters.allTypes')}</option>
+                    <option value="Single">{t('admin.checkInHistory.filters.singleBattle')}</option>
+                    <option value="Monthly">{t('admin.checkInHistory.filters.monthlyWarrior')}</option>
+                    <option value="Monthly Unlimited">{t('admin.checkInHistory.filters.unlimitedViking')}</option>
+                    <option value="Company">{t('admin.checkInHistory.filters.companyArmy')}</option>
                   </select>
                 </div>
               </div>
               
               <div className="filter-row">
                 <div className="filter-group">
-                  <label>From Date:</label>
+                  <label>{t('admin.checkInHistory.filters.fromDateLabel')}</label>
                   <input
                     type="date"
                     value={customDateRange.startDate}
@@ -304,7 +297,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                 </div>
                 
                 <div className="filter-group">
-                  <label>To Date:</label>
+                  <label>{t('admin.checkInHistory.filters.toDateLabel')}</label>
                   <input
                     type="date"
                     value={customDateRange.endDate}
@@ -322,7 +315,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     setShowAdvancedFilters(false);
                   }}
                 >
-                  ⚔️ Apply Battle Filters
+                  ⚔️ {t('admin.checkInHistory.filters.applyButton')}
                 </button>
                 <button
                   className="btn btn-secondary"
@@ -333,7 +326,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     setShowAdvancedFilters(false);
                   }}
                 >
-                  🗑️ Clear All
+                  🗑️ {t('admin.checkInHistory.filters.clearButton')}
                 </button>
               </div>
             </div>
@@ -342,11 +335,11 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
 
         {(statusFilter !== 'all' || membershipFilter !== 'all' || customDateRange.startDate || customDateRange.endDate) && (
           <div className="applied-filters">
-            <span className="filter-label">Applied Filters:</span>
-            {statusFilter !== 'all' && <span className="filter-tag">Status: {statusFilter}</span>}
-            {membershipFilter !== 'all' && <span className="filter-tag">Type: {membershipFilter}</span>}
-            {customDateRange.startDate && <span className="filter-tag">From: {customDateRange.startDate}</span>}
-            {customDateRange.endDate && <span className="filter-tag">To: {customDateRange.endDate}</span>}
+            <span className="filter-label">{t('admin.checkInHistory.filters.appliedFiltersLabel')}</span>
+            {statusFilter !== 'all' && <span className="filter-tag">{t('admin.checkInHistory.filters.statusFilter', { status: statusFilter })}</span>}
+            {membershipFilter !== 'all' && <span className="filter-tag">{t('admin.checkInHistory.filters.typeFilter', { type: membershipFilter })}</span>}
+            {customDateRange.startDate && <span className="filter-tag">{t('admin.checkInHistory.filters.fromFilter', { date: customDateRange.startDate })}</span>}
+            {customDateRange.endDate && <span className="filter-tag">{t('admin.checkInHistory.filters.toFilter', { date: customDateRange.endDate })}</span>}
           </div>
         )}
       </div>
@@ -355,19 +348,19 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
         {filteredCheckIns.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">⚔️</div>
-            <h3>No Check-Ins Found</h3>
-            <p>Try adjusting your filters to see more warrior activity.</p>
+            <h3>{t('admin.checkInHistory.emptyState.title')}</h3>
+            <p>{t('admin.checkInHistory.emptyState.description')}</p>
           </div>
         ) : (
           <div className="checkin-table-container">
             <table className="checkin-table">
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Membership Type</th>
-                  <th>Status</th>
-                  <th>Phone Number</th>
-                  <th>Check-In Time</th>
+                  <th>{t('admin.checkInHistory.table.nameColumn')}</th>
+                  <th>{t('admin.checkInHistory.table.membershipColumn')}</th>
+                  <th>{t('admin.checkInHistory.table.statusColumn')}</th>
+                  <th>{t('admin.checkInHistory.table.phoneColumn')}</th>
+                  <th>{t('admin.checkInHistory.table.checkInColumn')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -396,13 +389,13 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                       <td>{record.membershipType}</td>
                       <td>
                         <span className={`status-badge status-${record.status}`}>
-                          {record.status.charAt(0).toUpperCase() + record.status.slice(1)}
+                          {t(`admin.checkInHistory.status.${record.status}`)}
                         </span>
                       </td>
                       <td>{record.phone}</td>
                       <td>
                         <div className="time-cell">
-                          <span className="time">{formatTime(record.checkInTime)}</span>
+                          <span className="time">{formatBakuTime(record.checkInTime)}</span>
                           <span className="date">{formatDate(record.checkInTime)}</span>
                         </div>
                       </td>
@@ -420,8 +413,8 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
         <div className="modal-overlay" onClick={() => setShowMemberPopup(false)}>
           <div className="member-popup" onClick={(e) => e.stopPropagation()}>
             <div className="popup-header">
-              <h2>👤 Member Information</h2>
-              <button className="close-btn" onClick={() => setShowMemberPopup(false)}>✕</button>
+              <h2>👤 {t('admin.checkInHistory.memberPopup.title')}</h2>
+              <button className="close-btn" onClick={() => setShowMemberPopup(false)}>{t('admin.checkInHistory.memberPopup.closeButton')}</button>
             </div>
             
             <div className="popup-content">
@@ -432,20 +425,20 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                 </div>
                 <div className="member-info-details">
                   <h3>{selectedMember.firstName} {selectedMember.lastName}</h3>
-                  <p><strong>Email:</strong> {selectedMember.email}</p>
-                  <p><strong>Phone:</strong> {selectedMember.phone}</p>
-                  <p><strong>Membership:</strong> {selectedMember.membershipType}</p>
-                  <p><strong>Status:</strong> <span className={`status-badge status-${selectedMember.status}`}>
-                    {selectedMember.status.charAt(0).toUpperCase() + selectedMember.status.slice(1)}
+                  <p><strong>{t('admin.checkInHistory.memberPopup.emailLabel')}</strong> {selectedMember.email}</p>
+                  <p><strong>{t('admin.checkInHistory.memberPopup.phoneLabel')}</strong> {selectedMember.phone}</p>
+                  <p><strong>{t('admin.checkInHistory.memberPopup.membershipLabel')}</strong> {selectedMember.membershipType}</p>
+                  <p><strong>{t('admin.checkInHistory.memberPopup.statusLabel')}</strong> <span className={`status-badge status-${selectedMember.status}`}>
+                    {t(`admin.memberManagement.status.${selectedMember.status}`)}
                   </span></p>
-                  <p><strong>Joined:</strong> {new Date(selectedMember.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-                  <p><strong>Last Check-In:</strong> {selectedMember.lastCheckIn ? new Date(selectedMember.lastCheckIn).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—'}</p>
+                  <p><strong>{t('admin.checkInHistory.memberPopup.joinedLabel')}</strong> {formatDate(selectedMember.joinDate)}</p>
+                  <p><strong>{t('admin.checkInHistory.memberPopup.lastCheckInLabel')}</strong> {selectedMember.lastCheckIn ? formatDate(selectedMember.lastCheckIn) : t('admin.checkInHistory.noValue')}</p>
                 </div>
               </div>
 
               {/* Visit Statistics */}
               <div className="visit-stats-section">
-                <h3>Visit Statistics</h3>
+                <h3>{t('admin.checkInHistory.memberPopup.visitStatsTitle')}</h3>
                 <div className="stats-grid">
                   <div className="stat-card">
                     <span
@@ -454,7 +447,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     >
                       {memberStats.today}
                     </span>
-                    <span className="stat-label">Today</span>
+                    <span className="stat-label">{t('admin.checkInHistory.memberPopup.today')}</span>
                   </div>
                   <div className="stat-card">
                     <span
@@ -463,7 +456,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     >
                       {memberStats.week}
                     </span>
-                    <span className="stat-label">This Week</span>
+                    <span className="stat-label">{t('admin.checkInHistory.memberPopup.thisWeek')}</span>
                   </div>
                   <div className="stat-card">
                     <span
@@ -472,7 +465,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     >
                       {memberStats.month}
                     </span>
-                    <span className="stat-label">This Month</span>
+                    <span className="stat-label">{t('admin.checkInHistory.memberPopup.thisMonth')}</span>
                   </div>
                   <div className="stat-card">
                     <span
@@ -481,7 +474,7 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     >
                       {memberStats.year}
                     </span>
-                    <span className="stat-label">This Year</span>
+                    <span className="stat-label">{t('admin.checkInHistory.memberPopup.thisYear')}</span>
                   </div>
                   <div className="stat-card">
                     <span
@@ -490,34 +483,34 @@ const CheckInHistory: React.FC<CheckInHistoryProps> = ({ onBack }) => {
                     >
                       {memberStats.total}
                     </span>
-                    <span className="stat-label">All Time</span>
+                    <span className="stat-label">{t('admin.checkInHistory.memberPopup.allTime')}</span>
                   </div>
                 </div>
               </div>
 
               {/* Check-In History */}
               <div className="checkin-history-section">
-                <h3>📅 Check-In History</h3>
+                <h3>📅 {t('admin.checkInHistory.memberPopup.checkInHistoryTitle')}</h3>
                 <div className="history-list">
                   {memberStats.history.length > 0 ? (
                     memberStats.history.slice(0, 10).map((checkIn) => (
                       <div key={checkIn.id} className="history-item">
                         <div className="history-time">
                           <span className="history-date">{formatDate(checkIn.checkInTime)}</span>
-                          <span className="history-time-value">{formatTime(checkIn.checkInTime)}</span>
+                          <span className="history-time-value">{formatBakuTime(checkIn.checkInTime)}</span>
                         </div>
                         <div className="history-details">
                           <span className={`status-badge status-${checkIn.status}`}>
-                            {checkIn.status.charAt(0).toUpperCase() + checkIn.status.slice(1)}
+                            {t(`admin.checkInHistory.status.${checkIn.status}`)}
                           </span>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <p className="no-history">No check-in history available</p>
+                    <p className="no-history">{t('admin.checkInHistory.memberPopup.noHistory')}</p>
                   )}
                   {memberStats.history.length > 10 && (
-                    <p className="more-history">Showing 10 most recent check-ins out of {memberStats.total} total</p>
+                    <p className="more-history">{t('admin.checkInHistory.memberPopup.showingRecent', { total: memberStats.total })}</p>
                   )}
                 </div>
               </div>
