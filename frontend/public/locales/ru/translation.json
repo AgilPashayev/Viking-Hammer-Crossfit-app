@@ -673,6 +673,281 @@
         "completed": "Завершено"
       },
       "noValue": "—"
+    },
+    "classManagement": {
+      "pageTitle": "Управление Классами и Расписанием",
+      "backButton": "Вернуться на Панель",
+      "tabs": {
+        "classes": "Классы",
+        "instructors": "Инструкторы",
+        "schedule": "Расписание"
+      },
+      "classes": {
+        "title": "Управление Классами Зала",
+        "lastUpdated": "Последнее обновление: {{time}}",
+        "addButton": "Добавить Новый Класс",
+        "stats": {
+          "totalClasses": "Всего Классов",
+          "activeClasses": "Активных Классов",
+          "totalEnrollment": "Всего Записей",
+          "fullClasses": "Заполненных Классов"
+        },
+        "search": {
+          "placeholder": "Поиск классов..."
+        },
+        "filters": {
+          "category": "Категория:",
+          "allCategories": "Все Категории",
+          "mixed": "Смешанный",
+          "strength": "Сила",
+          "cardio": "Кардио",
+          "flexibility": "Гибкость",
+          "status": "Статус:",
+          "allStatus": "Все Статусы",
+          "active": "Активный",
+          "inactive": "Неактивный"
+        },
+        "table": {
+          "nameColumn": "Название Класса",
+          "categoryColumn": "Категория",
+          "durationColumn": "Длительность",
+          "capacityColumn": "Вместимость",
+          "instructorsColumn": "Инструкторы",
+          "statusColumn": "Статус",
+          "actionsColumn": "Действия"
+        },
+        "actions": {
+          "edit": "Редактировать",
+          "delete": "Удалить",
+          "assign": "Назначить Инструктора"
+        },
+        "emptyState": {
+          "title": "Классы Не Найдены",
+          "description": "Классов, соответствующих фильтрам, нет. Попробуйте изменить поиск или фильтры."
+        },
+        "deleteConfirm": {
+          "title": "Удалить Класс",
+          "message": "Вы уверены, что хотите удалить класс \"{{name}}\"?",
+          "warning": "Это действие необратимо.",
+          "confirm": "Удалить",
+          "cancel": "Отмена"
+        }
+      },
+      "classModal": {
+        "titleAdd": "Добавить Новый Класс",
+        "titleEdit": "Редактировать Класс",
+        "form": {
+          "className": "Название Класса",
+          "classNamePlaceholder": "Введите название класса",
+          "description": "Описание",
+          "descriptionPlaceholder": "Введите описание класса",
+          "duration": "Длительность (минуты)",
+          "maxCapacity": "Макс. Вместимость",
+          "difficulty": "Уровень Сложности",
+          "beginner": "Начинающий",
+          "intermediate": "Средний",
+          "advanced": "Продвинутый",
+          "category": "Категория",
+          "price": "Цена (₼)",
+          "pricePlaceholder": "0",
+          "status": "Статус",
+          "instructors": "Инструкторы",
+          "schedule": "Расписание Класса",
+          "addScheduleSlot": "Добавить Слот Расписания",
+          "dayOfWeek": "День",
+          "startTime": "Время Начала",
+          "endTime": "Время Окончания",
+          "removeSlot": "Удалить"
+        },
+        "actions": {
+          "cancel": "Отмена",
+          "save": "Сохранить Класс",
+          "update": "Обновить Класс"
+        }
+      },
+      "instructors": {
+        "title": "Управление Инструкторами",
+        "lastUpdated": "Последнее обновление: {{time}}",
+        "addButton": "Добавить Нового Инструктора",
+        "stats": {
+          "totalInstructors": "Всего Инструкторов",
+          "activeInstructors": "Активных Инструкторов",
+          "avgExperience": "Средний Опыт",
+          "years": "Лет"
+        },
+        "search": {
+          "placeholder": "Поиск инструкторов..."
+        },
+        "table": {
+          "nameColumn": "Имя",
+          "specializationColumn": "Специализация",
+          "experienceColumn": "Опыт",
+          "statusColumn": "Статус",
+          "actionsColumn": "Действия"
+        },
+        "actions": {
+          "edit": "Редактировать",
+          "delete": "Удалить"
+        },
+        "emptyState": {
+          "title": "Инструкторы Не Найдены",
+          "description": "Доступных инструкторов нет."
+        },
+        "deleteConfirm": {
+          "title": "Удалить Инструктора",
+          "message": "Вы уверены, что хотите удалить инструктора \"{{name}}\"?",
+          "warning": "Это действие необратимо.",
+          "confirm": "Удалить",
+          "cancel": "Отмена"
+        }
+      },
+      "instructorModal": {
+        "titleAdd": "Добавить Нового Инструктора",
+        "titleEdit": "Редактировать Инструктора",
+        "memberSearch": {
+          "label": "Связать с Учетной Записью (Опционально)",
+          "placeholder": "Поиск участника по имени или email...",
+          "noResults": "Участники не найдены",
+          "selected": "Выбранный Участник:"
+        },
+        "form": {
+          "name": "Имя Инструктора",
+          "namePlaceholder": "Введите имя инструктора",
+          "email": "Email",
+          "emailPlaceholder": "Введите email адрес",
+          "phone": "Номер Телефона",
+          "phonePlaceholder": "+994501234567",
+          "experience": "Годы Опыта",
+          "experiencePlaceholder": "Введите годы опыта",
+          "specialization": "Специализация",
+          "specializationPlaceholder": "напр., Йога, Пилатес, CrossFit",
+          "availableDays": "Доступные Дни",
+          "certifications": "Сертификаты",
+          "certificationsPlaceholder": "напр., Сертификат CPR, Персональный Тренер Уровень 3",
+          "bio": "Биография",
+          "bioPlaceholder": "Краткое описание об инструкторе...",
+          "status": "Статус"
+        },
+        "actions": {
+          "cancel": "Отмена",
+          "save": "Сохранить Инструктора",
+          "update": "Обновить Инструктора"
+        }
+      },
+      "schedule": {
+        "title": "Недельное Расписание",
+        "lastUpdated": "Последнее обновление: {{time}}",
+        "addButton": "Добавить Слот Расписания",
+        "filters": {
+          "day": "День:",
+          "allDays": "Все Дни",
+          "class": "Класс:",
+          "allClasses": "Все Классы",
+          "instructor": "Инструктор:",
+          "allInstructors": "Все Инструкторы"
+        },
+        "table": {
+          "dayColumn": "День",
+          "timeColumn": "Время",
+          "classColumn": "Класс",
+          "instructorColumn": "Инструктор",
+          "enrolledColumn": "Записано",
+          "statusColumn": "Статус",
+          "actionsColumn": "Действия"
+        },
+        "days": {
+          "monday": "Понедельник",
+          "tuesday": "Вторник",
+          "wednesday": "Среда",
+          "thursday": "Четверг",
+          "friday": "Пятница",
+          "saturday": "Суббота",
+          "sunday": "Воскресенье"
+        },
+        "status": {
+          "scheduled": "Запланировано",
+          "completed": "Завершено",
+          "cancelled": "Отменено"
+        },
+        "actions": {
+          "viewRoster": "Просмотр Списка",
+          "edit": "Редактировать",
+          "cancel": "Отменить Слот",
+          "delete": "Удалить"
+        },
+        "emptyState": {
+          "title": "Нет Слотов Расписания",
+          "description": "Нет слотов расписания, соответствующих фильтрам."
+        }
+      },
+      "scheduleModal": {
+        "titleAdd": "Добавить Новый Слот Расписания",
+        "titleEdit": "Редактировать Слот Расписания",
+        "form": {
+          "class": "Класс",
+          "selectClass": "Выберите Класс",
+          "instructor": "Инструктор",
+          "selectInstructor": "Выберите Инструктора",
+          "dayOfWeek": "День Недели",
+          "date": "Дата",
+          "startTime": "Время Начала",
+          "endTime": "Время Окончания",
+          "status": "Статус"
+        },
+        "actions": {
+          "cancel": "Отмена",
+          "save": "Сохранить Слот",
+          "update": "Обновить Слот"
+        }
+      },
+      "rosterModal": {
+        "title": "Записанные Участники",
+        "classInfo": "Класс: {{className}}",
+        "instructorInfo": "Инструктор: {{instructorName}}",
+        "dateInfo": "Дата: {{date}}",
+        "timeInfo": "Время: {{time}}",
+        "enrolled": "Записано: {{count}}/{{capacity}}",
+        "table": {
+          "nameColumn": "Имя Участника",
+          "enrolledColumn": "Записан",
+          "statusColumn": "Статус",
+          "actionsColumn": "Действия"
+        },
+        "status": {
+          "enrolled": "Записан",
+          "attended": "Посетил",
+          "noShow": "Не Явился",
+          "cancelled": "Отменено"
+        },
+        "actions": {
+          "markAttended": "Отметить Посещение",
+          "markNoShow": "Отметить Неявку",
+          "cancel": "Отменить Запись"
+        },
+        "emptyState": {
+          "title": "Нет Записей",
+          "description": "На этот класс еще никто не записался."
+        },
+        "closeButton": "Закрыть"
+      },
+      "assignModal": {
+        "title": "Назначить Инструктора для {{className}}",
+        "currentInstructors": "Текущие Инструкторы",
+        "availableInstructors": "Доступные Инструкторы",
+        "noInstructors": "Инструкторы не назначены",
+        "actions": {
+          "assign": "Назначить",
+          "remove": "Удалить",
+          "close": "Закрыть"
+        }
+      },
+      "common": {
+        "loading": "Загрузка...",
+        "error": "Ошибка",
+        "minutes": "мин",
+        "years": "лет",
+        "capacity": "{{current}}/{{max}}"
+      }
     }
   }
 }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useData } from '../contexts/DataContext';
 import {
   classService,
@@ -20,6 +21,7 @@ interface ClassManagementProps {
 }
 
 const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
+  const { t } = useTranslation();
   const { setActiveClassesCount, logActivity } = useData();
   const [activeTab, setActiveTab] = useState<'classes' | 'instructors' | 'schedule'>('classes');
   const [classes, setClasses] = useState<GymClass[]>([]);

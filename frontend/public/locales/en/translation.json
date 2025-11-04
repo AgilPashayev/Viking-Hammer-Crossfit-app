@@ -673,6 +673,281 @@
         "completed": "Completed"
       },
       "noValue": "—"
+    },
+    "classManagement": {
+      "pageTitle": "Class Management & Scheduling",
+      "backButton": "Back to Dashboard",
+      "tabs": {
+        "classes": "Classes",
+        "instructors": "Instructors",
+        "schedule": "Schedule"
+      },
+      "classes": {
+        "title": "Gym Classes Management",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add New Class",
+        "stats": {
+          "totalClasses": "Total Classes",
+          "activeClasses": "Active Classes",
+          "totalEnrollment": "Total Enrollment",
+          "fullClasses": "Full Classes"
+        },
+        "search": {
+          "placeholder": "Search classes..."
+        },
+        "filters": {
+          "category": "Category:",
+          "allCategories": "All Categories",
+          "mixed": "Mixed",
+          "strength": "Strength",
+          "cardio": "Cardio",
+          "flexibility": "Flexibility",
+          "status": "Status:",
+          "allStatus": "All Status",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "table": {
+          "nameColumn": "Class Name",
+          "categoryColumn": "Category",
+          "durationColumn": "Duration",
+          "capacityColumn": "Capacity",
+          "instructorsColumn": "Instructors",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "assign": "Assign Instructor"
+        },
+        "emptyState": {
+          "title": "No Classes Found",
+          "description": "No classes match your filters. Try adjusting your search or filters."
+        },
+        "deleteConfirm": {
+          "title": "Delete Class",
+          "message": "Are you sure you want to delete the class \"{{name}}\"?",
+          "warning": "This action cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        }
+      },
+      "classModal": {
+        "titleAdd": "Add New Class",
+        "titleEdit": "Edit Class",
+        "form": {
+          "className": "Class Name",
+          "classNamePlaceholder": "Enter class name",
+          "description": "Description",
+          "descriptionPlaceholder": "Enter class description",
+          "duration": "Duration (minutes)",
+          "maxCapacity": "Max Capacity",
+          "difficulty": "Difficulty Level",
+          "beginner": "Beginner",
+          "intermediate": "Intermediate",
+          "advanced": "Advanced",
+          "category": "Category",
+          "price": "Price (₼)",
+          "pricePlaceholder": "0",
+          "status": "Status",
+          "instructors": "Instructors",
+          "schedule": "Class Schedule",
+          "addScheduleSlot": "Add Schedule Slot",
+          "dayOfWeek": "Day",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "removeSlot": "Remove"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "save": "Save Class",
+          "update": "Update Class"
+        }
+      },
+      "instructors": {
+        "title": "Instructors Management",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add New Instructor",
+        "stats": {
+          "totalInstructors": "Total Instructors",
+          "activeInstructors": "Active Instructors",
+          "avgExperience": "Avg Experience",
+          "years": "Years"
+        },
+        "search": {
+          "placeholder": "Search instructors..."
+        },
+        "table": {
+          "nameColumn": "Name",
+          "specializationColumn": "Specialization",
+          "experienceColumn": "Experience",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete"
+        },
+        "emptyState": {
+          "title": "No Instructors Found",
+          "description": "No instructors available."
+        },
+        "deleteConfirm": {
+          "title": "Delete Instructor",
+          "message": "Are you sure you want to delete instructor \"{{name}}\"?",
+          "warning": "This action cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        }
+      },
+      "instructorModal": {
+        "titleAdd": "Add New Instructor",
+        "titleEdit": "Edit Instructor",
+        "memberSearch": {
+          "label": "Link to Member Account (Optional)",
+          "placeholder": "Search member by name or email...",
+          "noResults": "No members found",
+          "selected": "Selected Member:"
+        },
+        "form": {
+          "name": "Instructor Name",
+          "namePlaceholder": "Enter instructor name",
+          "email": "Email",
+          "emailPlaceholder": "Enter email address",
+          "phone": "Phone Number",
+          "phonePlaceholder": "+994501234567",
+          "experience": "Years of Experience",
+          "experiencePlaceholder": "Enter years of experience",
+          "specialization": "Specialization",
+          "specializationPlaceholder": "e.g., Yoga, Pilates, CrossFit",
+          "availableDays": "Available Days",
+          "certifications": "Certifications",
+          "certificationsPlaceholder": "e.g., CPR Certified, Personal Trainer Level 3",
+          "bio": "Bio",
+          "bioPlaceholder": "Brief description about the instructor...",
+          "status": "Status"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "save": "Save Instructor",
+          "update": "Update Instructor"
+        }
+      },
+      "schedule": {
+        "title": "Weekly Schedule",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add Schedule Slot",
+        "filters": {
+          "day": "Day:",
+          "allDays": "All Days",
+          "class": "Class:",
+          "allClasses": "All Classes",
+          "instructor": "Instructor:",
+          "allInstructors": "All Instructors"
+        },
+        "table": {
+          "dayColumn": "Day",
+          "timeColumn": "Time",
+          "classColumn": "Class",
+          "instructorColumn": "Instructor",
+          "enrolledColumn": "Enrolled",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "days": {
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        },
+        "status": {
+          "scheduled": "Scheduled",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "actions": {
+          "viewRoster": "View Roster",
+          "edit": "Edit",
+          "cancel": "Cancel Slot",
+          "delete": "Delete"
+        },
+        "emptyState": {
+          "title": "No Schedule Slots",
+          "description": "No schedule slots match your filters."
+        }
+      },
+      "scheduleModal": {
+        "titleAdd": "Add New Schedule Slot",
+        "titleEdit": "Edit Schedule Slot",
+        "form": {
+          "class": "Class",
+          "selectClass": "Select Class",
+          "instructor": "Instructor",
+          "selectInstructor": "Select Instructor",
+          "dayOfWeek": "Day of Week",
+          "date": "Date",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "status": "Status"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "save": "Save Slot",
+          "update": "Update Slot"
+        }
+      },
+      "rosterModal": {
+        "title": "Enrolled Members",
+        "classInfo": "Class: {{className}}",
+        "instructorInfo": "Instructor: {{instructorName}}",
+        "dateInfo": "Date: {{date}}",
+        "timeInfo": "Time: {{time}}",
+        "enrolled": "Enrolled: {{count}}/{{capacity}}",
+        "table": {
+          "nameColumn": "Member Name",
+          "enrolledColumn": "Enrolled At",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "status": {
+          "enrolled": "Enrolled",
+          "attended": "Attended",
+          "noShow": "No Show",
+          "cancelled": "Cancelled"
+        },
+        "actions": {
+          "markAttended": "Mark Attended",
+          "markNoShow": "Mark No Show",
+          "cancel": "Cancel Enrollment"
+        },
+        "emptyState": {
+          "title": "No Enrollments",
+          "description": "No members have enrolled in this class yet."
+        },
+        "closeButton": "Close"
+      },
+      "assignModal": {
+        "title": "Assign Instructor to {{className}}",
+        "currentInstructors": "Current Instructors",
+        "availableInstructors": "Available Instructors",
+        "noInstructors": "No instructors assigned",
+        "actions": {
+          "assign": "Assign",
+          "remove": "Remove",
+          "close": "Close"
+        }
+      },
+      "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "minutes": "min",
+        "years": "years",
+        "capacity": "{{current}}/{{max}}"
+      }
     }
   }
 }

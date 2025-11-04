@@ -673,6 +673,281 @@
         "completed": "Tamamlandı"
       },
       "noValue": "—"
+    },
+    "classManagement": {
+      "pageTitle": "Sinif Idarəetməsi və Planlaşdırma",
+      "backButton": "İdarə Panelinə Qayıt",
+      "tabs": {
+        "classes": "Siniflər",
+        "instructors": "Təlimçilər",
+        "schedule": "Cədvəl"
+      },
+      "classes": {
+        "title": "İdman Zalı Sinifləri Idarəetməsi",
+        "lastUpdated": "Son yenilənmə: {{time}}",
+        "addButton": "Yeni Sinif Əlavə Et",
+        "stats": {
+          "totalClasses": "Ümumi Siniflər",
+          "activeClasses": "Aktiv Siniflər",
+          "totalEnrollment": "Ümumi Qeydiyyat",
+          "fullClasses": "Dolu Siniflər"
+        },
+        "search": {
+          "placeholder": "Sinifləri axtar..."
+        },
+        "filters": {
+          "category": "Kateqoriya:",
+          "allCategories": "Bütün Kateqoriyalar",
+          "mixed": "Qarışıq",
+          "strength": "Güc",
+          "cardio": "Kardio",
+          "flexibility": "Çeviklik",
+          "status": "Status:",
+          "allStatus": "Bütün Statuslar",
+          "active": "Aktiv",
+          "inactive": "Qeyri-aktiv"
+        },
+        "table": {
+          "nameColumn": "Sinif Adı",
+          "categoryColumn": "Kateqoriya",
+          "durationColumn": "Müddət",
+          "capacityColumn": "Tutum",
+          "instructorsColumn": "Təlimçilər",
+          "statusColumn": "Status",
+          "actionsColumn": "Əməliyyatlar"
+        },
+        "actions": {
+          "edit": "Redaktə Et",
+          "delete": "Sil",
+          "assign": "Təlimçi Təyin Et"
+        },
+        "emptyState": {
+          "title": "Sinif Tapılmadı",
+          "description": "Filterlərinizə uyğun sinif yoxdur. Axtarışınızı və ya filterlərinizi tənzimləyin."
+        },
+        "deleteConfirm": {
+          "title": "Sinifi Sil",
+          "message": "\"{{name}}\" adlı sinifi silmək istədiyinizə əminsiniz?",
+          "warning": "Bu əməliyyat geri qaytarıla bilməz.",
+          "confirm": "Sil",
+          "cancel": "Ləğv Et"
+        }
+      },
+      "classModal": {
+        "titleAdd": "Yeni Sinif Əlavə Et",
+        "titleEdit": "Sinifi Redaktə Et",
+        "form": {
+          "className": "Sinif Adı",
+          "classNamePlaceholder": "Sinif adını daxil edin",
+          "description": "Təsvir",
+          "descriptionPlaceholder": "Sinif təsvirini daxil edin",
+          "duration": "Müddət (dəqiqə)",
+          "maxCapacity": "Maksimum Tutum",
+          "difficulty": "Çətinlik Səviyyəsi",
+          "beginner": "Başlanğıc",
+          "intermediate": "Orta",
+          "advanced": "Təcrübəli",
+          "category": "Kateqoriya",
+          "price": "Qiymət (₼)",
+          "pricePlaceholder": "0",
+          "status": "Status",
+          "instructors": "Təlimçilər",
+          "schedule": "Sinif Cədvəli",
+          "addScheduleSlot": "Cədvəl Slotu Əlavə Et",
+          "dayOfWeek": "Gün",
+          "startTime": "Başlama Vaxtı",
+          "endTime": "Bitmə Vaxtı",
+          "removeSlot": "Sil"
+        },
+        "actions": {
+          "cancel": "Ləğv Et",
+          "save": "Sinifi Saxla",
+          "update": "Sinifi Yenilə"
+        }
+      },
+      "instructors": {
+        "title": "Təlimçilərin Idarəetməsi",
+        "lastUpdated": "Son yenilənmə: {{time}}",
+        "addButton": "Yeni Təlimçi Əlavə Et",
+        "stats": {
+          "totalInstructors": "Ümumi Təlimçilər",
+          "activeInstructors": "Aktiv Təlimçilər",
+          "avgExperience": "Orta Təcrübə",
+          "years": "İl"
+        },
+        "search": {
+          "placeholder": "Təlimçiləri axtar..."
+        },
+        "table": {
+          "nameColumn": "Ad",
+          "specializationColumn": "İxtisas",
+          "experienceColumn": "Təcrübə",
+          "statusColumn": "Status",
+          "actionsColumn": "Əməliyyatlar"
+        },
+        "actions": {
+          "edit": "Redaktə Et",
+          "delete": "Sil"
+        },
+        "emptyState": {
+          "title": "Təlimçi Tapılmadı",
+          "description": "Mövcud təlimçi yoxdur."
+        },
+        "deleteConfirm": {
+          "title": "Təlimçini Sil",
+          "message": "\"{{name}}\" adlı təlimçini silmək istədiyinizə əminsiniz?",
+          "warning": "Bu əməliyyat geri qaytarıla bilməz.",
+          "confirm": "Sil",
+          "cancel": "Ləğv Et"
+        }
+      },
+      "instructorModal": {
+        "titleAdd": "Yeni Təlimçi Əlavə Et",
+        "titleEdit": "Təlimçini Redaktə Et",
+        "memberSearch": {
+          "label": "Üzv Hesabına Bağla (İstəyə Bağlı)",
+          "placeholder": "Ad və ya e-poçt ilə üzv axtar...",
+          "noResults": "Üzv tapılmadı",
+          "selected": "Seçilmiş Üzv:"
+        },
+        "form": {
+          "name": "Təlimçi Adı",
+          "namePlaceholder": "Təlimçi adını daxil edin",
+          "email": "E-poçt",
+          "emailPlaceholder": "E-poçt ünvanını daxil edin",
+          "phone": "Telefon Nömrəsi",
+          "phonePlaceholder": "+994501234567",
+          "experience": "Təcrübə İlləri",
+          "experiencePlaceholder": "Təcrübə illərini daxil edin",
+          "specialization": "İxtisas",
+          "specializationPlaceholder": "məs., Yoqa, Pilates, CrossFit",
+          "availableDays": "Mövcud Günlər",
+          "certifications": "Sertifikatlar",
+          "certificationsPlaceholder": "məs., İlk Yardım Sertifikatı, Şəxsi Məşqçi Səviyyə 3",
+          "bio": "Bioqrafiya",
+          "bioPlaceholder": "Təlimçi haqqında qısa təsvir...",
+          "status": "Status"
+        },
+        "actions": {
+          "cancel": "Ləğv Et",
+          "save": "Təlimçini Saxla",
+          "update": "Təlimçini Yenilə"
+        }
+      },
+      "schedule": {
+        "title": "Həftəlik Cədvəl",
+        "lastUpdated": "Son yenilənmə: {{time}}",
+        "addButton": "Cədvəl Slotu Əlavə Et",
+        "filters": {
+          "day": "Gün:",
+          "allDays": "Bütün Günlər",
+          "class": "Sinif:",
+          "allClasses": "Bütün Siniflər",
+          "instructor": "Təlimçi:",
+          "allInstructors": "Bütün Təlimçilər"
+        },
+        "table": {
+          "dayColumn": "Gün",
+          "timeColumn": "Vaxt",
+          "classColumn": "Sinif",
+          "instructorColumn": "Təlimçi",
+          "enrolledColumn": "Qeydiyyatda",
+          "statusColumn": "Status",
+          "actionsColumn": "Əməliyyatlar"
+        },
+        "days": {
+          "monday": "Bazar ertəsi",
+          "tuesday": "Çərşənbə axşamı",
+          "wednesday": "Çərşənbə",
+          "thursday": "Cümə axşamı",
+          "friday": "Cümə",
+          "saturday": "Şənbə",
+          "sunday": "Bazar"
+        },
+        "status": {
+          "scheduled": "Planlaşdırılıb",
+          "completed": "Tamamlandı",
+          "cancelled": "Ləğv Edilib"
+        },
+        "actions": {
+          "viewRoster": "Siyahını Gör",
+          "edit": "Redaktə Et",
+          "cancel": "Slotu Ləğv Et",
+          "delete": "Sil"
+        },
+        "emptyState": {
+          "title": "Cədvəl Slotu Yoxdur",
+          "description": "Filterlərinizə uyğun cədvəl slotu yoxdur."
+        }
+      },
+      "scheduleModal": {
+        "titleAdd": "Yeni Cədvəl Slotu Əlavə Et",
+        "titleEdit": "Cədvəl Slotunu Redaktə Et",
+        "form": {
+          "class": "Sinif",
+          "selectClass": "Sinif Seçin",
+          "instructor": "Təlimçi",
+          "selectInstructor": "Təlimçi Seçin",
+          "dayOfWeek": "Həftənin Günü",
+          "date": "Tarix",
+          "startTime": "Başlama Vaxtı",
+          "endTime": "Bitmə Vaxtı",
+          "status": "Status"
+        },
+        "actions": {
+          "cancel": "Ləğv Et",
+          "save": "Slotu Saxla",
+          "update": "Slotu Yenilə"
+        }
+      },
+      "rosterModal": {
+        "title": "Qeydiyyatdan Keçmiş Üzvlər",
+        "classInfo": "Sinif: {{className}}",
+        "instructorInfo": "Təlimçi: {{instructorName}}",
+        "dateInfo": "Tarix: {{date}}",
+        "timeInfo": "Vaxt: {{time}}",
+        "enrolled": "Qeydiyyatda: {{count}}/{{capacity}}",
+        "table": {
+          "nameColumn": "Üzv Adı",
+          "enrolledColumn": "Qeydiyyat Tarixi",
+          "statusColumn": "Status",
+          "actionsColumn": "Əməliyyatlar"
+        },
+        "status": {
+          "enrolled": "Qeydiyyatda",
+          "attended": "İştirak Etdi",
+          "noShow": "Gəlmədi",
+          "cancelled": "Ləğv Edildi"
+        },
+        "actions": {
+          "markAttended": "İştirak Etdi Qeyd Et",
+          "markNoShow": "Gəlmədi Qeyd Et",
+          "cancel": "Qeydiyyatı Ləğv Et"
+        },
+        "emptyState": {
+          "title": "Qeydiyyat Yoxdur",
+          "description": "Bu sinifə hələ heç bir üzv qeydiyyatdan keçməyib."
+        },
+        "closeButton": "Bağla"
+      },
+      "assignModal": {
+        "title": "{{className}} üçün Təlimçi Təyin Et",
+        "currentInstructors": "Cari Təlimçilər",
+        "availableInstructors": "Mövcud Təlimçilər",
+        "noInstructors": "Təlimçi təyin edilməyib",
+        "actions": {
+          "assign": "Təyin Et",
+          "remove": "Sil",
+          "close": "Bağla"
+        }
+      },
+      "common": {
+        "loading": "Yüklənir...",
+        "error": "Xəta",
+        "minutes": "dəq",
+        "years": "il",
+        "capacity": "{{current}}/{{max}}"
+      }
     }
   }
 }
