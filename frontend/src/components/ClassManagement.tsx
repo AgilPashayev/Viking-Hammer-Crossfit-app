@@ -2809,11 +2809,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                                   }}
                                 >
                                   <span style={{ fontWeight: 'bold' }}>
-                                    {
-                                      ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][
-                                        scheduleItem.dayOfWeek
-                                      ]
-                                    }
+                                    {t(`admin.classManagement.scheduleAssignModal.days.${
+                                      ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][scheduleItem.dayOfWeek]
+                                    }`)}
                                   </span>
                                   <span style={{ margin: '0 4px' }}>•</span>
                                   <span>
@@ -2846,12 +2844,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             {isAssigned ? (
                               <>
                                 <span>✕</span>
-                                <span>Click to Remove</span>
+                                <span>{t('admin.classManagement.scheduleAssignModal.clickToRemove')}</span>
                               </>
                             ) : (
                               <>
                                 <span>✓</span>
-                                <span>Click to Assign</span>
+                                <span>{t('admin.classManagement.scheduleAssignModal.clickToAssign')}</span>
                               </>
                             )}
                           </div>
@@ -2904,7 +2902,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     cursor: 'pointer',
                   }}
                 >
-                  ✅ Complete Assignment
+                  ✅ {t('admin.classManagement.scheduleAssignModal.completeAssignment')}
                 </button>
               </div>
             </div>

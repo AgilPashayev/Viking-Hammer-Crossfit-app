@@ -1083,7 +1083,19 @@
         "helpText": "Təlimçidən sinifləri təyin etmək və ya silmək üçün klikləyin",
         "currentlyAssigned": "Hazırda Təyin Edilmiş",
         "maxCapacity": "maks",
-        "weeklySchedule": "Həftəlik Cədvəl"
+        "weeklySchedule": "Həftəlik Cədvəl",
+        "clickToAssign": "Təyin Etmək üçün Klikləyin",
+        "clickToRemove": "Silmək üçün Klikləyin",
+        "completeAssignment": "Təyinatı Tamamla",
+        "days": {
+          "sun": "Baz",
+          "mon": "B.e",
+          "tue": "Ç.a",
+          "wed": "Çər",
+          "thu": "C.a",
+          "fri": "Cüm",
+          "sat": "Şən"
+        }
       },
       "deleteScheduleModal": {
         "title": "Cədvəl Slotunu Silmə Təsdiqi",

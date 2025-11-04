@@ -1083,7 +1083,19 @@
         "helpText": "Click to assign or remove classes from this instructor",
         "currentlyAssigned": "Currently Assigned",
         "maxCapacity": "max",
-        "weeklySchedule": "Weekly Schedule"
+        "weeklySchedule": "Weekly Schedule",
+        "clickToAssign": "Click to Assign",
+        "clickToRemove": "Click to Remove",
+        "completeAssignment": "Complete Assignment",
+        "days": {
+          "sun": "Sun",
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat"
+        }
       },
       "deleteScheduleModal": {
         "title": "Delete Schedule Slot Confirmation",
