@@ -749,6 +749,11 @@
           "spartaAccessDenied": "Giriş Rədd Edildi: Yalnız Sparta istifadəçiləri asılılıqları olan sinifləri məcburi silə bilər",
           "safeToDelete": "Silmək Təhlükəsizdir",
           "noDependencies": "Bu sinifdə aktiv asılılıq yoxdur və təhlükəsiz silinə bilər.",
+          "classLabel": "Sinif",
+          "activeScheduleSlots": "Aktiv Cədvəl Slotları",
+          "assignedInstructors": "Təyin Edilmiş Təlimçilər",
+          "currentEnrollment": "Cari Qeydiyyat",
+          "members": "üzv",
           "actions": {
             "cancel": "Ləğv Et",
             "delete": "Sinifi Sil",
@@ -1076,7 +1081,9 @@
         "subtitle": "Təlimçinin sinif cədvəlini idarə edin",
         "availableClasses": "Mövcud Siniflər",
         "helpText": "Təlimçidən sinifləri təyin etmək və ya silmək üçün klikləyin",
-        "currentlyAssigned": "Hazırda Təyin Edilmiş"
+        "currentlyAssigned": "Hazırda Təyin Edilmiş",
+        "maxCapacity": "maks",
+        "weeklySchedule": "Həftəlik Cədvəl"
       },
       "deleteScheduleModal": {
         "title": "Cədvəl Slotunu Silmə Təsdiqi",
@@ -1095,6 +1102,10 @@
           "delete": "Slotu Sil"
         },
         "errorMessage": "Cədvəl slotunu silmə xətası. Lütfən yenidən cəhd edin."
+      },
+      "notifications": {
+        "instructorAssigned": "Təlimçi \"{{className}}\" sinfinə uğurla təyin edildi",
+        "instructorRemoved": "Təlimçi \"{{className}}\" sinfindən uğurla silindi"
       },
       "common": {
         "loading": "Yüklənir...",

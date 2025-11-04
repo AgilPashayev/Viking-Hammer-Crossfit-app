@@ -718,20 +718,20 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     const hasBookings = targetClass.currentEnrollment > 0;
     const canForceDelete = isSparta(); // Only Sparta can force delete
 
-    let details = `Class: "${targetClass.name}"\n\n`;
+    let details = `${t('admin.classManagement.deleteConfirm.classLabel')}: "${targetClass.name}"\n\n`;
 
     if (hasScheduleSlots) {
-      details += `⚠️ Active Schedule Slots: ${targetClass.schedule.length}\n`;
+      details += `⚠️ ${t('admin.classManagement.deleteConfirm.activeScheduleSlots')}: ${targetClass.schedule.length}\n`;
     }
     if (hasInstructors) {
-      details += `👨‍🏫 Assigned Instructors: ${targetClass.instructors.length}\n`;
+      details += `👨‍🏫 ${t('admin.classManagement.deleteConfirm.assignedInstructors')}: ${targetClass.instructors.length}\n`;
     }
     if (hasBookings) {
-      details += `👥 Current Enrollment: ${targetClass.currentEnrollment}/${targetClass.maxCapacity} members\n`;
+      details += `👥 ${t('admin.classManagement.deleteConfirm.currentEnrollment')}: ${targetClass.currentEnrollment}/${targetClass.maxCapacity} ${t('admin.classManagement.deleteConfirm.members')}\n`;
     }
 
     if (!hasScheduleSlots && !hasInstructors && !hasBookings) {
-      details += `✅ No dependencies found - safe to delete\n`;
+      details += `✅ ${t('admin.classManagement.deleteConfirm.noDependencies')}\n`;
     }
 
     setClassToDelete(targetClass);
@@ -891,11 +891,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           }`,
         });
 
-        alert(
-          `✅ ${assign ? 'Assigned' : 'Removed'} instructor ${assign ? 'to' : 'from'} "${
-            targetClass.name
-          }" successfully!`,
+        setNotificationMessage(
+          `✅ ${assign 
+            ? t('admin.classManagement.notifications.instructorAssigned', { className: targetClass.name })
+            : t('admin.classManagement.notifications.instructorRemoved', { className: targetClass.name })
+          }`
         );
+        setShowNotificationModal(true);
       } else {
         alert(`❌ Error: ${result.message || 'Failed to update class assignment'}`);
       }
@@ -2718,7 +2720,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             fontWeight: 'bold',
                           }}
                         >
-                          {isAssigned ? '✓ ASSIGNED' : 'AVAILABLE'}
+                          {isAssigned ? `✓ ${t('admin.classManagement.assignModal.assigned')}` : t('admin.classManagement.assignModal.available')}
                         </div>
 
                         {/* Class Header */}
@@ -2767,13 +2769,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                               }}
                             >
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>🏷️</span> {classItem.category}
+                                <span>🏷️</span> {t(`admin.classManagement.classes.filters.${classItem.category.toLowerCase()}`, classItem.category)}
                               </span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>👥</span> {classItem.maxCapacity} max
+                                <span>👥</span> {classItem.maxCapacity} {t('admin.classManagement.scheduleAssignModal.maxCapacity')}
                               </span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>💰</span> ${classItem.price}
+                                <span>💰</span> {classItem.price} ₼
                               </span>
                             </div>
                           </div>
@@ -2800,7 +2802,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                                 gap: '6px',
                               }}
                             >
-                              <span>📅</span> Weekly Schedule:
+                              <span>📅</span> {t('admin.classManagement.scheduleAssignModal.weeklySchedule')}:
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                               {classItem.schedule.map((scheduleItem, idx) => (

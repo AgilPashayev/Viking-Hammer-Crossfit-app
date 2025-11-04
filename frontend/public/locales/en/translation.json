@@ -749,6 +749,11 @@
           "spartaAccessDenied": "Access Denied: Only Sparta users can force delete classes with dependencies",
           "safeToDelete": "Safe to Delete",
           "noDependencies": "This class has no active dependencies and can be safely deleted.",
+          "classLabel": "Class",
+          "activeScheduleSlots": "Active Schedule Slots",
+          "assignedInstructors": "Assigned Instructors",
+          "currentEnrollment": "Current Enrollment",
+          "members": "members",
           "actions": {
             "cancel": "Cancel",
             "delete": "Delete Class",
@@ -1076,7 +1081,9 @@
         "subtitle": "Manage instructor's class schedule",
         "availableClasses": "Available Classes",
         "helpText": "Click to assign or remove classes from this instructor",
-        "currentlyAssigned": "Currently Assigned"
+        "currentlyAssigned": "Currently Assigned",
+        "maxCapacity": "max",
+        "weeklySchedule": "Weekly Schedule"
       },
       "deleteScheduleModal": {
         "title": "Delete Schedule Slot Confirmation",
@@ -1095,6 +1102,10 @@
           "delete": "Delete Slot"
         },
         "errorMessage": "Error deleting schedule slot. Please try again."
+      },
+      "notifications": {
+        "instructorAssigned": "Instructor successfully assigned to \"{{className}}\"",
+        "instructorRemoved": "Instructor successfully removed from \"{{className}}\""
       },
       "common": {
         "loading": "Loading...",
