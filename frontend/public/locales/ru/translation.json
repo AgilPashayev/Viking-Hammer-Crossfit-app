@@ -710,6 +710,9 @@
         },
         "spotsLeft": "{{count}} мест осталось",
         "noInstructors": "Инструкторы не назначены",
+        "showLess": "Показать меньше",
+        "showMoreDays": "Показать больше дней",
+        "moreCount": "+{{count}} еще",
         "table": {
           "nameColumn": "Название Класса",
           "categoryColumn": "Категория",
@@ -861,6 +864,16 @@
         "title": "Недельное Расписание",
         "lastUpdated": "Последнее обновление: {{time}}",
         "addButton": "Добавить Слот Расписания",
+        "loadingSchedule": "Загрузка расписания...",
+        "slotsCount": "{{count}} слотов",
+        "noClasses": "Нет запланированных занятий",
+        "enrolled": "{{count}} записаны",
+        "stats": {
+          "totalSlots": "Всего Слотов",
+          "scheduled": "Запланировано",
+          "completed": "Завершено",
+          "totalEnrollments": "Всего Записей"
+        },
         "filters": {
           "day": "День:",
           "allDays": "Все Дни",
@@ -954,15 +967,27 @@
         "closeButton": "Закрыть"
       },
       "assignModal": {
-        "title": "Назначить Инструктора для {{className}}",
-        "currentInstructors": "Текущие Инструкторы",
+        "title": "Назначить инструкторов для",
+        "currentInstructors": "Инструкторы",
         "availableInstructors": "Доступные Инструкторы",
         "noInstructors": "Инструкторы не назначены",
+        "maxInstructors": "Назначено максимальное количество инструкторов",
+        "moreCanAssign": "Можно назначить еще {{count}}",
+        "full": "ЗАПОЛНЕНО",
+        "available": "ДОСТУПНО",
+        "assigned": "Назначен",
+        "assign": "Назначить",
+        "maxAllowed": "Максимум 5 инструкторов разрешено",
         "actions": {
           "assign": "Назначить",
           "remove": "Удалить",
-          "close": "Закрыть"
+          "close": "Закрыть",
+          "done": "Готово"
         }
+      },
+      "scheduleAssignModal": {
+        "title": "Назначение класса для {{name}}",
+        "subtitle": "Управление расписанием занятий инструктора"
       },
       "common": {
         "loading": "Загрузка...",

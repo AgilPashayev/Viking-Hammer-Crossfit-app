@@ -1251,12 +1251,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                           onClick={() => toggleScheduleExpansion(gymClass.id)}
                           style={{ cursor: 'pointer' }}
                           title={
-                            expandedSchedules.has(gymClass.id) ? 'Show less' : 'Show more days'
+                            expandedSchedules.has(gymClass.id) ? t('admin.classManagement.classes.showLess') : t('admin.classManagement.classes.showMoreDays')
                           }
                         >
                           {expandedSchedules.has(gymClass.id)
-                            ? 'Show less'
-                            : `+${gymClass.schedule.length - 3} more`}
+                            ? t('admin.classManagement.classes.showLess')
+                            : t('admin.classManagement.classes.moreCount', { count: gymClass.schedule.length - 3 })}
                         </span>
                       )}
                     </div>
@@ -1601,52 +1601,52 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">📅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalSlots}</h3>
-              <p className="stat-label">Total Slots</p>
+              <p className="stat-label">{t('admin.classManagement.schedule.stats.totalSlots')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.scheduledSlots}</h3>
-              <p className="stat-label">Scheduled</p>
+              <p className="stat-label">{t('admin.classManagement.schedule.stats.scheduled')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🎯</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.completedSlots}</h3>
-              <p className="stat-label">Completed</p>
+              <p className="stat-label">{t('admin.classManagement.schedule.stats.completed')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">👥</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalEnrollments}</h3>
-              <p className="stat-label">Total Enrollments</p>
+              <p className="stat-label">{t('admin.classManagement.schedule.stats.totalEnrollments')}</p>
             </div>
           </div>
         </div>
 
         <div className="section-header">
-          <h3>Weekly Schedule</h3>
+          <h3>{t('admin.classManagement.schedule.title')}</h3>
           <button className="add-btn" onClick={() => setShowScheduleModal(true)}>
-            ➕ Add Schedule Slot
+            ➕ {t('admin.classManagement.schedule.addButton')}
           </button>
         </div>
 
         {loading ? (
-          <div className="loading-state">Loading schedule...</div>
+          <div className="loading-state">{t('admin.classManagement.schedule.loadingSchedule')}</div>
         ) : (
           <div className="weekly-schedule-grid">
             {dayNames.map((dayName, dayIndex) => (
               <div key={dayIndex} className="day-column">
                 <div className="day-header">
-                  <h4>{dayName}</h4>
-                  <span className="slot-count">{scheduleByDay[dayIndex].length} slots</span>
+                  <h4>{t(`admin.classManagement.schedule.days.${dayName.toLowerCase()}`)}</h4>
+                  <span className="slot-count">{t('admin.classManagement.schedule.slotsCount', { count: scheduleByDay[dayIndex].length })}</span>
                 </div>
                 <div className="day-slots">
                   {scheduleByDay[dayIndex].length === 0 ? (
-                    <div className="no-slots">No classes scheduled</div>
+                    <div className="no-slots">{t('admin.classManagement.schedule.noClasses')}</div>
                   ) : (
                     scheduleByDay[dayIndex].map((slot) => (
                       <div key={slot.id} className={`schedule-slot-card status-${slot.status}`}>
@@ -1665,27 +1665,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         </div>
                         <div className="slot-enrollment">
                           <span className="enrollment-icon">👥</span>
-                          <span>{slot.enrolledMembers.length} enrolled</span>
+                          <span>{t('admin.classManagement.schedule.enrolled', { count: slot.enrolledMembers.length })}</span>
                         </div>
                         <div className="slot-actions">
                           <button
                             className="roster-btn-small"
                             onClick={() => handleViewRoster(slot)}
-                            title="View Members"
+                            title={t('admin.classManagement.schedule.actions.viewRoster')}
                           >
                             👥
                           </button>
                           <button
                             className="edit-btn-small"
                             onClick={() => handleEditScheduleSlot(slot)}
-                            title="Edit"
+                            title={t('admin.classManagement.schedule.actions.edit')}
                           >
                             ✏️
                           </button>
                           <button
                             className="delete-btn-small"
                             onClick={() => handleDeleteScheduleSlot(slot.id)}
-                            title="Delete"
+                            title={t('admin.classManagement.schedule.actions.delete')}
                           >
                             🗑️
                           </button>
@@ -2475,7 +2475,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5em' }}>👨‍🏫</span>
                 <h3 style={{ margin: 0, fontSize: '1.4em', fontWeight: '600' }}>
-                  Assign Instructors to "{selectedClass.name}"
+                  {t('admin.classManagement.assignModal.title')} "{selectedClass.name}"
                 </h3>
               </div>
               <button
@@ -2517,12 +2517,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div>
                   <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
-                    👨‍🏫 Instructors: {selectedClass.instructors.length} / 5
+                    👨‍🏫 {t('admin.classManagement.assignModal.currentInstructors')}: {selectedClass.instructors.length} / 5
                   </div>
                   <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
                     {selectedClass.instructors.length >= 5
-                      ? 'Maximum instructors assigned'
-                      : `${5 - selectedClass.instructors.length} more can be assigned`}
+                      ? t('admin.classManagement.assignModal.maxInstructors')
+                      : t('admin.classManagement.assignModal.moreCanAssign', { count: 5 - selectedClass.instructors.length })}
                   </div>
                 </div>
                 <div
@@ -2535,7 +2535,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     fontWeight: 'bold',
                   }}
                 >
-                  {selectedClass.instructors.length >= 5 ? 'FULL' : 'AVAILABLE'}
+                  {selectedClass.instructors.length >= 5 ? t('admin.classManagement.assignModal.full') : t('admin.classManagement.assignModal.available')}
                 </div>
               </div>
               <div className="instructors-assignment">
@@ -2544,7 +2544,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <div className="instructor-info">
                       <h4>{instructor.name}</h4>
                       <p>
-                        ⭐ {instructor.rating} | {instructor.experience} years
+                        ⭐ {instructor.rating} | {instructor.experience} {t('admin.classManagement.instructors.stats.years')}
                       </p>
                       <div className="specializations">
                         {(Array.isArray(instructor.specialization)
@@ -2569,13 +2569,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       title={
                         !selectedClass.instructors.includes(instructor.id) &&
                         selectedClass.instructors.length >= 5
-                          ? 'Maximum of 5 instructors allowed'
+                          ? t('admin.classManagement.assignModal.maxAllowed')
                           : ''
                       }
                     >
                       {selectedClass.instructors.includes(instructor.id)
-                        ? '✓ Assigned'
-                        : '+ Assign'}
+                        ? `✓ ${t('admin.classManagement.assignModal.assigned')}`
+                        : `+ ${t('admin.classManagement.assignModal.assign')}`}
                     </button>
                   </div>
                 ))}
@@ -2584,7 +2584,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="confirm-btn" onClick={() => setShowAssignModal(false)}>
-                Done
+                {t('admin.classManagement.assignModal.actions.done')}
               </button>
             </div>
           </div>
@@ -2602,9 +2602,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5em' }}>👤</span>
                 <div>
-                  <div>Class Assignment for {instructorToSchedule.name}</div>
+                  <div>{t('admin.classManagement.scheduleAssignModal.title', { name: instructorToSchedule.name })}</div>
                   <div style={{ fontSize: '0.9em', fontWeight: 'normal', color: '#666' }}>
-                    Manage instructor's class schedule
+                    {t('admin.classManagement.scheduleAssignModal.subtitle')}
                   </div>
                 </div>
               </h3>
@@ -3285,7 +3285,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           <div className="modal-content" style={{ maxWidth: '600px' }}>
             <div className="modal-header">
               <h3 style={{ color: '#dc3545', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                ⚠️ Delete Class Confirmation
+                ⚠️ {t('admin.classManagement.classes.deleteConfirm.title')}
               </h3>
               <button className="close-btn" onClick={() => setShowClassDeleteModal(false)}>
                 ✕

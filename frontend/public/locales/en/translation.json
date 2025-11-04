@@ -710,6 +710,9 @@
         },
         "spotsLeft": "{{count}} spots left",
         "noInstructors": "No instructors assigned",
+        "showLess": "Show less",
+        "showMoreDays": "Show more days",
+        "moreCount": "+{{count}} more",
         "table": {
           "nameColumn": "Class Name",
           "categoryColumn": "Category",
@@ -861,6 +864,16 @@
         "title": "Weekly Schedule",
         "lastUpdated": "Last updated: {{time}}",
         "addButton": "Add Schedule Slot",
+        "loadingSchedule": "Loading schedule...",
+        "slotsCount": "{{count}} slots",
+        "noClasses": "No classes scheduled",
+        "enrolled": "{{count}} enrolled",
+        "stats": {
+          "totalSlots": "Total Slots",
+          "scheduled": "Scheduled",
+          "completed": "Completed",
+          "totalEnrollments": "Total Enrollments"
+        },
         "filters": {
           "day": "Day:",
           "allDays": "All Days",
@@ -954,15 +967,27 @@
         "closeButton": "Close"
       },
       "assignModal": {
-        "title": "Assign Instructor to {{className}}",
-        "currentInstructors": "Current Instructors",
+        "title": "Assign Instructors to",
+        "currentInstructors": "Instructors",
         "availableInstructors": "Available Instructors",
         "noInstructors": "No instructors assigned",
+        "maxInstructors": "Maximum instructors assigned",
+        "moreCanAssign": "{{count}} more can be assigned",
+        "full": "FULL",
+        "available": "AVAILABLE",
+        "assigned": "Assigned",
+        "assign": "Assign",
+        "maxAllowed": "Maximum of 5 instructors allowed",
         "actions": {
           "assign": "Assign",
           "remove": "Remove",
-          "close": "Close"
+          "close": "Close",
+          "done": "Done"
         }
+      },
+      "scheduleAssignModal": {
+        "title": "Class Assignment for {{name}}",
+        "subtitle": "Manage instructor's class schedule"
       },
       "common": {
         "loading": "Loading...",

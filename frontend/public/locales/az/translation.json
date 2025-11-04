@@ -710,6 +710,9 @@
         },
         "spotsLeft": "{{count}} yer qalıb",
         "noInstructors": "Təlimçi təyin edilməyib",
+        "showLess": "Daha az göstər",
+        "showMoreDays": "Daha çox gün göstər",
+        "moreCount": "+{{count}} daha",
         "table": {
           "nameColumn": "Sinif Adı",
           "categoryColumn": "Kateqoriya",
@@ -861,6 +864,16 @@
         "title": "Həftəlik Cədvəl",
         "lastUpdated": "Son yenilənmə: {{time}}",
         "addButton": "Cədvəl Slotu Əlavə Et",
+        "loadingSchedule": "Cədvəl yüklənir...",
+        "slotsCount": "{{count}} slot",
+        "noClasses": "Sinif planlaşdırılmayıb",
+        "enrolled": "{{count}} qeydiyyatlı",
+        "stats": {
+          "totalSlots": "Ümumi Slotlar",
+          "scheduled": "Planlaşdırılmış",
+          "completed": "Tamamlanmış",
+          "totalEnrollments": "Ümumi Qeydiyyatlar"
+        },
         "filters": {
           "day": "Gün:",
           "allDays": "Bütün Günlər",
@@ -954,15 +967,27 @@
         "closeButton": "Bağla"
       },
       "assignModal": {
-        "title": "{{className}} üçün Təlimçi Təyin Et",
-        "currentInstructors": "Cari Təlimçilər",
+        "title": "Təlimçiləri təyin edin",
+        "currentInstructors": "Təlimçilər",
         "availableInstructors": "Mövcud Təlimçilər",
         "noInstructors": "Təlimçi təyin edilməyib",
+        "maxInstructors": "Maksimum təlimçi təyin edilib",
+        "moreCanAssign": "{{count}} daha çox təyin edilə bilər",
+        "full": "DOLU",
+        "available": "MÖVCUD",
+        "assigned": "Təyin edilib",
+        "assign": "Təyin Et",
+        "maxAllowed": "Maksimum 5 təlimçiyə icazə verilir",
         "actions": {
           "assign": "Təyin Et",
           "remove": "Sil",
-          "close": "Bağla"
+          "close": "Bağla",
+          "done": "Hazır"
         }
+      },
+      "scheduleAssignModal": {
+        "title": "{{name}} üçün Sinif Təyinatı",
+        "subtitle": "Təlimçinin sinif cədvəlini idarə edin"
       },
       "common": {
         "loading": "Yüklənir...",
