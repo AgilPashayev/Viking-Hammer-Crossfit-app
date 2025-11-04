@@ -1158,7 +1158,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   </div>
                   <div className={`stat-pill difficulty-${gymClass.difficulty.toLowerCase()}`}>
                     <span className="stat-icon">📊</span>
-                    <span className="stat-text">{gymClass.difficulty}</span>
+                    <span className="stat-text">{t(`admin.classManagement.classes.difficulty.${gymClass.difficulty.toLowerCase()}`)}</span>
                   </div>
                 </div>
 
@@ -1588,12 +1588,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       return gymClass ? gymClass.name : 'Unknown Class';
     };
 
-    const getInstructorName = (instructorId: string): string => {
-      const instructor = instructors.find((i) => i.id === instructorId);
-      return instructor ? instructor.name : 'Unknown Instructor';
-    };
-
-    return (
+  const getInstructorName = (instructorId: string): string => {
+    const instructor = instructors.find((i) => i.id === instructorId);
+    return instructor ? instructor.name : t('admin.classManagement.schedule.unknownInstructor');
+  };    return (
       <div className="tab-content">
         {/* Stats Overview */}
         <div className="stats-overview">
@@ -2139,7 +2137,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}
           >
             <div className="modal-header">
-              <h3>{editingInstructor ? 'Edit Instructor' : 'Add New Instructor'}</h3>
+              <h3>{editingInstructor ? t('admin.classManagement.instructorModal.titleEdit') : t('admin.classManagement.instructorModal.titleAdd')}</h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -2156,7 +2154,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               {/* Member Selection (for new instructors only) */}
               {!editingInstructor && (
                 <div className="form-group">
-                  <label>👤 Select Active Member:</label>
+                  <label>👤 {t('admin.classManagement.instructorModal.selectMember')}:</label>
                   <div className="member-search-container" style={{ position: 'relative' }}>
                     <input
                       type="text"
@@ -2166,7 +2164,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         setShowMemberDropdown(true);
                       }}
                       onFocus={() => setShowMemberDropdown(true)}
-                      placeholder="Search member by name or email..."
+                      placeholder={t('admin.classManagement.instructorModal.searchPlaceholder')}
                       style={{
                         width: '100%',
                         padding: '8px',
@@ -2233,7 +2231,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       }}
                     >
                       <div style={{ fontWeight: 'bold', color: '#2d5016' }}>
-                        ✅ Selected: {selectedMember.name}
+                        ✅ {t('admin.classManagement.instructorModal.selectedMember')}: {selectedMember.name}
                       </div>
                       <div style={{ fontSize: '0.9em', color: '#4a7c2a' }}>
                         {selectedMember.email} | {selectedMember.phone}
@@ -2244,12 +2242,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               )}
 
               <div className="form-group">
-                <label>Full Name:</label>
+                <label>{t('admin.classManagement.instructorModal.form.name')}:</label>
                 <input
                   type="text"
                   value={newInstructor.name || ''}
                   onChange={(e) => setNewInstructor({ ...newInstructor, name: e.target.value })}
-                  placeholder="Enter instructor name"
+                  placeholder={t('admin.classManagement.instructorModal.form.namePlaceholder')}
                   readOnly={!editingInstructor && selectedMember !== null}
                   style={{
                     backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
@@ -2259,12 +2257,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Email:</label>
+                <label>{t('admin.classManagement.instructorModal.form.email')}:</label>
                 <input
                   type="email"
                   value={newInstructor.email || ''}
                   onChange={(e) => setNewInstructor({ ...newInstructor, email: e.target.value })}
-                  placeholder="Enter email address"
+                  placeholder={t('admin.classManagement.instructorModal.form.emailPlaceholder')}
                   readOnly={!editingInstructor && selectedMember !== null}
                   style={{
                     backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
@@ -2274,12 +2272,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Phone:</label>
+                <label>{t('admin.classManagement.instructorModal.form.phone')}:</label>
                 <input
                   type="tel"
                   value={newInstructor.phone || ''}
                   onChange={(e) => setNewInstructor({ ...newInstructor, phone: e.target.value })}
-                  placeholder="+994501234567"
+                  placeholder={t('admin.classManagement.instructorModal.form.phonePlaceholder')}
                   readOnly={!editingInstructor && selectedMember !== null}
                   style={{
                     backgroundColor: !editingInstructor && selectedMember ? '#f9f9f9' : 'white',
@@ -2289,7 +2287,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Experience (years):</label>
+                <label>{t('admin.classManagement.instructorModal.form.experience')}:</label>
                 <input
                   type="number"
                   value={newInstructor.experience === 0 ? '' : newInstructor.experience || ''}
@@ -2300,20 +2298,20 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       experience: value === '' ? 0 : parseInt(value) || 0,
                     });
                   }}
-                  placeholder="Enter years of experience"
+                  placeholder={t('admin.classManagement.instructorModal.form.experiencePlaceholder')}
                   min="0"
                   max="50"
                 />
               </div>
 
               <div className="form-group">
-                <label>Specializations (comma-separated):</label>
+                <label>{t('admin.classManagement.instructorModal.form.specialization')}:</label>
                 <input
                   type="text"
                   value={
                     newInstructor.specialization ? newInstructor.specialization.join(', ') : ''
                   }
-                  placeholder="e.g., Yoga, Pilates, CrossFit"
+                  placeholder={t('admin.classManagement.instructorModal.form.specializationPlaceholder')}
                   onChange={(e) =>
                     setNewInstructor({
                       ...newInstructor,
@@ -2325,8 +2323,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               {/* Enhanced Weekday Availability Selector */}
               <div className="form-group schedule-builder">
-                <label className="schedule-builder-label">📅 Weekly Availability:</label>
-                <p className="schedule-helper-text">Select weekdays when instructor is available</p>
+                <label className="schedule-builder-label">📅 {t('admin.classManagement.instructorModal.form.availability')}:</label>
+                <p className="schedule-helper-text">{t('admin.classManagement.instructorModal.form.availabilityHelper')}</p>
 
                 {/* Weekday Checkboxes */}
                 <div className="weekday-checkboxes">
@@ -2369,7 +2367,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             }
                           }}
                         />
-                        <span className="weekday-label">{day.slice(0, 3)}</span>
+                        <span className="weekday-label">{t(`admin.classManagement.instructorModal.form.days.${day.toLowerCase()}`).slice(0, 3)}</span>
                       </label>
                     );
                   })}
@@ -2377,13 +2375,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Certifications (comma-separated):</label>
+                <label>{t('admin.classManagement.instructorModal.form.certifications')}:</label>
                 <input
                   type="text"
                   value={
                     newInstructor.certifications ? newInstructor.certifications.join(', ') : ''
                   }
-                  placeholder="e.g., CPR Certified, Personal Trainer Level 3"
+                  placeholder={t('admin.classManagement.instructorModal.form.certificationsPlaceholder')}
                   onChange={(e) =>
                     setNewInstructor({
                       ...newInstructor,
@@ -2397,11 +2395,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Bio / Description:</label>
+                <label>{t('admin.classManagement.instructorModal.form.bio')}:</label>
                 <textarea
                   value={newInstructor.bio || ''}
                   onChange={(e) => setNewInstructor({ ...newInstructor, bio: e.target.value })}
-                  placeholder="Brief description about the instructor..."
+                  placeholder={t('admin.classManagement.instructorModal.form.bioPlaceholder')}
                   rows={4}
                   style={{
                     width: '100%',
@@ -2414,7 +2412,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Status:</label>
+                <label>{t('admin.classManagement.instructorModal.form.status')}:</label>
                 <select
                   value={newInstructor.status || 'active'}
                   onChange={(e) =>
@@ -2424,9 +2422,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     })
                   }
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="busy">Busy</option>
+                  <option value="active">{t('admin.classManagement.instructorModal.form.statusActive')}</option>
+                  <option value="inactive">{t('admin.classManagement.instructorModal.form.statusInactive')}</option>
+                  <option value="busy">{t('admin.classManagement.instructorModal.form.statusBusy')}</option>
                 </select>
               </div>
             </div>
@@ -2440,7 +2438,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   resetInstructorForm();
                 }}
               >
-                Cancel
+                {t('admin.classManagement.instructorModal.actions.cancel')}
               </button>
               <button
                 className="confirm-btn"
@@ -2451,7 +2449,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   cursor: !editingInstructor && !selectedMember ? 'not-allowed' : 'pointer',
                 }}
               >
-                {editingInstructor ? 'Update Instructor' : 'Add Instructor'}
+                {editingInstructor ? t('admin.classManagement.instructorModal.actions.update') : t('admin.classManagement.instructorModal.actions.add')}
               </button>
             </div>
           </div>
@@ -2923,7 +2921,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '500px' }}>
             <div className="modal-header">
-              <h3>🗑️ Delete Instructor</h3>
+              <h3>🗑️ {t('admin.classManagement.deleteInstructorModal.title')}</h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -2948,10 +2946,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                   <span style={{ fontSize: '2em', marginRight: '10px' }}>⚠️</span>
-                  <h4 style={{ margin: 0, color: '#856404' }}>Permanent Action Warning</h4>
+                  <h4 style={{ margin: 0, color: '#856404' }}>{t('admin.classManagement.deleteInstructorModal.warningTitle')}</h4>
                 </div>
                 <p style={{ margin: '0 0 10px 0', color: '#856404' }}>
-                  You are about to permanently delete instructor:
+                  {t('admin.classManagement.deleteInstructorModal.warningMessage')}
                 </p>
                 <div
                   style={{
@@ -2968,12 +2966,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               <div className="consequences-list" style={{ color: '#666', fontSize: '0.95em' }}>
                 <p>
-                  <strong>This action will:</strong>
+                  <strong>{t('admin.classManagement.deleteInstructorModal.actionWillTitle')}:</strong>
                 </p>
                 <ul style={{ paddingLeft: '20px' }}>
-                  <li>Permanently remove the instructor from the system</li>
-                  <li>Remove them from all assigned classes</li>
-                  <li>Cannot be undone</li>
+                  <li>{t('admin.classManagement.deleteInstructorModal.consequence1')}</li>
+                  <li>{t('admin.classManagement.deleteInstructorModal.consequence2')}</li>
+                  <li>{t('admin.classManagement.deleteInstructorModal.consequence3')}</li>
                 </ul>
               </div>
 
@@ -2986,8 +2984,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 }}
               >
                 <p style={{ margin: 0, fontSize: '0.9em', color: '#495057' }}>
-                  <strong>💡 Alternative:</strong> Consider setting the instructor status to
-                  "Inactive" instead of deleting.
+                  <strong>💡 {t('admin.classManagement.deleteInstructorModal.alternativeTitle')}:</strong> {t('admin.classManagement.deleteInstructorModal.alternativeMessage')}
                 </p>
               </div>
             </div>
@@ -3000,7 +2997,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   setInstructorToDelete(null);
                 }}
               >
-                Cancel
+                {t('admin.classManagement.deleteInstructorModal.actions.cancel')}
               </button>
               <button
                 className="delete-btn"
@@ -3015,7 +3012,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   fontWeight: 'bold',
                 }}
               >
-                🗑️ Delete Permanently
+                🗑️ {t('admin.classManagement.deleteInstructorModal.actions.delete')}
               </button>
             </div>
           </div>
@@ -3027,7 +3024,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{editingScheduleSlot ? 'Edit Schedule Slot' : 'Add New Schedule Slot'}</h3>
+              <h3>{editingScheduleSlot ? t('admin.classManagement.scheduleSlotModal.titleEdit') : t('admin.classManagement.scheduleSlotModal.titleAdd')}</h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -3051,14 +3048,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="form-group">
-                <label>Class: *</label>
+                <label>{t('admin.classManagement.scheduleSlotModal.form.class')}: *</label>
                 <select
                   value={newScheduleSlot.classId || ''}
                   onChange={(e) =>
                     setNewScheduleSlot({ ...newScheduleSlot, classId: e.target.value })
                   }
                 >
-                  <option value="">Select a class</option>
+                  <option value="">{t('admin.classManagement.scheduleSlotModal.form.selectClass')}</option>
                   {classes.map((gymClass) => (
                     <option key={gymClass.id} value={gymClass.id}>
                       {gymClass.name} ({gymClass.category})
@@ -3068,14 +3065,14 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Instructor: *</label>
+                <label>{t('admin.classManagement.scheduleSlotModal.form.instructor')}: *</label>
                 <select
                   value={newScheduleSlot.instructorId || ''}
                   onChange={(e) =>
                     setNewScheduleSlot({ ...newScheduleSlot, instructorId: e.target.value })
                   }
                 >
-                  <option value="">Select an instructor</option>
+                  <option value="">{t('admin.classManagement.scheduleSlotModal.form.selectInstructor')}</option>
                   {instructors.map((instructor) => (
                     <option key={instructor.id} value={instructor.id}>
                       {instructor.name} - {instructor.specialization.join(', ')}
@@ -3085,25 +3082,25 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Day of Week:</label>
+                <label>{t('admin.classManagement.scheduleSlotModal.form.dayOfWeek')}:</label>
                 <select
                   value={newScheduleSlot.dayOfWeek || 1}
                   onChange={(e) =>
                     setNewScheduleSlot({ ...newScheduleSlot, dayOfWeek: parseInt(e.target.value) })
                   }
                 >
-                  <option value={0}>Sunday</option>
-                  <option value={1}>Monday</option>
-                  <option value={2}>Tuesday</option>
-                  <option value={3}>Wednesday</option>
-                  <option value={4}>Thursday</option>
-                  <option value={5}>Friday</option>
-                  <option value={6}>Saturday</option>
+                  <option value={0}>{t('admin.classManagement.scheduleSlotModal.form.days.sunday')}</option>
+                  <option value={1}>{t('admin.classManagement.scheduleSlotModal.form.days.monday')}</option>
+                  <option value={2}>{t('admin.classManagement.scheduleSlotModal.form.days.tuesday')}</option>
+                  <option value={3}>{t('admin.classManagement.scheduleSlotModal.form.days.wednesday')}</option>
+                  <option value={4}>{t('admin.classManagement.scheduleSlotModal.form.days.thursday')}</option>
+                  <option value={5}>{t('admin.classManagement.scheduleSlotModal.form.days.friday')}</option>
+                  <option value={6}>{t('admin.classManagement.scheduleSlotModal.form.days.saturday')}</option>
                 </select>
               </div>
 
               <div className="form-group">
-                <label>Date:</label>
+                <label>{t('admin.classManagement.scheduleSlotModal.form.date')}:</label>
                 <input
                   type="date"
                   value={newScheduleSlot.date || ''}
@@ -3113,7 +3110,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               <div className="form-row">
                 <div className="form-group">
-                  <label>Start Time (24h): *</label>
+                  <label>{t('admin.classManagement.scheduleSlotModal.form.startTime')}: *</label>
                   <input
                     type="time"
                     value={newScheduleSlot.startTime || '09:00'}
@@ -3133,7 +3130,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 </div>
 
                 <div className="form-group">
-                  <label>End Time (24h): *</label>
+                  <label>{t('admin.classManagement.scheduleSlotModal.form.endTime')}: *</label>
                   <input
                     type="time"
                     value={newScheduleSlot.endTime || '10:00'}
@@ -3154,16 +3151,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               </div>
 
               <div className="form-group">
-                <label>Status:</label>
+                <label>{t('admin.classManagement.scheduleSlotModal.form.status')}:</label>
                 <select
                   value={newScheduleSlot.status || 'scheduled'}
                   onChange={(e) =>
                     setNewScheduleSlot({ ...newScheduleSlot, status: e.target.value as any })
                   }
                 >
-                  <option value="scheduled">Scheduled</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
+                  <option value="scheduled">{t('admin.classManagement.scheduleSlotModal.form.statusScheduled')}</option>
+                  <option value="completed">{t('admin.classManagement.scheduleSlotModal.form.statusCompleted')}</option>
+                  <option value="cancelled">{t('admin.classManagement.scheduleSlotModal.form.statusCancelled')}</option>
                 </select>
               </div>
             </div>
@@ -3186,10 +3183,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   });
                 }}
               >
-                Cancel
+                {t('admin.classManagement.scheduleSlotModal.actions.cancel')}
               </button>
               <button className="confirm-btn" onClick={handleAddScheduleSlot}>
-                {editingScheduleSlot ? 'Update Schedule Slot' : 'Add Schedule Slot'}
+                {editingScheduleSlot ? t('admin.classManagement.scheduleSlotModal.actions.update') : t('admin.classManagement.scheduleSlotModal.actions.add')}
               </button>
             </div>
           </div>
@@ -3202,13 +3199,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           <div className="modal-content roster-modal">
             <div className="modal-header">
               <div>
-                <h3>Enrolled Members</h3>
+                <h3>{t('admin.classManagement.rosterModal.title')}</h3>
                 <p className="roster-subtitle">
-                  {rosterClassDetails?.name || 'Unknown Class'} • {rosterModalSlot.startTime} -{' '}
+                  {rosterClassDetails?.name || t('admin.classManagement.schedule.unknownInstructor')} • {rosterModalSlot.startTime} -{' '}
                   {rosterModalSlot.endTime}
                 </p>
                 <p className="roster-subtitle">
-                  Instructor: {rosterInstructor?.name || 'Unassigned'}
+                  {t('admin.classManagement.rosterModal.instructor')}: {rosterInstructor?.name || t('admin.classManagement.rosterModal.unassigned')}
                 </p>
               </div>
               <button className="close-btn" onClick={handleCloseRosterModal}>
@@ -3222,33 +3219,33 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <span>
                   👥 {rosterCount}
                   {typeof rosterCapacity === 'number' && rosterCapacity > 0
-                    ? ` / ${rosterCapacity} seats`
-                    : ' enrolled'}
+                    ? ` / ${rosterCapacity} ${t('admin.classManagement.rosterModal.seats')}`
+                    : ` ${t('admin.classManagement.rosterModal.enrolled')}`}
                 </span>
                 <button
                   className="refresh-btn"
                   onClick={handleRefreshRoster}
                   disabled={rosterLoading}
                 >
-                  {rosterLoading ? 'Refreshing...' : '🔄 Refresh'}
+                  {rosterLoading ? t('admin.classManagement.rosterModal.refreshing') : `🔄 ${t('admin.classManagement.rosterModal.refresh')}`}
                 </button>
               </div>
 
               {rosterError && <div className="roster-error">{rosterError}</div>}
 
               {rosterLoading ? (
-                <div className="roster-loading">Loading roster...</div>
+                <div className="roster-loading">{t('admin.classManagement.rosterModal.loadingRoster')}</div>
               ) : rosterEntries.length === 0 ? (
-                <div className="roster-empty">No members have booked this slot yet.</div>
+                <div className="roster-empty">{t('admin.classManagement.rosterModal.noMembers')}</div>
               ) : (
                 <div className="roster-table-wrapper">
                   <table className="roster-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Status</th>
-                        <th>Booked On</th>
+                        <th>{t('admin.classManagement.rosterModal.table.name')}</th>
+                        <th>{t('admin.classManagement.rosterModal.table.email')}</th>
+                        <th>{t('admin.classManagement.rosterModal.table.status')}</th>
+                        <th>{t('admin.classManagement.rosterModal.table.bookedOn')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3272,7 +3269,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={handleCloseRosterModal}>
-                Close
+                {t('admin.classManagement.rosterModal.actions.close')}
               </button>
             </div>
           </div>
@@ -3322,20 +3319,19 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     }}
                   >
                     <h4 style={{ color: '#856404', marginTop: 0 }}>
-                      ⚠️ Warning: Class Has Active Dependencies
+                      ⚠️ {t('admin.classManagement.classes.deleteConfirm.warningTitle')}
                     </h4>
                     <p style={{ color: '#856404', marginBottom: '10px' }}>
-                      This class cannot be deleted normally because it has active dependencies that
-                      would be affected:
+                      {t('admin.classManagement.classes.deleteConfirm.warningMessage')}
                     </p>
                     <ul style={{ color: '#856404', marginBottom: '15px' }}>
                       {classDeleteInfo.hasScheduleSlots && (
-                        <li>Active schedule slots will be removed</li>
+                        <li>{t('admin.classManagement.classes.deleteConfirm.removeScheduleSlots')}</li>
                       )}
                       {classDeleteInfo.hasInstructors && (
-                        <li>Instructor assignments will be unlinked</li>
+                        <li>{t('admin.classManagement.classes.deleteConfirm.unlinkInstructors')}</li>
                       )}
-                      {classDeleteInfo.hasBookings && <li>Member bookings will be cancelled</li>}
+                      {classDeleteInfo.hasBookings && <li>{t('admin.classManagement.classes.deleteConfirm.cancelBookings')}</li>}
                     </ul>
 
                     {classDeleteInfo.canForceDelete ? (
@@ -3349,7 +3345,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         }}
                       >
                         <p style={{ color: '#155724', margin: 0, fontWeight: 'bold' }}>
-                          🔑 Sparta Access Detected: You can force delete this class if needed
+                          🔑 {t('admin.classManagement.classes.deleteConfirm.spartaAccessGranted')}
                         </p>
                       </div>
                     ) : (
@@ -3363,8 +3359,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         }}
                       >
                         <p style={{ color: '#721c24', margin: 0, fontWeight: 'bold' }}>
-                          🚫 Access Denied: Only Sparta users can force delete classes with
-                          dependencies
+                          🚫 {t('admin.classManagement.classes.deleteConfirm.spartaAccessDenied')}
                         </p>
                       </div>
                     )}
@@ -3379,9 +3374,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       marginBottom: '20px',
                     }}
                   >
-                    <h4 style={{ color: '#155724', marginTop: 0 }}>✅ Safe to Delete</h4>
+                    <h4 style={{ color: '#155724', marginTop: 0 }}>✅ {t('admin.classManagement.classes.deleteConfirm.safeToDelete')}</h4>
                     <p style={{ color: '#155724', margin: 0 }}>
-                      This class has no active dependencies and can be safely deleted.
+                      {t('admin.classManagement.classes.deleteConfirm.noDependencies')}
                     </p>
                   </div>
                 )}
@@ -3390,7 +3385,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowClassDeleteModal(false)}>
-                Cancel
+                {t('admin.classManagement.classes.deleteConfirm.actions.cancel')}
               </button>
 
               {!classDeleteInfo.hasScheduleSlots &&
@@ -3401,7 +3396,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   onClick={() => confirmDeleteClass(false)}
                   style={{ backgroundColor: '#dc3545', color: 'white' }}
                 >
-                  🗑️ Delete Class
+                  🗑️ {t('admin.classManagement.classes.deleteConfirm.actions.delete')}
                 </button>
               ) : classDeleteInfo.canForceDelete ? (
                 <>
@@ -3415,7 +3410,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       border: '2px solid #a71e2a',
                     }}
                   >
-                    ⚠️ FORCE DELETE
+                    ⚠️ {t('admin.classManagement.classes.deleteConfirm.actions.forceDelete')}
                   </button>
                 </>
               ) : (
@@ -3429,7 +3424,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     opacity: 0.6,
                   }}
                 >
-                  🚫 Cannot Delete
+                  🚫 {t('admin.classManagement.classes.deleteConfirm.actions.cannotDelete')}
                 </button>
               )}
             </div>
@@ -3515,10 +3510,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           <div className="modal-content roster-modal">
             <div className="modal-header">
               <div>
-                <h3>Enrolled Members</h3>
+                <h3>{t('admin.classManagement.classEnrolledModal.title')}</h3>
                 <p className="roster-subtitle">{selectedClassForEnrollment.name}</p>
                 <p className="roster-subtitle">
-                  Total Enrollment: {classEnrolledMembers.length} /{' '}
+                  {t('admin.classManagement.classEnrolledModal.totalEnrollment')}: {classEnrolledMembers.length} /{' '}
                   {selectedClassForEnrollment.maxCapacity}
                 </p>
               </div>
@@ -3529,27 +3524,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="roster-summary">
-                <span>📊 Class: {selectedClassForEnrollment.name}</span>
+                <span>📊 {t('admin.classManagement.classEnrolledModal.class')}: {selectedClassForEnrollment.name}</span>
                 <span>
-                  👥 {classEnrolledMembers.length} enrolled
+                  👥 {classEnrolledMembers.length} {t('admin.classManagement.classEnrolledModal.enrolled')}
                   {selectedClassForEnrollment.maxCapacity > 0
-                    ? ` / ${selectedClassForEnrollment.maxCapacity} max capacity`
+                    ? ` / ${selectedClassForEnrollment.maxCapacity} ${t('admin.classManagement.classEnrolledModal.maxCapacity')}`
                     : ''}
                 </span>
-                <span>🎯 Category: {selectedClassForEnrollment.category}</span>
+                <span>🎯 {t('admin.classManagement.classEnrolledModal.category')}: {selectedClassForEnrollment.category}</span>
               </div>
 
               {classEnrolledMembers.length === 0 ? (
-                <div className="roster-empty">No members are enrolled in this class yet.</div>
+                <div className="roster-empty">{t('admin.classManagement.classEnrolledModal.noMembers')}</div>
               ) : (
                 <div className="roster-table-wrapper">
                   <table className="roster-table">
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Phone</th>
-                        <th>Status</th>
-                        <th>Enrolled On</th>
+                        <th>{t('admin.classManagement.classEnrolledModal.table.name')}</th>
+                        <th>{t('admin.classManagement.classEnrolledModal.table.phone')}</th>
+                        <th>{t('admin.classManagement.classEnrolledModal.table.status')}</th>
+                        <th>{t('admin.classManagement.classEnrolledModal.table.enrolledOn')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3592,7 +3587,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={handleCloseClassEnrollmentModal}>
-                Close
+                {t('admin.classManagement.classEnrolledModal.actions.close')}
               </button>
             </div>
           </div>

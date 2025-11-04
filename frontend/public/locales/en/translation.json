@@ -708,6 +708,11 @@
           "active": "Active",
           "inactive": "Inactive"
         },
+        "difficulty": {
+          "beginner": "Beginner",
+          "intermediate": "Intermediate",
+          "advanced": "Advanced"
+        },
         "spotsLeft": "{{count}} spots left",
         "noInstructors": "No instructors assigned",
         "showLess": "Show less",
@@ -732,9 +737,24 @@
           "description": "No classes match your filters. Try adjusting your search or filters."
         },
         "deleteConfirm": {
-          "title": "Delete Class",
+          "title": "Delete Class Confirmation",
           "message": "Are you sure you want to delete the class \"{{name}}\"?",
           "warning": "This action cannot be undone.",
+          "warningTitle": "Warning: Class Has Active Dependencies",
+          "warningMessage": "This class cannot be deleted normally because it has active dependencies that would be affected:",
+          "removeScheduleSlots": "Active schedule slots will be removed",
+          "unlinkInstructors": "Instructor assignments will be unlinked",
+          "cancelBookings": "Member bookings will be cancelled",
+          "spartaAccessGranted": "Sparta Access Detected: You can force delete this class if needed",
+          "spartaAccessDenied": "Access Denied: Only Sparta users can force delete classes with dependencies",
+          "safeToDelete": "Safe to Delete",
+          "noDependencies": "This class has no active dependencies and can be safely deleted.",
+          "actions": {
+            "cancel": "Cancel",
+            "delete": "Delete Class",
+            "forceDelete": "FORCE DELETE",
+            "cannotDelete": "Cannot Delete"
+          },
           "confirm": "Delete",
           "cancel": "Cancel"
         }
@@ -830,34 +850,59 @@
       "instructorModal": {
         "titleAdd": "Add New Instructor",
         "titleEdit": "Edit Instructor",
-        "memberSearch": {
-          "label": "Link to Member Account (Optional)",
-          "placeholder": "Search member by name or email...",
-          "noResults": "No members found",
-          "selected": "Selected Member:"
-        },
+        "selectMember": "Select Active Member",
+        "searchPlaceholder": "Search member by name or email...",
+        "selectedMember": "Selected",
         "form": {
-          "name": "Instructor Name",
+          "name": "Full Name",
           "namePlaceholder": "Enter instructor name",
           "email": "Email",
           "emailPlaceholder": "Enter email address",
-          "phone": "Phone Number",
+          "phone": "Phone",
           "phonePlaceholder": "+994501234567",
-          "experience": "Years of Experience",
+          "experience": "Experience (years)",
           "experiencePlaceholder": "Enter years of experience",
-          "specialization": "Specialization",
+          "specialization": "Specializations (comma-separated)",
           "specializationPlaceholder": "e.g., Yoga, Pilates, CrossFit",
-          "availableDays": "Available Days",
-          "certifications": "Certifications",
+          "availability": "Weekly Availability",
+          "availabilityHelper": "Select weekdays when instructor is available",
+          "days": {
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday",
+            "sunday": "Sunday"
+          },
+          "certifications": "Certifications (comma-separated)",
           "certificationsPlaceholder": "e.g., CPR Certified, Personal Trainer Level 3",
-          "bio": "Bio",
+          "bio": "Bio / Description",
           "bioPlaceholder": "Brief description about the instructor...",
-          "status": "Status"
+          "status": "Status",
+          "statusActive": "Active",
+          "statusInactive": "Inactive",
+          "statusBusy": "Busy"
         },
         "actions": {
           "cancel": "Cancel",
-          "save": "Save Instructor",
+          "add": "Add Instructor",
           "update": "Update Instructor"
+        }
+      },
+      "deleteInstructorModal": {
+        "title": "Delete Instructor",
+        "warningTitle": "Permanent Action Warning",
+        "warningMessage": "You are about to permanently delete instructor:",
+        "actionWillTitle": "This action will",
+        "consequence1": "Permanently remove the instructor from the system",
+        "consequence2": "Remove them from all assigned classes",
+        "consequence3": "Cannot be undone",
+        "alternativeTitle": "Alternative",
+        "alternativeMessage": "Consider setting the instructor status to \"Inactive\" instead of deleting.",
+        "actions": {
+          "cancel": "Cancel",
+          "delete": "Delete Permanently"
         }
       },
       "schedule": {
@@ -868,6 +913,7 @@
         "slotsCount": "{{count}} slots",
         "noClasses": "No classes scheduled",
         "enrolled": "{{count}} enrolled",
+        "unknownInstructor": "Unknown Instructor",
         "stats": {
           "totalSlots": "Total Slots",
           "scheduled": "Scheduled",
@@ -936,35 +982,75 @@
           "update": "Update Slot"
         }
       },
-      "rosterModal": {
-        "title": "Enrolled Members",
-        "classInfo": "Class: {{className}}",
-        "instructorInfo": "Instructor: {{instructorName}}",
-        "dateInfo": "Date: {{date}}",
-        "timeInfo": "Time: {{time}}",
-        "enrolled": "Enrolled: {{count}}/{{capacity}}",
-        "table": {
-          "nameColumn": "Member Name",
-          "enrolledColumn": "Enrolled At",
-          "statusColumn": "Status",
-          "actionsColumn": "Actions"
-        },
-        "status": {
-          "enrolled": "Enrolled",
-          "attended": "Attended",
-          "noShow": "No Show",
-          "cancelled": "Cancelled"
+      "scheduleSlotModal": {
+        "titleAdd": "Add New Schedule Slot",
+        "titleEdit": "Edit Schedule Slot",
+        "form": {
+          "class": "Class",
+          "selectClass": "Select a class",
+          "instructor": "Instructor",
+          "selectInstructor": "Select an instructor",
+          "dayOfWeek": "Day of Week",
+          "days": {
+            "sunday": "Sunday",
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday"
+          },
+          "date": "Date",
+          "startTime": "Start Time (24h)",
+          "endTime": "End Time (24h)",
+          "status": "Status",
+          "statusScheduled": "Scheduled",
+          "statusCompleted": "Completed",
+          "statusCancelled": "Cancelled"
         },
         "actions": {
-          "markAttended": "Mark Attended",
-          "markNoShow": "Mark No Show",
-          "cancel": "Cancel Enrollment"
+          "cancel": "Cancel",
+          "add": "Add Schedule Slot",
+          "update": "Update Schedule Slot"
+        }
+      },
+      "rosterModal": {
+        "title": "Enrolled Members",
+        "instructor": "Instructor",
+        "unassigned": "Unassigned",
+        "seats": "seats",
+        "enrolled": "enrolled",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing...",
+        "loadingRoster": "Loading roster...",
+        "noMembers": "No members have booked this slot yet.",
+        "table": {
+          "name": "Name",
+          "email": "Email",
+          "status": "Status",
+          "bookedOn": "Booked On"
         },
-        "emptyState": {
-          "title": "No Enrollments",
-          "description": "No members have enrolled in this class yet."
+        "actions": {
+          "close": "Close"
+        }
+      },
+      "classEnrolledModal": {
+        "title": "Enrolled Members",
+        "totalEnrollment": "Total Enrollment",
+        "class": "Class",
+        "enrolled": "enrolled",
+        "maxCapacity": "max capacity",
+        "category": "Category",
+        "noMembers": "No members are enrolled in this class yet.",
+        "table": {
+          "name": "Name",
+          "phone": "Phone",
+          "status": "Status",
+          "enrolledOn": "Enrolled On"
         },
-        "closeButton": "Close"
+        "actions": {
+          "close": "Close"
+        }
       },
       "assignModal": {
         "title": "Assign Instructors to",

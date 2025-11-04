@@ -708,6 +708,11 @@
           "active": "Aktiv",
           "inactive": "Qeyri-aktiv"
         },
+        "difficulty": {
+          "beginner": "Başlanğıc",
+          "intermediate": "Orta",
+          "advanced": "Qabaqcıl"
+        },
         "spotsLeft": "{{count}} yer qalıb",
         "noInstructors": "Təlimçi təyin edilməyib",
         "showLess": "Daha az göstər",
@@ -732,9 +737,24 @@
           "description": "Filterlərinizə uyğun sinif yoxdur. Axtarışınızı və ya filterlərinizi tənzimləyin."
         },
         "deleteConfirm": {
-          "title": "Sinifi Sil",
+          "title": "Sinifi Silmə Təsdiqi",
           "message": "\"{{name}}\" adlı sinifi silmək istədiyinizə əminsiniz?",
           "warning": "Bu əməliyyat geri qaytarıla bilməz.",
+          "warningTitle": "Xəbərdarlıq: Sinifdə Aktiv Asılılıqlar Var",
+          "warningMessage": "Bu sinif normal şəkildə silinə bilməz çünki təsirlənəcək aktiv asılılıqlar var:",
+          "removeScheduleSlots": "Aktiv cədvəl slotları silinəcək",
+          "unlinkInstructors": "Təlimçi təyinatları ləğv ediləcək",
+          "cancelBookings": "Üzv rezervasiyaları ləğv ediləcək",
+          "spartaAccessGranted": "Sparta Girişi Aşkarlandı: Lazım gələrsə bu sinfi məcburi silə bilərsiniz",
+          "spartaAccessDenied": "Giriş Rədd Edildi: Yalnız Sparta istifadəçiləri asılılıqları olan sinifləri məcburi silə bilər",
+          "safeToDelete": "Silmək Təhlükəsizdir",
+          "noDependencies": "Bu sinifdə aktiv asılılıq yoxdur və təhlükəsiz silinə bilər.",
+          "actions": {
+            "cancel": "Ləğv Et",
+            "delete": "Sinifi Sil",
+            "forceDelete": "MƏCBUR SİL",
+            "cannotDelete": "Silinə Bilməz"
+          },
           "confirm": "Sil",
           "cancel": "Ləğv Et"
         }
@@ -830,34 +850,59 @@
       "instructorModal": {
         "titleAdd": "Yeni Təlimçi Əlavə Et",
         "titleEdit": "Təlimçini Redaktə Et",
-        "memberSearch": {
-          "label": "Üzv Hesabına Bağla (İstəyə Bağlı)",
-          "placeholder": "Ad və ya e-poçt ilə üzv axtar...",
-          "noResults": "Üzv tapılmadı",
-          "selected": "Seçilmiş Üzv:"
-        },
+        "selectMember": "Aktiv Üzv Seçin",
+        "searchPlaceholder": "Ad və ya e-poçt ilə üzv axtar...",
+        "selectedMember": "Seçilmiş",
         "form": {
-          "name": "Təlimçi Adı",
+          "name": "Tam Ad",
           "namePlaceholder": "Təlimçi adını daxil edin",
           "email": "E-poçt",
           "emailPlaceholder": "E-poçt ünvanını daxil edin",
-          "phone": "Telefon Nömrəsi",
+          "phone": "Telefon",
           "phonePlaceholder": "+994501234567",
-          "experience": "Təcrübə İlləri",
+          "experience": "Təcrübə (il)",
           "experiencePlaceholder": "Təcrübə illərini daxil edin",
-          "specialization": "İxtisas",
+          "specialization": "İxtisaslar (vergüllə ayrılmış)",
           "specializationPlaceholder": "məs., Yoqa, Pilates, CrossFit",
-          "availableDays": "Mövcud Günlər",
-          "certifications": "Sertifikatlar",
+          "availability": "Həftəlik Mövcudluq",
+          "availabilityHelper": "Təlimçinin mövcud olduğu həftə günlərini seçin",
+          "days": {
+            "monday": "Bazar ertəsi",
+            "tuesday": "Çərşənbə axşamı",
+            "wednesday": "Çərşənbə",
+            "thursday": "Cümə axşamı",
+            "friday": "Cümə",
+            "saturday": "Şənbə",
+            "sunday": "Bazar"
+          },
+          "certifications": "Sertifikatlar (vergüllə ayrılmış)",
           "certificationsPlaceholder": "məs., İlk Yardım Sertifikatı, Şəxsi Məşqçi Səviyyə 3",
-          "bio": "Bioqrafiya",
+          "bio": "Bioqrafiya / Təsvir",
           "bioPlaceholder": "Təlimçi haqqında qısa təsvir...",
-          "status": "Status"
+          "status": "Status",
+          "statusActive": "Aktiv",
+          "statusInactive": "Qeyri-aktiv",
+          "statusBusy": "Məşğul"
         },
         "actions": {
           "cancel": "Ləğv Et",
-          "save": "Təlimçini Saxla",
+          "add": "Təlimçi Əlavə Et",
           "update": "Təlimçini Yenilə"
+        }
+      },
+      "deleteInstructorModal": {
+        "title": "Təlimçini Sil",
+        "warningTitle": "Daimi Əməliyyat Xəbərdarlığı",
+        "warningMessage": "Siz təlimçini birdəfəlik silmək üzrəsiniz:",
+        "actionWillTitle": "Bu əməliyyat",
+        "consequence1": "Təlimçini sistemdən birdəfəlik siləcək",
+        "consequence2": "Onları bütün təyin edilmiş siniflərdən siləcək",
+        "consequence3": "Geri qaytarıla bilməz",
+        "alternativeTitle": "Alternativ",
+        "alternativeMessage": "Silmək əvəzinə təlimçi statusunu \"Qeyri-aktiv\" olaraq təyin etməyi düşünün.",
+        "actions": {
+          "cancel": "Ləğv Et",
+          "delete": "Birdəfəlik Sil"
         }
       },
       "schedule": {
@@ -868,6 +913,7 @@
         "slotsCount": "{{count}} slot",
         "noClasses": "Sinif planlaşdırılmayıb",
         "enrolled": "{{count}} qeydiyyatlı",
+        "unknownInstructor": "Naməlum Təlimçi",
         "stats": {
           "totalSlots": "Ümumi Slotlar",
           "scheduled": "Planlaşdırılmış",
@@ -936,35 +982,75 @@
           "update": "Slotu Yenilə"
         }
       },
-      "rosterModal": {
-        "title": "Qeydiyyatdan Keçmiş Üzvlər",
-        "classInfo": "Sinif: {{className}}",
-        "instructorInfo": "Təlimçi: {{instructorName}}",
-        "dateInfo": "Tarix: {{date}}",
-        "timeInfo": "Vaxt: {{time}}",
-        "enrolled": "Qeydiyyatda: {{count}}/{{capacity}}",
-        "table": {
-          "nameColumn": "Üzv Adı",
-          "enrolledColumn": "Qeydiyyat Tarixi",
-          "statusColumn": "Status",
-          "actionsColumn": "Əməliyyatlar"
-        },
-        "status": {
-          "enrolled": "Qeydiyyatda",
-          "attended": "İştirak Etdi",
-          "noShow": "Gəlmədi",
-          "cancelled": "Ləğv Edildi"
+      "scheduleSlotModal": {
+        "titleAdd": "Yeni Cədvəl Slotu Əlavə Et",
+        "titleEdit": "Cədvəl Slotunu Redaktə Et",
+        "form": {
+          "class": "Sinif",
+          "selectClass": "Sinif seçin",
+          "instructor": "Təlimçi",
+          "selectInstructor": "Təlimçi seçin",
+          "dayOfWeek": "Həftənin Günü",
+          "days": {
+            "sunday": "Bazar",
+            "monday": "Bazar ertəsi",
+            "tuesday": "Çərşənbə axşamı",
+            "wednesday": "Çərşənbə",
+            "thursday": "Cümə axşamı",
+            "friday": "Cümə",
+            "saturday": "Şənbə"
+          },
+          "date": "Tarix",
+          "startTime": "Başlama Vaxtı (24s)",
+          "endTime": "Bitmə Vaxtı (24s)",
+          "status": "Status",
+          "statusScheduled": "Planlaşdırılıb",
+          "statusCompleted": "Tamamlandı",
+          "statusCancelled": "Ləğv Edilib"
         },
         "actions": {
-          "markAttended": "İştirak Etdi Qeyd Et",
-          "markNoShow": "Gəlmədi Qeyd Et",
-          "cancel": "Qeydiyyatı Ləğv Et"
+          "cancel": "Ləğv Et",
+          "add": "Cədvəl Slotu Əlavə Et",
+          "update": "Cədvəl Slotunu Yenilə"
+        }
+      },
+      "rosterModal": {
+        "title": "Qeydiyyatdan Keçmiş Üzvlər",
+        "instructor": "Təlimçi",
+        "unassigned": "Təyin edilməyib",
+        "seats": "yer",
+        "enrolled": "qeydiyyatlı",
+        "refresh": "Yenilə",
+        "refreshing": "Yenilənir...",
+        "loadingRoster": "Siyahı yüklənir...",
+        "noMembers": "Bu slotu hələ heç bir üzv rezerv etməyib.",
+        "table": {
+          "name": "Ad",
+          "email": "E-poçt",
+          "status": "Status",
+          "bookedOn": "Rezerv Tarixi"
         },
-        "emptyState": {
-          "title": "Qeydiyyat Yoxdur",
-          "description": "Bu sinifə hələ heç bir üzv qeydiyyatdan keçməyib."
+        "actions": {
+          "close": "Bağla"
+        }
+      },
+      "classEnrolledModal": {
+        "title": "Qeydiyyatdan Keçmiş Üzvlər",
+        "totalEnrollment": "Ümumi Qeydiyyat",
+        "class": "Sinif",
+        "enrolled": "qeydiyyatlı",
+        "maxCapacity": "maksimum tutum",
+        "category": "Kateqoriya",
+        "noMembers": "Bu sinifə hələ heç bir üzv qeydiyyatdan keçməyib.",
+        "table": {
+          "name": "Ad",
+          "phone": "Telefon",
+          "status": "Status",
+          "enrolledOn": "Qeydiyyat Tarixi"
         },
-        "closeButton": "Bağla"
+        "actions": {
+          "close": "Bağla"
+        }
       },
       "assignModal": {
         "title": "Təlimçiləri təyin edin",

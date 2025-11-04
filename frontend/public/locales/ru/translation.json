@@ -708,6 +708,11 @@
           "active": "Активный",
           "inactive": "Неактивный"
         },
+        "difficulty": {
+          "beginner": "Начинающий",
+          "intermediate": "Средний",
+          "advanced": "Продвинутый"
+        },
         "spotsLeft": "{{count}} мест осталось",
         "noInstructors": "Инструкторы не назначены",
         "showLess": "Показать меньше",
@@ -732,9 +737,24 @@
           "description": "Классов, соответствующих фильтрам, нет. Попробуйте изменить поиск или фильтры."
         },
         "deleteConfirm": {
-          "title": "Удалить Класс",
+          "title": "Подтверждение Удаления Класса",
           "message": "Вы уверены, что хотите удалить класс \"{{name}}\"?",
           "warning": "Это действие необратимо.",
+          "warningTitle": "Предупреждение: Класс Имеет Активные Зависимости",
+          "warningMessage": "Этот класс нельзя удалить обычным способом, так как он имеет активные зависимости, которые будут затронуты:",
+          "removeScheduleSlots": "Активные слоты расписания будут удалены",
+          "unlinkInstructors": "Назначения инструкторов будут отменены",
+          "cancelBookings": "Бронирования участников будут отменены",
+          "spartaAccessGranted": "Доступ Sparta Обнаружен: Вы можете принудительно удалить этот класс при необходимости",
+          "spartaAccessDenied": "Доступ Запрещен: Только пользователи Sparta могут принудительно удалять классы с зависимостями",
+          "safeToDelete": "Безопасно Удалить",
+          "noDependencies": "У этого класса нет активных зависимостей, и его можно безопасно удалить.",
+          "actions": {
+            "cancel": "Отмена",
+            "delete": "Удалить Класс",
+            "forceDelete": "ПРИНУДИТЕЛЬНОЕ УДАЛЕНИЕ",
+            "cannotDelete": "Невозможно Удалить"
+          },
           "confirm": "Удалить",
           "cancel": "Отмена"
         }
@@ -830,34 +850,59 @@
       "instructorModal": {
         "titleAdd": "Добавить Нового Инструктора",
         "titleEdit": "Редактировать Инструктора",
-        "memberSearch": {
-          "label": "Связать с Учетной Записью (Опционально)",
-          "placeholder": "Поиск участника по имени или email...",
-          "noResults": "Участники не найдены",
-          "selected": "Выбранный Участник:"
-        },
+        "selectMember": "Выбрать Активного Участника",
+        "searchPlaceholder": "Поиск участника по имени или email...",
+        "selectedMember": "Выбран",
         "form": {
-          "name": "Имя Инструктора",
+          "name": "Полное Имя",
           "namePlaceholder": "Введите имя инструктора",
           "email": "Email",
           "emailPlaceholder": "Введите email адрес",
-          "phone": "Номер Телефона",
+          "phone": "Телефон",
           "phonePlaceholder": "+994501234567",
-          "experience": "Годы Опыта",
+          "experience": "Опыт (годы)",
           "experiencePlaceholder": "Введите годы опыта",
-          "specialization": "Специализация",
+          "specialization": "Специализации (через запятую)",
           "specializationPlaceholder": "напр., Йога, Пилатес, CrossFit",
-          "availableDays": "Доступные Дни",
-          "certifications": "Сертификаты",
+          "availability": "Недельная Доступность",
+          "availabilityHelper": "Выберите дни недели, когда инструктор доступен",
+          "days": {
+            "monday": "Понедельник",
+            "tuesday": "Вторник",
+            "wednesday": "Среда",
+            "thursday": "Четверг",
+            "friday": "Пятница",
+            "saturday": "Суббота",
+            "sunday": "Воскресенье"
+          },
+          "certifications": "Сертификаты (через запятую)",
           "certificationsPlaceholder": "напр., Сертификат CPR, Персональный Тренер Уровень 3",
-          "bio": "Биография",
+          "bio": "Биография / Описание",
           "bioPlaceholder": "Краткое описание об инструкторе...",
-          "status": "Статус"
+          "status": "Статус",
+          "statusActive": "Активный",
+          "statusInactive": "Неактивный",
+          "statusBusy": "Занят"
         },
         "actions": {
           "cancel": "Отмена",
-          "save": "Сохранить Инструктора",
+          "add": "Добавить Инструктора",
           "update": "Обновить Инструктора"
+        }
+      },
+      "deleteInstructorModal": {
+        "title": "Удалить Инструктора",
+        "warningTitle": "Предупреждение о Постоянном Действии",
+        "warningMessage": "Вы собираетесь безвозвратно удалить инструктора:",
+        "actionWillTitle": "Это действие",
+        "consequence1": "Безвозвратно удалит инструктора из системы",
+        "consequence2": "Удалит его из всех назначенных классов",
+        "consequence3": "Не может быть отменено",
+        "alternativeTitle": "Альтернатива",
+        "alternativeMessage": "Рассмотрите возможность установки статуса инструктора на \"Неактивный\" вместо удаления.",
+        "actions": {
+          "cancel": "Отмена",
+          "delete": "Удалить Навсегда"
         }
       },
       "schedule": {
@@ -868,6 +913,7 @@
         "slotsCount": "{{count}} слотов",
         "noClasses": "Нет запланированных занятий",
         "enrolled": "{{count}} записаны",
+        "unknownInstructor": "Неизвестный Инструктор",
         "stats": {
           "totalSlots": "Всего Слотов",
           "scheduled": "Запланировано",
@@ -936,35 +982,75 @@
           "update": "Обновить Слот"
         }
       },
-      "rosterModal": {
-        "title": "Записанные Участники",
-        "classInfo": "Класс: {{className}}",
-        "instructorInfo": "Инструктор: {{instructorName}}",
-        "dateInfo": "Дата: {{date}}",
-        "timeInfo": "Время: {{time}}",
-        "enrolled": "Записано: {{count}}/{{capacity}}",
-        "table": {
-          "nameColumn": "Имя Участника",
-          "enrolledColumn": "Записан",
-          "statusColumn": "Статус",
-          "actionsColumn": "Действия"
-        },
-        "status": {
-          "enrolled": "Записан",
-          "attended": "Посетил",
-          "noShow": "Не Явился",
-          "cancelled": "Отменено"
+      "scheduleSlotModal": {
+        "titleAdd": "Добавить Новый Слот Расписания",
+        "titleEdit": "Редактировать Слот Расписания",
+        "form": {
+          "class": "Класс",
+          "selectClass": "Выберите класс",
+          "instructor": "Инструктор",
+          "selectInstructor": "Выберите инструктора",
+          "dayOfWeek": "День Недели",
+          "days": {
+            "sunday": "Воскресенье",
+            "monday": "Понедельник",
+            "tuesday": "Вторник",
+            "wednesday": "Среда",
+            "thursday": "Четверг",
+            "friday": "Пятница",
+            "saturday": "Суббота"
+          },
+          "date": "Дата",
+          "startTime": "Время Начала (24ч)",
+          "endTime": "Время Окончания (24ч)",
+          "status": "Статус",
+          "statusScheduled": "Запланировано",
+          "statusCompleted": "Завершено",
+          "statusCancelled": "Отменено"
         },
         "actions": {
-          "markAttended": "Отметить Посещение",
-          "markNoShow": "Отметить Неявку",
-          "cancel": "Отменить Запись"
+          "cancel": "Отмена",
+          "add": "Добавить Слот Расписания",
+          "update": "Обновить Слот Расписания"
+        }
+      },
+      "rosterModal": {
+        "title": "Записанные Участники",
+        "instructor": "Инструктор",
+        "unassigned": "Не назначен",
+        "seats": "мест",
+        "enrolled": "записаны",
+        "refresh": "Обновить",
+        "refreshing": "Обновление...",
+        "loadingRoster": "Загрузка списка...",
+        "noMembers": "Никто еще не забронировал этот слот.",
+        "table": {
+          "name": "Имя",
+          "email": "Email",
+          "status": "Статус",
+          "bookedOn": "Забронировано"
         },
-        "emptyState": {
-          "title": "Нет Записей",
-          "description": "На этот класс еще никто не записался."
+        "actions": {
+          "close": "Закрыть"
+        }
+      },
+      "classEnrolledModal": {
+        "title": "Записанные Участники",
+        "totalEnrollment": "Всего Записей",
+        "class": "Класс",
+        "enrolled": "записаны",
+        "maxCapacity": "макс. вместимость",
+        "category": "Категория",
+        "noMembers": "На этот класс еще никто не записался.",
+        "table": {
+          "name": "Имя",
+          "phone": "Телефон",
+          "status": "Статус",
+          "enrolledOn": "Дата Записи"
         },
-        "closeButton": "Закрыть"
+        "actions": {
+          "close": "Закрыть"
+        }
       },
       "assignModal": {
         "title": "Назначить инструкторов для",
