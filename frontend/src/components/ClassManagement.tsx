@@ -114,7 +114,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     hasInstructors: boolean;
     hasBookings: boolean;
     canForceDelete: boolean;
-    details: string;
+    scheduleCount: number;
+    instructorCount: number;
+    currentEnrollment: number;
+    maxCapacity: number;
   } | null>(null);
 
   // Schedule slot deletion states
@@ -718,29 +721,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
     const hasBookings = targetClass.currentEnrollment > 0;
     const canForceDelete = isSparta(); // Only Sparta can force delete
 
-    let details = `${t('admin.classManagement.deleteConfirm.classLabel')}: "${targetClass.name}"\n\n`;
-
-    if (hasScheduleSlots) {
-      details += `⚠️ ${t('admin.classManagement.deleteConfirm.activeScheduleSlots')}: ${targetClass.schedule.length}\n`;
-    }
-    if (hasInstructors) {
-      details += `👨‍🏫 ${t('admin.classManagement.deleteConfirm.assignedInstructors')}: ${targetClass.instructors.length}\n`;
-    }
-    if (hasBookings) {
-      details += `👥 ${t('admin.classManagement.deleteConfirm.currentEnrollment')}: ${targetClass.currentEnrollment}/${targetClass.maxCapacity} ${t('admin.classManagement.deleteConfirm.members')}\n`;
-    }
-
-    if (!hasScheduleSlots && !hasInstructors && !hasBookings) {
-      details += `✅ ${t('admin.classManagement.deleteConfirm.noDependencies')}\n`;
-    }
-
     setClassToDelete(targetClass);
     setClassDeleteInfo({
       hasScheduleSlots,
       hasInstructors,
       hasBookings,
       canForceDelete,
-      details,
+      scheduleCount: targetClass.schedule.length,
+      instructorCount: targetClass.instructors.length,
+      currentEnrollment: targetClass.currentEnrollment,
+      maxCapacity: targetClass.maxCapacity,
     });
     setShowClassDeleteModal(true);
   };
@@ -3297,11 +3287,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div style={{ padding: '20px', lineHeight: '1.6' }}>
-                <pre
+                <div
                   style={{
                     fontFamily: 'system-ui',
                     fontSize: '1em',
-                    whiteSpace: 'pre-wrap',
                     marginBottom: '20px',
                     backgroundColor: '#f8f9fa',
                     padding: '15px',
@@ -3309,8 +3298,34 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     border: '1px solid #dee2e6',
                   }}
                 >
-                  {classDeleteInfo.details}
-                </pre>
+                  <div style={{ marginBottom: '10px' }}>
+                    <strong>{t('admin.classManagement.deleteConfirm.classLabel')}:</strong> "{classToDelete.name}"
+                  </div>
+                  
+                  {classDeleteInfo.hasScheduleSlots && (
+                    <div style={{ marginTop: '8px' }}>
+                      ⚠️ <strong>{t('admin.classManagement.deleteConfirm.activeScheduleSlots')}:</strong> {classDeleteInfo.scheduleCount}
+                    </div>
+                  )}
+                  
+                  {classDeleteInfo.hasInstructors && (
+                    <div style={{ marginTop: '8px' }}>
+                      👨‍🏫 <strong>{t('admin.classManagement.deleteConfirm.assignedInstructors')}:</strong> {classDeleteInfo.instructorCount}
+                    </div>
+                  )}
+                  
+                  {classDeleteInfo.hasBookings && (
+                    <div style={{ marginTop: '8px' }}>
+                      👥 <strong>{t('admin.classManagement.deleteConfirm.currentEnrollment')}:</strong> {classDeleteInfo.currentEnrollment}/{classDeleteInfo.maxCapacity} {t('admin.classManagement.deleteConfirm.members')}
+                    </div>
+                  )}
+                  
+                  {!classDeleteInfo.hasScheduleSlots && !classDeleteInfo.hasInstructors && !classDeleteInfo.hasBookings && (
+                    <div style={{ marginTop: '8px', color: '#28a745' }}>
+                      ✅ {t('admin.classManagement.deleteConfirm.noDependencies')}
+                    </div>
+                  )}
+                </div>
 
                 {classDeleteInfo.hasScheduleSlots ||
                 classDeleteInfo.hasInstructors ||
