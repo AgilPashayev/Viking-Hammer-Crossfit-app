@@ -1125,6 +1125,52 @@
         "minutes": "min",
         "years": "years",
         "capacity": "{{current}}/{{max}}"
+      },
+      "announcementManager": {
+        "header": {
+          "backButton": "Back to Reception",
+          "title": "Announcement Manager"
+        },
+        "stats": {
+          "total": "Total Announcements",
+          "published": "Published",
+          "drafts": "Drafts",
+          "scheduled": "Scheduled",
+          "totalViews": "Total Views",
+          "readRate": "Read Rate"
+        },
+        "controls": {
+          "createButton": "Create Announcement",
+          "searchPlaceholder": "Search announcements..."
+        },
+        "filters": {
+          "type": {
+            "all": "All Types",
+            "general": "General",
+            "class": "Class",
+            "maintenance": "Maintenance",
+            "event": "Event",
+            "promotion": "Promotion"
+          },
+          "status": {
+            "all": "All Status",
+            "draft": "Draft",
+            "published": "Published",
+            "scheduled": "Scheduled",
+            "expired": "Expired"
+          },
+          "priority": {
+            "all": "All Priorities",
+            "low": "Low",
+            "normal": "Normal",
+            "high": "High",
+            "urgent": "Urgent"
+          }
+        },
+        "emptyState": {
+          "title": "No Announcements Found",
+          "description": "Create your first announcement to get started!"
+        }
       }
     }
   }

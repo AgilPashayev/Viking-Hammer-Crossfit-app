@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useData } from '../contexts/DataContext';
 import './AnnouncementManager.css';
 
@@ -28,6 +29,7 @@ interface AnnouncementManagerProps {
 }
 
 const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user }) => {
+  const { t } = useTranslation();
   const { logActivity } = useData();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -442,9 +444,9 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
     <div className="announcement-manager">
       <div className="announcement-header">
         <button className="back-button" onClick={onBack}>
-          ← Back to Reception
+          ← {t('admin.announcementManager.header.backButton')}
         </button>
-        <h2 className="announcement-title">📢 Announcement Manager</h2>
+        <h2 className="announcement-title">📢 {t('admin.announcementManager.header.title')}</h2>
       </div>
 
       {/* Stats Overview */}
@@ -453,42 +455,42 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
           <div className="stat-icon">📢</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.total}</h3>
-            <p className="stat-label">Total Announcements</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.total')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">✅</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.published}</h3>
-            <p className="stat-label">Published</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.published')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">📝</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.draft}</h3>
-            <p className="stat-label">Drafts</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.drafts')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">📅</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.scheduled}</h3>
-            <p className="stat-label">Scheduled</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.scheduled')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">👁️</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.totalViews}</h3>
-            <p className="stat-label">Total Views</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.totalViews')}</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon">📊</div>
           <div className="stat-content">
             <h3 className="stat-number">{stats.engagementRate}%</h3>
-            <p className="stat-label">Read Rate</p>
+            <p className="stat-label">{t('admin.announcementManager.stats.readRate')}</p>
           </div>
         </div>
       </div>
@@ -496,12 +498,12 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
       {/* Controls */}
       <div className="controls-section">
         <button className="create-btn" onClick={() => setShowCreateModal(true)}>
-          ➕ Create Announcement
+          ➕ {t('admin.announcementManager.controls.createButton')}
         </button>
         <div className="filters">
           <input
             type="text"
-            placeholder="Search announcements..."
+            placeholder={t('admin.announcementManager.controls.searchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="search-input"
@@ -511,34 +513,34 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
             onChange={(e) => setFilterType(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Types</option>
-            <option value="general">General</option>
-            <option value="class">Class</option>
-            <option value="maintenance">Maintenance</option>
-            <option value="event">Event</option>
-            <option value="promotion">Promotion</option>
+            <option value="all">{t('admin.announcementManager.filters.type.all')}</option>
+            <option value="general">{t('admin.announcementManager.filters.type.general')}</option>
+            <option value="class">{t('admin.announcementManager.filters.type.class')}</option>
+            <option value="maintenance">{t('admin.announcementManager.filters.type.maintenance')}</option>
+            <option value="event">{t('admin.announcementManager.filters.type.event')}</option>
+            <option value="promotion">{t('admin.announcementManager.filters.type.promotion')}</option>
           </select>
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="expired">Expired</option>
+            <option value="all">{t('admin.announcementManager.filters.status.all')}</option>
+            <option value="draft">{t('admin.announcementManager.filters.status.draft')}</option>
+            <option value="published">{t('admin.announcementManager.filters.status.published')}</option>
+            <option value="scheduled">{t('admin.announcementManager.filters.status.scheduled')}</option>
+            <option value="expired">{t('admin.announcementManager.filters.status.expired')}</option>
           </select>
           <select
             value={filterPriority}
             onChange={(e) => setFilterPriority(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Priorities</option>
-            <option value="low">Low</option>
-            <option value="normal">Normal</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
+            <option value="all">{t('admin.announcementManager.filters.priority.all')}</option>
+            <option value="low">{t('admin.announcementManager.filters.priority.low')}</option>
+            <option value="normal">{t('admin.announcementManager.filters.priority.normal')}</option>
+            <option value="high">{t('admin.announcementManager.filters.priority.high')}</option>
+            <option value="urgent">{t('admin.announcementManager.filters.priority.urgent')}</option>
           </select>
         </div>
       </div>
@@ -548,8 +550,8 @@ const AnnouncementManager: React.FC<AnnouncementManagerProps> = ({ onBack, user 
         {getFilteredAnnouncements().length === 0 ? (
           <div className="no-announcements">
             <div className="no-data-icon">📢</div>
-            <h3>No Announcements Found</h3>
-            <p>Create your first announcement to get started!</p>
+            <h3>{t('admin.announcementManager.emptyState.title')}</h3>
+            <p>{t('admin.announcementManager.emptyState.description')}</p>
           </div>
         ) : (
           getFilteredAnnouncements().map(announcement => (

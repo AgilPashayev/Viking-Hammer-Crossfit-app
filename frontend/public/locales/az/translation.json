@@ -1125,6 +1125,52 @@
         "minutes": "dəq",
         "years": "il",
         "capacity": "{{current}}/{{max}}"
+      },
+      "announcementManager": {
+        "header": {
+          "backButton": "Qəbula Geri Dön",
+          "title": "Elan Meneceri"
+        },
+        "stats": {
+          "total": "Ümumi Elanlar",
+          "published": "Dərc Edilmiş",
+          "drafts": "Qaralamalar",
+          "scheduled": "Planlaşdırılmış",
+          "totalViews": "Ümumi Baxışlar",
+          "readRate": "Oxunma Dərəcəsi"
+        },
+        "controls": {
+          "createButton": "Elan Yarat",
+          "searchPlaceholder": "Elan axtar..."
+        },
+        "filters": {
+          "type": {
+            "all": "Bütün Növlər",
+            "general": "Ümumi",
+            "class": "Sinif",
+            "maintenance": "Təmir",
+            "event": "Tədbir",
+            "promotion": "Promosyon"
+          },
+          "status": {
+            "all": "Bütün Statuslar",
+            "draft": "Qaralama",
+            "published": "Dərc Edilmiş",
+            "scheduled": "Planlaşdırılmış",
+            "expired": "Müddəti Bitmiş"
+          },
+          "priority": {
+            "all": "Bütün Prioritetlər",
+            "low": "Aşağı",
+            "normal": "Normal",
+            "high": "Yüksək",
+            "urgent": "Təcili"
+          }
+        },
+        "emptyState": {
+          "title": "Elan Tapılmadı",
+          "description": "Başlamaq üçün ilk elanınızı yaradın!"
+        }
       }
     }
   }

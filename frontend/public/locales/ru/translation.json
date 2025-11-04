@@ -1125,6 +1125,52 @@
         "minutes": "мин",
         "years": "лет",
         "capacity": "{{current}}/{{max}}"
+      },
+      "announcementManager": {
+        "header": {
+          "backButton": "Назад к Регистратуре",
+          "title": "Менеджер Объявлений"
+        },
+        "stats": {
+          "total": "Всего Объявлений",
+          "published": "Опубликовано",
+          "drafts": "Черновики",
+          "scheduled": "Запланировано",
+          "totalViews": "Всего Просмотров",
+          "readRate": "Процент Прочтения"
+        },
+        "controls": {
+          "createButton": "Создать Объявление",
+          "searchPlaceholder": "Поиск объявлений..."
+        },
+        "filters": {
+          "type": {
+            "all": "Все Типы",
+            "general": "Общие",
+            "class": "Занятия",
+            "maintenance": "Обслуживание",
+            "event": "Мероприятия",
+            "promotion": "Акции"
+          },
+          "status": {
+            "all": "Все Статусы",
+            "draft": "Черновик",
+            "published": "Опубликовано",
+            "scheduled": "Запланировано",
+            "expired": "Истекло"
+          },
+          "priority": {
+            "all": "Все Приоритеты",
+            "low": "Низкий",
+            "normal": "Обычный",
+            "high": "Высокий",
+            "urgent": "Срочный"
+          }
+        },
+        "emptyState": {
+          "title": "Объявления Не Найдены",
+          "description": "Создайте первое объявление, чтобы начать!"
+        }
       }
     }
   }
