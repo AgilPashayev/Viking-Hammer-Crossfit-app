@@ -1323,34 +1323,34 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">👨‍🏫</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalInstructors}</h3>
-              <p className="stat-label">Total Instructors</p>
+              <p className="stat-label">{t('admin.classManagement.instructors.stats.totalInstructors')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.activeInstructors}</h3>
-              <p className="stat-label">Active Instructors</p>
+              <p className="stat-label">{t('admin.classManagement.instructors.stats.activeInstructors')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">⭐</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.avgRating}</h3>
-              <p className="stat-label">Average Rating</p>
+              <p className="stat-label">{t('admin.classManagement.instructors.stats.avgRating')}</p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">🎯</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.specializations}</h3>
-              <p className="stat-label">Specializations</p>
+              <p className="stat-label">{t('admin.classManagement.instructors.stats.specializations')}</p>
             </div>
           </div>
         </div>
 
         <div className="section-header">
-          <h3>Instructors Management</h3>
+          <h3>{t('admin.classManagement.instructors.title')}</h3>
           {isSparta() ? (
             <button
               className="add-btn"
@@ -1372,7 +1372,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 setShowAddInstructorModal(true);
               }}
             >
-              ➕ Add New Instructor
+              ➕ {t('admin.classManagement.instructors.addButton')}
             </button>
           ) : (
             <div
@@ -1386,7 +1386,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 fontSize: '0.9em',
               }}
             >
-              🔒 SPARTA role required for instructor management
+              🔒 {t('admin.classManagement.instructors.spartaOnly')}
             </div>
           )}
         </div>
@@ -1395,7 +1395,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
           <div className="search-filters">
             <input
               type="text"
-              placeholder="Search instructors..."
+              placeholder={t('admin.classManagement.instructors.search.placeholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -1405,10 +1405,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="filter-select"
             >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="busy">Busy</option>
+              <option value="all">{t('admin.classManagement.instructors.filters.allStatus')}</option>
+              <option value="active">{t('admin.classManagement.instructors.filters.active')}</option>
+              <option value="inactive">{t('admin.classManagement.instructors.filters.inactive')}</option>
+              <option value="busy">{t('admin.classManagement.instructors.filters.busy')}</option>
             </select>
           </div>
         </div>
@@ -1428,12 +1428,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             >
               <div style={{ fontSize: '64px', marginBottom: '16px' }}>👨‍🏫</div>
               <h3 style={{ fontSize: '24px', marginBottom: '8px', color: '#495057' }}>
-                No Instructors Found
+                {t('admin.classManagement.instructors.emptyState.title')}
               </h3>
               <p style={{ color: '#6c757d', marginBottom: '24px' }}>
                 {searchTerm || filterStatus !== 'all'
-                  ? 'Try adjusting your filters to see more results.'
-                  : 'Add your first instructor to get started.'}
+                  ? t('admin.classManagement.instructors.emptyState.filterMessage')
+                  : t('admin.classManagement.instructors.emptyState.addFirstMessage')}
               </p>
               {!searchTerm && filterStatus === 'all' && (
                 <button
@@ -1455,7 +1455,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     setShowAddInstructorModal(true);
                   }}
                 >
-                  ➕ Add Your First Instructor
+                  ➕ {t('admin.classManagement.instructors.emptyState.addButton')}
                 </button>
               )}
             </div>
@@ -1471,11 +1471,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <div className="instructor-rating">
                       <span className="rating-stars">⭐</span>
                       <span className="rating-value">{instructor.rating.toFixed(1)}</span>
-                      <span className="experience-badge">{instructor.experience}y exp</span>
+                      <span className="experience-badge">{instructor.experience}{t('admin.classManagement.instructors.experienceYears')}</span>
                     </div>
                   </div>
                   <span className={`status-badge status-${instructor.status}`}>
-                    {instructor.status}
+                    {instructor.status === 'active' ? t('admin.classManagement.instructors.filters.active') : instructor.status === 'inactive' ? t('admin.classManagement.instructors.filters.inactive') : t('admin.classManagement.instructors.filters.busy')}
                   </span>
                 </div>
 
@@ -1483,21 +1483,21 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   <div className="detail-item">
                     <span className="detail-icon">📧</span>
                     <div className="detail-content">
-                      <span className="detail-label">Email</span>
+                      <span className="detail-label">{t('admin.classManagement.instructorModal.form.email')}</span>
                       <span className="detail-value">{instructor.email}</span>
                     </div>
                   </div>
                   <div className="detail-item">
                     <span className="detail-icon">📱</span>
                     <div className="detail-content">
-                      <span className="detail-label">Phone</span>
+                      <span className="detail-label">{t('admin.classManagement.instructorModal.form.phone')}</span>
                       <span className="detail-value">{instructor.phone}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="specialization-section">
-                  <span className="detail-label">Specializations:</span>
+                  <span className="detail-label">{t('admin.classManagement.instructors.specializationsLabel')}:</span>
                   <div className="specialization-list">
                     {(Array.isArray(instructor.specialization)
                       ? instructor.specialization
@@ -1511,7 +1511,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 </div>
 
                 <div className="availability-section">
-                  <span className="detail-label">Availability:</span>
+                  <span className="detail-label">{t('admin.classManagement.instructors.availabilityLabel')}:</span>
                   <div className="availability-list">
                     {(Array.isArray(instructor.availability) ? instructor.availability : []).map(
                       (day, index) => (
@@ -1527,19 +1527,19 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   {isSparta() ? (
                     <>
                       <button className="edit-btn" onClick={() => handleEditInstructor(instructor)}>
-                        ✏️ Edit
+                        ✏️ {t('admin.classManagement.instructors.actions.edit')}
                       </button>
                       <button
                         className="schedule-btn"
                         onClick={() => handleScheduleInstructor(instructor)}
                       >
-                        📅 Schedule
+                        📅 {t('admin.classManagement.instructors.actions.schedule')}
                       </button>
                       <button
                         className="delete-btn"
                         onClick={() => handleDeleteInstructor(instructor.id)}
                       >
-                        🗑️ Delete
+                        🗑️ {t('admin.classManagement.instructors.actions.delete')}
                       </button>
                     </>
                   ) : (
@@ -1555,7 +1555,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         textAlign: 'center',
                       }}
                     >
-                      🔒 SPARTA access required
+                      🔒 {t('admin.classManagement.instructors.spartaAccessRequired')}
                     </div>
                   )}
                 </div>

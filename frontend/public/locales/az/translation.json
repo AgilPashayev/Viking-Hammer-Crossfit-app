@@ -772,17 +772,29 @@
         }
       },
       "instructors": {
-        "title": "Təlimçilərin Idarəetməsi",
+        "title": "Təlimçi İdarəetməsi",
         "lastUpdated": "Son yenilənmə: {{time}}",
         "addButton": "Yeni Təlimçi Əlavə Et",
+        "spartaOnly": "Təlimçi idarəetməsi üçün SPARTA rolu tələb olunur",
+        "experienceYears": " il təcrübə",
+        "specializationsLabel": "İxtisaslar",
+        "availabilityLabel": "Əlçatanlıq",
         "stats": {
           "totalInstructors": "Ümumi Təlimçilər",
           "activeInstructors": "Aktiv Təlimçilər",
           "avgExperience": "Orta Təcrübə",
+          "avgRating": "Orta Reytinq",
+          "specializations": "İxtisaslar",
           "years": "İl"
         },
         "search": {
           "placeholder": "Təlimçiləri axtar..."
+        },
+        "filters": {
+          "allStatus": "Bütün Statuslar",
+          "active": "Aktiv",
+          "inactive": "Qeyri-aktiv",
+          "busy": "Məşğul"
         },
         "table": {
           "nameColumn": "Ad",
@@ -793,11 +805,16 @@
         },
         "actions": {
           "edit": "Redaktə Et",
-          "delete": "Sil"
+          "delete": "Sil",
+          "schedule": "Cədvəl"
         },
+        "spartaAccessRequired": "SPARTA girişi tələb olunur",
         "emptyState": {
           "title": "Təlimçi Tapılmadı",
-          "description": "Mövcud təlimçi yoxdur."
+          "description": "Mövcud təlimçi yoxdur.",
+          "filterMessage": "Daha çox nəticə görmək üçün filterlərinizi tənzimləyin.",
+          "addFirstMessage": "Başlamaq üçün ilk təlimçini əlavə edin.",
+          "addButton": "İlk Təlimçinizi Əlavə Edin"
         },
         "deleteConfirm": {
           "title": "Təlimçini Sil",

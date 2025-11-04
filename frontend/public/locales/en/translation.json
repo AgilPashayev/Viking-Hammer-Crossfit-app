@@ -775,14 +775,26 @@
         "title": "Instructors Management",
         "lastUpdated": "Last updated: {{time}}",
         "addButton": "Add New Instructor",
+        "spartaOnly": "SPARTA role required for instructor management",
+        "experienceYears": "y exp",
+        "specializationsLabel": "Specializations",
+        "availabilityLabel": "Availability",
         "stats": {
           "totalInstructors": "Total Instructors",
           "activeInstructors": "Active Instructors",
           "avgExperience": "Avg Experience",
+          "avgRating": "Average Rating",
+          "specializations": "Specializations",
           "years": "Years"
         },
         "search": {
           "placeholder": "Search instructors..."
+        },
+        "filters": {
+          "allStatus": "All Statuses",
+          "active": "Active",
+          "inactive": "Inactive",
+          "busy": "Busy"
         },
         "table": {
           "nameColumn": "Name",
@@ -793,11 +805,16 @@
         },
         "actions": {
           "edit": "Edit",
-          "delete": "Delete"
+          "delete": "Delete",
+          "schedule": "Schedule"
         },
+        "spartaAccessRequired": "SPARTA access required",
         "emptyState": {
           "title": "No Instructors Found",
-          "description": "No instructors available."
+          "description": "No instructors available.",
+          "filterMessage": "Try adjusting your filters to see more results.",
+          "addFirstMessage": "Add your first instructor to get started.",
+          "addButton": "Add Your First Instructor"
         },
         "deleteConfirm": {
           "title": "Delete Instructor",

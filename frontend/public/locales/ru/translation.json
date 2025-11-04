@@ -775,14 +775,26 @@
         "title": "Управление Инструкторами",
         "lastUpdated": "Последнее обновление: {{time}}",
         "addButton": "Добавить Нового Инструктора",
+        "spartaOnly": "Для управления инструкторами требуется роль SPARTA",
+        "experienceYears": " лет опыта",
+        "specializationsLabel": "Специализации",
+        "availabilityLabel": "Доступность",
         "stats": {
           "totalInstructors": "Всего Инструкторов",
           "activeInstructors": "Активных Инструкторов",
           "avgExperience": "Средний Опыт",
+          "avgRating": "Средний Рейтинг",
+          "specializations": "Специализации",
           "years": "Лет"
         },
         "search": {
           "placeholder": "Поиск инструкторов..."
+        },
+        "filters": {
+          "allStatus": "Все Статусы",
+          "active": "Активный",
+          "inactive": "Неактивный",
+          "busy": "Занят"
         },
         "table": {
           "nameColumn": "Имя",
@@ -793,11 +805,16 @@
         },
         "actions": {
           "edit": "Редактировать",
-          "delete": "Удалить"
+          "delete": "Удалить",
+          "schedule": "Расписание"
         },
+        "spartaAccessRequired": "Требуется доступ SPARTA",
         "emptyState": {
           "title": "Инструкторы Не Найдены",
-          "description": "Доступных инструкторов нет."
+          "description": "Доступных инструкторов нет.",
+          "filterMessage": "Попробуйте изменить фильтры для просмотра результатов.",
+          "addFirstMessage": "Добавьте своего первого инструктора, чтобы начать.",
+          "addButton": "Добавить Первого Инструктора"
         },
         "deleteConfirm": {
           "title": "Удалить Инструктора",
