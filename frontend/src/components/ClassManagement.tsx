@@ -1138,7 +1138,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   </div>
                   <div className={`status-pill status-${gymClass.status}`}>
                     {gymClass.status === 'active' ? '🟢' : gymClass.status === 'full' ? '🔴' : '⚫'}{' '}
-                    {gymClass.status}
+                    {gymClass.status === 'active' ? t('admin.classManagement.classes.filters.active') : gymClass.status === 'inactive' ? t('admin.classManagement.classes.filters.inactive') : gymClass.status}
                   </div>
                 </div>
 
@@ -1150,7 +1150,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <div className="stats-row-modern">
                   <div className="stat-pill">
                     <span className="stat-icon">⏱️</span>
-                    <span className="stat-text">{gymClass.duration} min</span>
+                    <span className="stat-text">{gymClass.duration} {t('admin.classManagement.common.minutes')}</span>
                   </div>
                   <div className="stat-pill">
                     <span className="stat-icon">💰</span>
@@ -1186,7 +1186,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       title="Click to view enrolled members, double-click to refresh data"
                       style={{ cursor: 'pointer' }}
                     >
-                      {spotsLeft} spots left
+                      {t('admin.classManagement.classes.spotsLeft', { count: spotsLeft })}
                     </span>
                   </div>
                   <div className="enrollment-bar-modern">
@@ -1209,7 +1209,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <div className="instructors-section-modern">
                   <div className="section-label-modern">
                     <span className="label-icon">👨‍🏫</span>
-                    <span>Instructors</span>
+                    <span>{t('admin.classManagement.classes.table.instructorsColumn')}</span>
                   </div>
                   <div className="instructors-tags-modern">
                     {gymClass.instructors.length > 0 ? (
@@ -1219,7 +1219,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         </span>
                       ))
                     ) : (
-                      <span className="no-data-text">No instructors assigned</span>
+                      <span className="no-data-text">{t('admin.classManagement.classes.noInstructors')}</span>
                     )}
                   </div>
                 </div>
@@ -1229,7 +1229,7 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   <div className="schedule-section-modern">
                     <div className="section-label-modern">
                       <span className="label-icon">📅</span>
-                      <span>Weekly Schedule (24h)</span>
+                      <span>{t('admin.classManagement.classModal.form.schedule')} (24h)</span>
                     </div>
                     <div className="schedule-tags-modern">
                       {(expandedSchedules.has(gymClass.id)
@@ -1274,26 +1274,26 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       setSelectedClass(gymClass);
                       setShowAssignModal(true);
                     }}
-                    title="Assign Instructors"
+                    title={t('admin.classManagement.classes.actions.assign')}
                   >
                     <span className="btn-icon">👥</span>
-                    <span className="btn-text">Assign</span>
+                    <span className="btn-text">{t('admin.classManagement.assignModal.title')}</span>
                   </button>
                   <button
                     className="action-btn-modern action-edit"
                     onClick={() => handleEditClass(gymClass)}
-                    title="Edit Class"
+                    title={t('admin.classManagement.classes.actions.edit')}
                   >
                     <span className="btn-icon">✏️</span>
-                    <span className="btn-text">Edit</span>
+                    <span className="btn-text">{t('admin.classManagement.classes.actions.edit')}</span>
                   </button>
                   <button
                     className="action-btn-modern action-delete"
                     onClick={() => handleDeleteClass(gymClass.id)}
-                    title="Delete Class"
+                    title={t('admin.classManagement.classes.actions.delete')}
                   >
                     <span className="btn-icon">🗑️</span>
-                    <span className="btn-text">Delete</span>
+                    <span className="btn-text">{t('admin.classManagement.classes.actions.delete')}</span>
                   </button>
                 </div>
               </div>

@@ -708,6 +708,8 @@
           "active": "Active",
           "inactive": "Inactive"
         },
+        "spotsLeft": "{{count}} spots left",
+        "noInstructors": "No instructors assigned",
         "table": {
           "nameColumn": "Class Name",
           "categoryColumn": "Category",

@@ -708,6 +708,8 @@
           "active": "Aktiv",
           "inactive": "Qeyri-aktiv"
         },
+        "spotsLeft": "{{count}} yer qalıb",
+        "noInstructors": "Təlimçi təyin edilməyib",
         "table": {
           "nameColumn": "Sinif Adı",
           "categoryColumn": "Kateqoriya",

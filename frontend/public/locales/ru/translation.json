@@ -708,6 +708,8 @@
           "active": "Активный",
           "inactive": "Неактивный"
         },
+        "spotsLeft": "{{count}} мест осталось",
+        "noInstructors": "Инструкторы не назначены",
         "table": {
           "nameColumn": "Название Класса",
           "categoryColumn": "Категория",
