@@ -704,7 +704,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
             {currentActivities.length === 0 ? (
               <div className="no-activity">
                 <div className="no-activity-icon">📭</div>
-                <p>No recent activity</p>
+                <p>{t('admin.reception.noRecentActivity')}</p>
               </div>
             ) : (
               currentActivities.map((activity) => {
@@ -732,17 +732,17 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
               >
-                ← Previous
+                ← {t('common.back')}
               </button>
               <span className="pagination-info">
-                Page {currentPage} of {totalPages}
+                {t('admin.reception.page')} {currentPage} {t('admin.reception.of')} {totalPages}
               </span>
               <button
                 className="pagination-btn"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
               >
-                Next →
+                {t('common.next')} →
               </button>
             </div>
           )}

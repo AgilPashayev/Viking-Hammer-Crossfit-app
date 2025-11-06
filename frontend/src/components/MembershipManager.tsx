@@ -60,9 +60,43 @@ interface MembershipManagerProps {
   onBack: () => void;
 }
 
+const normalizeText = (value?: string | null) =>
+  (value || '').replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+
+const PLAN_NAME_KEY_MAP: Record<string, string> = {
+  'monthly unlimited': 'admin.membership.planNames.monthlyUnlimited',
+  'monthly limited': 'admin.membership.planNames.monthlyLimited',
+  'single session': 'admin.membership.planNames.singleSession',
+};
+
+const PLAN_DESCRIPTION_KEY_MAP: Record<string, string> = {
+  'unlimited monthly access': 'admin.membership.planDescriptions.monthlyUnlimited',
+  'limited monthly plan - 12 visits': 'admin.membership.planDescriptions.monthlyLimited',
+  'single gym visit - pay as you go': 'admin.membership.planDescriptions.singleSession',
+};
+
+const PLAN_FEATURE_KEY_MAP: Record<string, string> = {
+  'unlimited gym visits': 'admin.membership.planFeatures.unlimitedGymVisits',
+  'access to all classes': 'admin.membership.planFeatures.accessAllClasses',
+  'locker privileges': 'admin.membership.planFeatures.lockerPrivileges',
+  'guest privileges (2/month)': 'admin.membership.planFeatures.guestPrivileges',
+  '12 gym visits per month': 'admin.membership.planFeatures.twelveVisitsPerMonth',
+  'flexible schedule': 'admin.membership.planFeatures.flexibleSchedule',
+  'access to all equipment': 'admin.membership.planFeatures.accessAllEquipment',
+  'valid for one day': 'admin.membership.planFeatures.validOneDay',
+};
+
+const PLAN_LIMITATION_KEY_MAP: Record<string, string> = {
+  'monthly commitment': 'admin.membership.planLimitations.monthlyCommitment',
+  'auto-renews': 'admin.membership.planLimitations.autoRenews',
+  'visit quota applies': 'admin.membership.planLimitations.visitQuotaApplies',
+  'no rollover of unused visits': 'admin.membership.planLimitations.noRollover',
+  'single entry only': 'admin.membership.planLimitations.singleEntryOnly',
+};
+
 const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const { setPlansCount, updateMembershipTypes } = useData();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   // Get current user role from localStorage
   const [userRole, setUserRole] = useState<string>('member');
@@ -102,6 +136,15 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     const defaultTab = getDefaultTab();
     setActiveTab(defaultTab);
   }, [userRole]);
+
+  const resolveLocale = (language?: string) => {
+    if (!language) return 'en-US';
+    if (language.startsWith('az')) return 'az-Latn-AZ';
+    if (language.startsWith('ru')) return 'ru-RU';
+    return 'en-US';
+  };
+
+  const getCurrentLocale = () => resolveLocale(i18n.language || i18n.resolvedLanguage);
 
   const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -286,7 +329,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   };
 
   // Calculate days remaining until subscription expires
-  const calculateDaysLeft = (endDate: string | null): number | null => {
+  const calculateDaysLeft = (endDate: string | null | undefined): number | null => {
     if (!endDate) return null;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -306,6 +349,77 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     return '#28a745'; // green for good
   };
 
+  const getCountdownLabel = (daysLeft: number) => {
+    if (daysLeft < 0) {
+      return t('admin.membership.countdown.expired');
+    }
+    return t('admin.membership.countdown.days', { count: daysLeft });
+  };
+
+  const getPlanTypeLabel = (type: MembershipPlan['type']) => {
+    switch (type) {
+      case 'single':
+        return t('admin.membership.singleEntry');
+      case 'monthly-limited':
+        return t('admin.membership.monthlyLimited');
+      case 'monthly-unlimited':
+        return t('admin.membership.monthlyUnlimited');
+      case 'company':
+        return t('admin.membership.companyPlan');
+      default:
+        return type;
+    }
+  };
+
+  const translateUsingMap = (
+    value: string | undefined | null,
+    map: Record<string, string>,
+  ): string => {
+    if (!value) {
+      return value ?? '';
+    }
+
+    const normalized = normalizeText(value);
+    const translationKey = map[normalized];
+
+    if (translationKey) {
+      const translated = t(translationKey);
+      if (translated !== translationKey) {
+        return translated;
+      }
+    }
+
+    return value;
+  };
+
+  const translatePlanName = (name: string) => translateUsingMap(name, PLAN_NAME_KEY_MAP);
+
+  const translatePlanDescription = (description?: string | null) =>
+    translateUsingMap(description, PLAN_DESCRIPTION_KEY_MAP);
+
+  const translatePlanFeature = (feature: string) =>
+    translateUsingMap(feature, PLAN_FEATURE_KEY_MAP);
+
+  const translatePlanLimitation = (limitation: string) =>
+    translateUsingMap(limitation, PLAN_LIMITATION_KEY_MAP);
+
+  const translatePlanDuration = (duration?: string | null) => {
+    if (!duration) {
+      return '';
+    }
+
+    const normalized = normalizeText(duration);
+    const match = normalized.match(/^(\d+)\s+(day|days|month|months)$/);
+
+    if (match) {
+      const count = Number(match[1]);
+      const unit = match[2].startsWith('day') ? 'days' : 'months';
+      return t(`admin.membership.durationDisplay.${unit}`, { count });
+    }
+
+    return duration;
+  };
+
   const getFilteredCompanies = () => {
     return companies.filter((company) => {
       const matchesSearch =
@@ -323,9 +437,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     // Validation
     if (!newPlan.name || !newPlan.name.trim()) {
       await showConfirmDialog({
-        title: '⚠️ Validation Error',
-        message: 'Please enter a plan name',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.validation'),
+        message: t('admin.membership.dialogs.messages.planNameRequired'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'warning',
       });
@@ -334,9 +448,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
     if (!newPlan.price || newPlan.price <= 0) {
       await showConfirmDialog({
-        title: '⚠️ Validation Error',
-        message: 'Please enter a valid price (greater than 0)',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.validation'),
+        message: t('admin.membership.dialogs.messages.planPriceInvalid'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'warning',
       });
@@ -352,9 +466,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
     if (isDuplicate) {
       await showConfirmDialog({
-        title: '⚠️ Duplicate Plan',
-        message: `A plan with the name "${newPlan.name}" already exists. Please choose a different name.`,
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.duplicate'),
+        message: t('admin.membership.dialogs.messages.duplicatePlan', {
+          name: newPlan.name,
+        }),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'warning',
       });
@@ -400,9 +516,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
         if (!result.success) {
           await showConfirmDialog({
-            title: '❌ Update Failed',
-            message: `Failed to update plan: ${result.error}\n\nPlease check your connection and try again.`,
-            confirmText: 'OK',
+            title: t('admin.membership.dialogs.titles.updateFailed'),
+            message: t('admin.membership.dialogs.messages.planUpdateFailed', {
+              error: result.error,
+            }),
+            confirmText: t('common.ok'),
             cancelText: '',
             type: 'danger',
           });
@@ -415,9 +533,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         }
 
         await showConfirmDialog({
-          title: '✅ Success',
-          message: 'Plan updated successfully!',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.success'),
+          message: t('admin.membership.dialogs.messages.planUpdateSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
@@ -437,9 +555,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
         if (!result.success) {
           await showConfirmDialog({
-            title: '❌ Creation Failed',
-            message: `Failed to create plan: ${result.error}\n\nPlease check your connection and try again.`,
-            confirmText: 'OK',
+            title: t('admin.membership.dialogs.titles.creationFailed'),
+            message: t('admin.membership.dialogs.messages.planCreationFailed', {
+              error: result.error,
+            }),
+            confirmText: t('common.ok'),
             cancelText: '',
             type: 'danger',
           });
@@ -452,9 +572,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         }
 
         await showConfirmDialog({
-          title: '✅ Success',
-          message: 'Plan created successfully!',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.success'),
+          message: t('admin.membership.dialogs.messages.planCreationSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
@@ -465,9 +585,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Unexpected error saving plan:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred. Please try again.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.genericError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -555,11 +675,19 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     const plan = membershipPlans.find((p) => p.id === planId);
     if (!plan) return;
 
+    const formattedPrice = formatPrice(plan.price, plan.currency);
+    const planTypeLabel = getPlanTypeLabel(plan.type);
+    const translatedPlanName = translatePlanName(plan.name);
+
     const confirmed = await showConfirmDialog({
-      title: '🗑️ Delete Membership Plan',
-      message: `Plan: ${plan.name}\nPrice: ${plan.price} ${plan.currency}\nType: ${plan.type}\n\n⚠️ WARNING: This action cannot be undone.\n\nAll subscriptions using this plan will be affected. Are you sure you want to delete this plan?`,
-      confirmText: 'Yes, Delete It',
-      cancelText: 'Cancel',
+      title: t('admin.membership.dialogs.titles.deletePlan'),
+      message: t('admin.membership.dialogs.messages.deletePlan', {
+        name: translatedPlanName,
+        price: formattedPrice,
+        type: planTypeLabel,
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.deletePlan'),
+      cancelText: t('common.cancel'),
       type: 'danger',
     });
 
@@ -582,9 +710,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (!result.success) {
         await showConfirmDialog({
-          title: '❌ Delete Failed',
-          message: `Failed to delete plan: ${result.error}`,
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.deleteFailed'),
+          message: t('admin.membership.dialogs.messages.deletePlanFailed', {
+            error: result.error,
+          }),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'danger',
         });
@@ -592,9 +722,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       }
 
       await showConfirmDialog({
-        title: '✅ Success',
-        message: 'Plan deleted successfully!',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.success'),
+        message: t('admin.membership.dialogs.messages.deletePlanSuccess'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'success',
       });
@@ -604,9 +734,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Unexpected error deleting plan:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred. Please try again.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.genericError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -649,9 +779,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (result.success) {
         await showConfirmDialog({
-          title: '✅ Success',
-          message: 'Subscription updated successfully!',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.success'),
+          message: t('admin.membership.dialogs.messages.subscriptionUpdateSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
@@ -661,9 +791,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         setEditingSubscription({});
       } else {
         await showConfirmDialog({
-          title: '❌ Update Failed',
-          message: `Failed to update subscription:\n\n${result.error}`,
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.updateFailed'),
+          message: t('admin.membership.dialogs.messages.subscriptionUpdateFailed', {
+            error: result.error,
+          }),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'danger',
         });
@@ -671,9 +803,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Error updating subscription:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred while updating the subscription.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.subscriptionUpdateError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -683,16 +815,18 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const handleRenewSubscription = async (subscriptionId: string) => {
     const subscription = subscriptions.find((s) => s.id === subscriptionId);
     if (!subscription) return;
+    const localizedPlanName = translatePlanName(subscription.planName);
 
     const confirmed = await showConfirmDialog({
-      title: '🔄 Renew Subscription',
-      message: `Member: ${subscription.memberName}\nPlan: ${
-        subscription.planName
-      }\nCurrent Status: ${subscription.status}\nCurrent End Date: ${
-        subscription.endDate || 'N/A'
-      }\n\nThis will extend the subscription period and reset available visits (if applicable).\n\nDo you want to renew this subscription?`,
-      confirmText: 'Yes, Renew',
-      cancelText: 'Cancel',
+      title: t('admin.membership.dialogs.titles.renewSubscription'),
+      message: t('admin.membership.dialogs.messages.renewSubscriptionConfirm', {
+        member: subscription.memberName,
+        plan: localizedPlanName,
+        status: translateStatus(subscription.status),
+        endDate: subscription.endDate ? formatDate(subscription.endDate) : t('common.notAvailable'),
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.renew'),
+      cancelText: t('common.cancel'),
       type: 'success',
     });
 
@@ -711,19 +845,20 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (result.success) {
         await showConfirmDialog({
-          title: '✅ Renewal Complete',
-          message:
-            'Subscription renewed successfully!\n\nThe subscription period has been extended.',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.renewalComplete'),
+          message: t('admin.membership.dialogs.messages.renewalSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
         await showConfirmDialog({
-          title: '❌ Renewal Failed',
-          message: `Failed to renew subscription:\n\n${result.error}`,
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.renewalFailed'),
+          message: t('admin.membership.dialogs.messages.renewalFailed', {
+            error: result.error,
+          }),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'danger',
         });
@@ -731,9 +866,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Error renewing subscription:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred while renewing the subscription.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.renewalError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -743,12 +878,17 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const handleSuspendSubscription = async (subscriptionId: string) => {
     const subscription = subscriptions.find((s) => s.id === subscriptionId);
     if (!subscription) return;
+    const localizedPlanName = translatePlanName(subscription.planName);
 
     const confirmed = await showConfirmDialog({
-      title: '⏸️ Suspend Subscription',
-      message: `Member: ${subscription.memberName}\nPlan: ${subscription.planName}\nCurrent Status: ${subscription.status}\n\nThis will temporarily pause the subscription. You can reactivate it later.\n\nThe member will not be able to access gym facilities while suspended.\n\nDo you want to continue?`,
-      confirmText: 'Yes, Suspend',
-      cancelText: 'Cancel',
+      title: t('admin.membership.dialogs.titles.suspendSubscription'),
+      message: t('admin.membership.dialogs.messages.suspendSubscriptionConfirm', {
+        member: subscription.memberName,
+        plan: localizedPlanName,
+        status: translateStatus(subscription.status),
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.suspend'),
+      cancelText: t('common.cancel'),
       type: 'warning',
     });
 
@@ -767,19 +907,20 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (result.success) {
         await showConfirmDialog({
-          title: '✅ Suspended',
-          message:
-            'Subscription suspended successfully!\n\nThe member will not be able to access gym facilities until reactivated.',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.suspendSuccess'),
+          message: t('admin.membership.dialogs.messages.suspendSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
         await showConfirmDialog({
-          title: '❌ Suspend Failed',
-          message: `Failed to suspend subscription:\n\n${result.error}`,
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.suspendFailed'),
+          message: t('admin.membership.dialogs.messages.suspendFailed', {
+            error: result.error,
+          }),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'danger',
         });
@@ -787,9 +928,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Error suspending subscription:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred while suspending the subscription.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.suspendError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -799,16 +940,19 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   const handleCancelSubscription = async (subscriptionId: string) => {
     const subscription = subscriptions.find((s) => s.id === subscriptionId);
     if (!subscription) return;
+    const localizedPlanName = translatePlanName(subscription.planName);
 
     const confirmed = await showConfirmDialog({
-      title: '🗑️ Cancel Subscription',
-      message: `Member: ${subscription.memberName}\nEmail: ${subscription.memberEmail}\nPlan: ${
-        subscription.planName
-      }\nStart Date: ${subscription.startDate}\nEnd Date: ${
-        subscription.endDate || 'N/A'
-      }\n\n⚠️ WARNING: This will mark the subscription as INACTIVE.\n\nThe member will immediately lose access to all membership benefits and gym facilities.\n\nThis action can be reversed by creating a new subscription.\n\nAre you absolutely sure you want to cancel this subscription?`,
-      confirmText: 'Yes, Cancel It',
-      cancelText: 'No, Keep It',
+      title: t('admin.membership.dialogs.titles.cancelSubscription'),
+      message: t('admin.membership.dialogs.messages.cancelSubscriptionConfirm', {
+        member: subscription.memberName,
+        email: subscription.memberEmail,
+        plan: localizedPlanName,
+        startDate: formatDate(subscription.startDate),
+        endDate: subscription.endDate ? formatDate(subscription.endDate) : t('common.notAvailable'),
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.cancelSubscription'),
+      cancelText: t('admin.membership.dialogs.confirm.keepSubscription'),
       type: 'danger',
     });
 
@@ -824,19 +968,20 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (result.success) {
         await showConfirmDialog({
-          title: '✅ Cancelled',
-          message:
-            'Subscription cancelled successfully!\n\nThe member no longer has access to gym facilities.',
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.cancelled'),
+          message: t('admin.membership.dialogs.messages.cancellationSuccess'),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'success',
         });
         await loadSubscriptionsFromDatabase(); // Reload data
       } else {
         await showConfirmDialog({
-          title: '❌ Cancellation Failed',
-          message: `Failed to cancel subscription:\n\n${result.error}`,
-          confirmText: 'OK',
+          title: t('admin.membership.dialogs.titles.cancellationFailed'),
+          message: t('admin.membership.dialogs.messages.cancellationFailed', {
+            error: result.error,
+          }),
+          confirmText: t('common.ok'),
           cancelText: '',
           type: 'danger',
         });
@@ -844,9 +989,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     } catch (error) {
       console.error('Error cancelling subscription:', error);
       await showConfirmDialog({
-        title: '❌ Error',
-        message: 'An unexpected error occurred while cancelling the subscription.',
-        confirmText: 'OK',
+        title: t('admin.membership.dialogs.titles.error'),
+        message: t('admin.membership.dialogs.messages.cancellationError'),
+        confirmText: t('common.ok'),
         cancelText: '',
         type: 'danger',
       });
@@ -871,18 +1016,33 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     }
   };
 
-  const handleRemoveCompany = (companyId: string) => {
-    if (confirm('Are you sure you want to remove this company?')) {
-      setCompanies(companies.filter((c) => c.id !== companyId));
-    }
+  const handleRemoveCompany = async (companyId: string) => {
+    const company = companies.find((c) => c.id === companyId);
+    if (!company) return;
+
+    const confirmed = await showConfirmDialog({
+      title: t('admin.membership.dialogs.titles.removeCompany'),
+      message: t('admin.membership.dialogs.messages.removeCompany', { name: company.name }),
+      confirmText: t('admin.membership.dialogs.confirm.deleteCompany'),
+      cancelText: t('common.cancel'),
+      type: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    setCompanies(companies.filter((c) => c.id !== companyId));
   };
 
   const handleContactCompany = async (company: Company) => {
     const confirmed = await showConfirmDialog({
-      title: '📞 Contact Company',
-      message: `Contact: ${company.contactPerson}\nCompany: ${company.name}\nPhone: ${company.phone}\n\nHow would you like to contact them?`,
-      confirmText: '📱 WhatsApp',
-      cancelText: '☎️ Regular Call',
+      title: t('admin.membership.dialogs.titles.contactCompany'),
+      message: t('admin.membership.dialogs.messages.contactCompany', {
+        contact: company.contactPerson,
+        company: company.name,
+        phone: company.phone,
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.contactWhatsApp'),
+      cancelText: t('admin.membership.dialogs.confirm.contactCall'),
       type: 'info',
     });
 
@@ -903,19 +1063,17 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     const company = companies.find((c) => c.id === companyId);
     if (!company) return;
 
-    const statusMessages = {
-      active: '✅ Activate this company partnership?',
-      pending: '⏳ Set this company partnership to pending?',
-      suspended: '⏸️ Suspend this company partnership?',
-    };
-
     const confirmed = await showConfirmDialog({
-      title: `${
-        newStatus === 'active' ? '✅' : newStatus === 'pending' ? '⏳' : '⏸️'
-      } Change Status`,
-      message: `Company: ${company.name}\nCurrent Status: ${company.status}\n\n${statusMessages[newStatus]}`,
-      confirmText: 'Yes, Change Status',
-      cancelText: 'Cancel',
+      title: t('admin.membership.dialogs.titles.changeCompanyStatus', {
+        status: translateStatus(newStatus),
+      }),
+      message: t('admin.membership.dialogs.messages.companyStatusChange', {
+        company: company.name,
+        currentStatus: translateStatus(company.status),
+        action: t(`admin.membership.dialogs.messages.companyStatus.${newStatus}`),
+      }),
+      confirmText: t('admin.membership.dialogs.confirm.changeStatus'),
+      cancelText: t('common.cancel'),
       type: newStatus === 'suspended' ? 'warning' : 'info',
     });
 
@@ -927,9 +1085,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     setCompanies(updatedCompanies);
 
     await showConfirmDialog({
-      title: '✅ Status Updated',
-      message: `Company status changed to: ${newStatus}`,
-      confirmText: 'OK',
+      title: t('admin.membership.dialogs.titles.statusUpdated'),
+      message: t('admin.membership.dialogs.messages.companyStatusUpdated', {
+        status: translateStatus(newStatus),
+      }),
+      confirmText: t('common.ok'),
       cancelText: '',
       type: 'success',
     });
@@ -948,6 +1108,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         const plan = membershipPlans.find((p) => p.id === s.planId);
         return sum + (plan?.price || 0);
       }, 0);
+    const monthlyRevenueCurrency = membershipPlans.find((p) => p.currency)?.currency || 'AZN';
 
     return {
       totalPlans,
@@ -957,15 +1118,26 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       totalCompanies,
       activeCompanies,
       monthlyRevenue,
+      monthlyRevenueCurrency,
     };
   };
 
   const formatPrice = (price: number, currency: string) => {
-    return `${price} ${currency}`;
+    try {
+      return new Intl.NumberFormat(getCurrentLocale(), {
+        style: 'currency',
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(price);
+    } catch (error) {
+      console.warn('Currency formatting failed, falling back to basic display.', error);
+      return `${price} ${currency}`;
+    }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString(getCurrentLocale(), {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -983,6 +1155,22 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       overdue: '#dc3545',
     };
     return colors[status as keyof typeof colors] || '#6c757d';
+  };
+
+  const translateStatus = (status: string) => {
+    const dashboardStatusKey = `dashboard.status.${status}`;
+    const dashboardTranslation = t(dashboardStatusKey);
+    if (dashboardTranslation !== dashboardStatusKey) {
+      return dashboardTranslation;
+    }
+
+    const membershipStatusKey = `admin.membership.statusLabels.${status}`;
+    const membershipTranslation = t(membershipStatusKey);
+    if (membershipTranslation !== membershipStatusKey) {
+      return membershipTranslation;
+    }
+
+    return status;
   };
 
   // Toggle subscription expand/collapse
@@ -1008,103 +1196,123 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       </div>
 
       <div className="plans-grid">
-        {getFilteredPlans().map((plan) => (
-          <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
-            {plan.isPopular && (
-              <div className="popular-badge">⭐ {t('admin.membership.mostPopular')}</div>
-            )}
+        {getFilteredPlans().map((plan) => {
+          const translatedPlanName = translatePlanName(plan.name);
+          const translatedDescription = translatePlanDescription(plan.description);
+          const translatedDuration = translatePlanDuration(plan.duration);
 
-            <div className="plan-header">
-              <h4 className="plan-name">{plan.name}</h4>
-              <div className="plan-price">
-                <span className="price-amount">{formatPrice(plan.price, plan.currency)}</span>
-                {plan.duration && <span className="price-period">/ {plan.duration}</span>}
+          return (
+            <div key={plan.id} className={`plan-card ${plan.isPopular ? 'popular' : ''}`}>
+              {plan.isPopular && (
+                <div className="popular-badge">⭐ {t('admin.membership.mostPopular')}</div>
+              )}
+
+              <div className="plan-header">
+                <h4 className="plan-name">{translatedPlanName}</h4>
+                <div className="plan-price">
+                  <span className="price-amount">{formatPrice(plan.price, plan.currency)}</span>
+                  {plan.duration && (
+                    <span className="price-period">
+                      {t('admin.membership.planCard.perDuration', {
+                        duration: translatedDuration,
+                      })}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <p className="plan-description">{plan.description}</p>
+              <p className="plan-description">{translatedDescription}</p>
 
-            {plan.type === 'company' && plan.companyName && (
-              <div className="company-info">
-                <span className="company-tag">🏢 {plan.companyName}</span>
-                {plan.discountPercentage && (
-                  <span className="discount-tag">💰 {plan.discountPercentage}% OFF</span>
+              {plan.type === 'company' && plan.companyName && (
+                <div className="company-info">
+                  <span className="company-tag">🏢 {plan.companyName}</span>
+                  {plan.discountPercentage && (
+                    <span className="discount-tag">
+                      {t('admin.membership.planCard.discount', {
+                        discount: plan.discountPercentage,
+                      })}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <div className="plan-details">
+                {plan.entryLimit && (
+                  <div className="detail-item">
+                    <span className="detail-label">{t('admin.membership.entryLimit')}:</span>
+                    <span className="detail-value">
+                      {plan.entryLimit} {t('admin.membership.entries')}
+                    </span>
+                  </div>
+                )}
+                {plan.duration && (
+                  <div className="detail-item">
+                    <span className="detail-label">{t('profile.subscription.duration')}:</span>
+                    <span className="detail-value">{translatedDuration}</span>
+                  </div>
                 )}
               </div>
-            )}
 
-            <div className="plan-details">
-              {plan.entryLimit && (
-                <div className="detail-item">
-                  <span className="detail-label">{t('admin.membership.entryLimit')}:</span>
-                  <span className="detail-value">
-                    {plan.entryLimit} {t('admin.membership.entries')}
-                  </span>
-                </div>
-              )}
-              {plan.duration && (
-                <div className="detail-item">
-                  <span className="detail-label">{t('profile.subscription.duration')}:</span>
-                  <span className="detail-value">{plan.duration}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="plan-features">
-              <h5>✅ Features:</h5>
-              <ul>
-                {plan.features.map((feature, index) => (
-                  <li key={index}>{feature}</li>
-                ))}
-              </ul>
-            </div>
-
-            {plan.limitations.length > 0 && (
-              <div className="plan-limitations">
-                <h5>⚠️ Limitations:</h5>
+              <div className="plan-features">
+                <h5>{t('admin.membership.planCard.features')}</h5>
                 <ul>
-                  {plan.limitations.map((limitation, index) => (
-                    <li key={index}>{limitation}</li>
-                  ))}
+                  {plan.features.map((feature, index) => {
+                    const translatedFeature = translatePlanFeature(feature);
+                    return <li key={index}>{translatedFeature}</li>;
+                  })}
                 </ul>
               </div>
-            )}
 
-            <div className="plan-status">
-              <span
-                className="status-badge"
-                style={{ backgroundColor: getStatusColor(plan.isActive ? 'active' : 'inactive') }}
-              >
-                {plan.isActive
-                  ? t('profile.subscription.active')
-                  : t('profile.subscription.inactive')}
-              </span>
-            </div>
+              {plan.limitations.length > 0 && (
+                <div className="plan-limitations">
+                  <h5>{t('admin.membership.planCard.limitations')}</h5>
+                  <ul>
+                    {plan.limitations.map((limitation, index) => {
+                      const translatedLimitation = translatePlanLimitation(limitation);
+                      return <li key={index}>{translatedLimitation}</li>;
+                    })}
+                  </ul>
+                </div>
+              )}
 
-            <div className="plan-actions">
-              <button className="edit-btn" onClick={() => handleEditPlan(plan.id)}>
-                ✏️ {t('admin.membership.edit')}
-              </button>
-              <button
-                className="toggle-btn"
-                onClick={() =>
-                  setMembershipPlans(
-                    membershipPlans.map((p) =>
-                      p.id === plan.id ? { ...p, isActive: !p.isActive } : p,
-                    ),
-                  )
-                }
-              >
-                {plan.isActive
-                  ? `🔒 ${t('admin.membership.deactivate')}`
-                  : `🔓 ${t('admin.membership.activate')}`}
-              </button>
-              <button className="delete-btn" onClick={() => handleDeletePlan(plan.id)}>
-                🗑️ {t('admin.membership.delete')}
-              </button>
+              <div className="plan-status">
+                <span
+                  className="status-badge"
+                  style={{
+                    backgroundColor: getStatusColor(plan.isActive ? 'active' : 'inactive'),
+                  }}
+                >
+                  {plan.isActive
+                    ? t('profile.subscription.active')
+                    : t('profile.subscription.inactive')}
+                </span>
+              </div>
+
+              <div className="plan-actions">
+                <button className="edit-btn" onClick={() => handleEditPlan(plan.id)}>
+                  ✏️ {t('admin.membership.edit')}
+                </button>
+                <button
+                  className="toggle-btn"
+                  onClick={() =>
+                    setMembershipPlans(
+                      membershipPlans.map((p) =>
+                        p.id === plan.id ? { ...p, isActive: !p.isActive } : p,
+                      ),
+                    )
+                  }
+                >
+                  {plan.isActive
+                    ? `🔒 ${t('admin.membership.deactivate')}`
+                    : `🔓 ${t('admin.membership.activate')}`}
+                </button>
+                <button className="delete-btn" onClick={() => handleDeletePlan(plan.id)}>
+                  🗑️ {t('admin.membership.delete')}
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -1123,6 +1331,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
           const daysLeft = calculateDaysLeft(subscription.endDate);
           const daysLeftColor = getDaysLeftColor(daysLeft);
           const isExpanded = expandedSubscriptions.has(subscription.id);
+          const translatedPlanName = translatePlanName(subscription.planName);
 
           return (
             <div
@@ -1142,7 +1351,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 </div>
 
                 <div className="header-plan-info">
-                  <span className="plan-name-text">{subscription.planName}</span>
+                  <span className="plan-name-text">{translatedPlanName}</span>
                 </div>
 
                 <div className="header-status-info">
@@ -1150,7 +1359,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     className="status-badge-mini"
                     style={{ backgroundColor: getStatusColor(subscription.status) }}
                   >
-                    {subscription.status}
+                    {translateStatus(subscription.status)}
                   </span>
                   {daysLeft !== null && (
                     <span
@@ -1160,7 +1369,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                         color: '#fff',
                       }}
                     >
-                      {daysLeft < 0 ? '⚠️ EXPIRED' : `⏱️ ${daysLeft}d`}
+                      {getCountdownLabel(daysLeft)}
                     </span>
                   )}
                 </div>
@@ -1190,7 +1399,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 <div className="subscription-expanded-details">
                   <div className="details-grid">
                     <div className="detail-section">
-                      <h5>👤 Member Information</h5>
+                      <h5>{t('admin.membership.subscriptionsSection.memberInfo')}</h5>
                       <div className="detail-row">
                         <span className="detail-label">{t('admin.membership.name')}:</span>
                         <span className="detail-value">{subscription.memberName}</span>
@@ -1208,10 +1417,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                     </div>
 
                     <div className="detail-section">
-                      <h5>📋 Subscription Details</h5>
+                      <h5>{t('admin.membership.subscriptionsSection.subscriptionDetails')}</h5>
                       <div className="detail-row">
                         <span className="detail-label">{t('admin.membership.plan')}:</span>
-                        <span className="detail-value">{subscription.planName}</span>
+                        <span className="detail-value">{translatedPlanName}</span>
                       </div>
                       <div className="detail-row">
                         <span className="detail-label">{t('profile.subscription.startDate')}:</span>
@@ -1231,13 +1440,13 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                           className="status-badge"
                           style={{ backgroundColor: getStatusColor(subscription.status) }}
                         >
-                          {t(`dashboard.status.${subscription.status}`)}
+                          {translateStatus(subscription.status)}
                         </span>
                       </div>
                     </div>
 
                     <div className="detail-section">
-                      <h5>📊 Usage Statistics</h5>
+                      <h5>{t('admin.membership.subscriptionsSection.usageStats')}</h5>
                       {subscription.remainingEntries !== undefined && (
                         <>
                           <div className="detail-row">
@@ -1295,7 +1504,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                               color: daysLeftColor,
                             }}
                           >
-                            {daysLeft} day{daysLeft !== 1 ? 's' : ''}
+                            {t('admin.membership.dayCount', { count: daysLeft })}
                           </span>
                         </div>
                       )}
@@ -1356,7 +1565,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                 className="status-badge"
                 style={{ backgroundColor: getStatusColor(company.status) }}
               >
-                {t(`dashboard.status.${company.status}`)}
+                {translateStatus(company.status)}
               </span>
             </div>
 
@@ -1447,12 +1656,21 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   );
 
   const stats = getStats();
+  const quickActionSteps = [
+    t('admin.membership.addSubscriptionModal.quickActions.step1', {
+      page: t('admin.membership.labels.memberManagement'),
+    }),
+    t('admin.membership.addSubscriptionModal.quickActions.step2'),
+    t('admin.membership.addSubscriptionModal.quickActions.step3'),
+    t('admin.membership.addSubscriptionModal.quickActions.step4'),
+    t('admin.membership.addSubscriptionModal.quickActions.step5'),
+  ];
 
   return (
     <div className="membership-manager">
       <div className="membership-header">
         <button className="back-button" onClick={onBack}>
-          ← Back to Reception
+          {t('admin.membership.back')}
         </button>
         <h2 className="membership-title">💳 {t('admin.membership.title')}</h2>
       </div>
@@ -1490,8 +1708,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
           <div className="stat-card">
             <div className="stat-icon">💰</div>
             <div className="stat-content">
-              <h3 className="stat-number">{stats.monthlyRevenue} AZN</h3>
-              <p className="stat-label">Monthly Revenue</p>
+              <h3 className="stat-number">
+                {formatPrice(stats.monthlyRevenue, stats.monthlyRevenueCurrency)}
+              </h3>
+              <p className="stat-label">{t('admin.membership.stats.monthlyRevenue')}</p>
             </div>
           </div>
         )}
@@ -1541,11 +1761,11 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
               onChange={(e) => setFilterType(e.target.value)}
               className="filter-select"
             >
-              <option value="all">All Types</option>
-              <option value="single">Single Entry</option>
-              <option value="monthly-limited">Monthly Limited</option>
-              <option value="monthly-unlimited">Monthly Unlimited</option>
-              <option value="company">Company Plans</option>
+              <option value="all">{t('admin.membership.filters.allTypes')}</option>
+              <option value="single">{t('admin.membership.singleEntry')}</option>
+              <option value="monthly-limited">{t('admin.membership.monthlyLimited')}</option>
+              <option value="monthly-unlimited">{t('admin.membership.monthlyUnlimited')}</option>
+              <option value="company">{t('admin.membership.filters.companyPlans')}</option>
             </select>
           )}
           <select
@@ -1553,16 +1773,18 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             onChange={(e) => setFilterStatus(e.target.value)}
             className="filter-select"
           >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
+            <option value="all">{t('admin.membership.filters.allStatus')}</option>
+            <option value="active">{t('dashboard.status.active')}</option>
+            <option value="inactive">{t('dashboard.status.inactive')}</option>
             {activeTab === 'subscriptions' && (
               <>
-                <option value="expired">Expired</option>
-                <option value="suspended">Suspended</option>
+                <option value="expired">{t('admin.membership.statusLabels.expired')}</option>
+                <option value="suspended">{t('admin.membership.statusLabels.suspended')}</option>
               </>
             )}
-            {activeTab === 'companies' && <option value="pending">Pending</option>}
+            {activeTab === 'companies' && (
+              <option value="pending">{t('dashboard.status.pending')}</option>
+            )}
           </select>
         </div>
       </div>
@@ -2058,7 +2280,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content large-modal">
             <div className="modal-header">
-              <h3>➕ Add New Subscription</h3>
+              <h3>➕ {t('admin.membership.createSubscription')}</h3>
               <button className="close-btn" onClick={() => setShowAddSubscriptionModal(false)}>
                 ✕
               </button>
@@ -2067,33 +2289,27 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
             <div className="modal-body">
               <div className="info-box">
                 <p>
-                  ℹ️ <strong>Note:</strong> To add a new subscription, please use the{' '}
-                  <strong>Member Management</strong> page to assign a membership plan to a member.
+                  ℹ️ <strong>{t('admin.membership.addSubscriptionModal.info.noteTitle')}</strong>{' '}
+                  {t('admin.membership.addSubscriptionModal.info.noteDescription', {
+                    page: t('admin.membership.labels.memberManagement'),
+                  })}
                 </p>
-                <p>
-                  This ensures all member details and payment information are properly recorded.
-                </p>
+                <p>{t('admin.membership.addSubscriptionModal.info.detail')}</p>
               </div>
 
               <div className="quick-actions">
-                <h4>Quick Actions:</h4>
+                <h4>{t('admin.membership.addSubscriptionModal.quickActions.title')}</h4>
                 <ul>
-                  <li>
-                    ✅ Go to <strong>Member Management</strong>
-                  </li>
-                  <li>✅ Select the member</li>
-                  <li>
-                    ✅ Click <strong>"Assign Membership"</strong>
-                  </li>
-                  <li>✅ Choose a plan and set dates</li>
-                  <li>✅ Subscription will appear here automatically</li>
+                  {quickActionSteps.map((step, index) => (
+                    <li key={index}>{step}</li>
+                  ))}
                 </ul>
               </div>
             </div>
 
             <div className="modal-footer">
               <button className="cancel-btn" onClick={() => setShowAddSubscriptionModal(false)}>
-                Close
+                {t('common.close')}
               </button>
               <button
                 className="confirm-btn"
@@ -2102,7 +2318,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   onBack(); // Go back to Reception dashboard where Member Management is
                 }}
               >
-                📋 Go to Reception Dashboard
+                {t('admin.membership.addSubscriptionModal.buttons.goToReception')}
               </button>
             </div>
           </div>

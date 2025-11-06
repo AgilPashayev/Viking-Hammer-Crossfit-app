@@ -13,6 +13,7 @@
     "filter": "Filter",
     "close": "Close",
     "submit": "Submit",
+    "ok": "OK",
     "back": "Back",
     "next": "Next",
     "confirm": "Confirm",
@@ -21,6 +22,7 @@
     "details": "Details",
     "minutes": "minutes",
     "completed": "Completed",
+    "notAvailable": "N/A",
     "sunday": "Sunday",
     "monday": "Monday",
     "tuesday": "Tuesday",
@@ -325,7 +327,8 @@
   },
   "admin": {
     "membership": {
-      "title": "Membership Manager",
+  "title": "Membership Manager",
+  "back": "← Back to Reception",
       "plans": "Plans",
       "subscriptions": "Subscriptions",
       "companies": "Companies",
@@ -408,7 +411,243 @@
       "employeeCount": "Employee Count",
       "accessDenied": "Access Denied",
       "noPermission": "You don't have permission to access Membership Manager.",
-      "contactAdmin": "Please contact your administrator if you believe this is an error."
+      "contactAdmin": "Please contact your administrator if you believe this is an error.",
+      "stats": {
+        "monthlyRevenue": "Monthly Revenue"
+      },
+      "filters": {
+        "allTypes": "All Types",
+        "companyPlans": "Company Plans",
+        "allStatus": "All Statuses"
+      },
+      "statusLabels": {
+        "expired": "Expired",
+        "suspended": "Suspended",
+        "paid": "Paid",
+        "overdue": "Overdue"
+      },
+      "countdown": {
+        "expired": "⚠️ EXPIRED",
+        "days": "⏱️ {{count}}d"
+      },
+      "planCard": {
+        "discount": "💰 {{discount}}% OFF",
+        "features": "✅ Features:",
+        "limitations": "⚠️ Limitations:",
+        "perDuration": "/ {{duration}}"
+      },
+      "planNames": {
+        "monthlyUnlimited": "Monthly Unlimited",
+        "monthlyLimited": "Monthly Limited",
+        "singleSession": "Single Session"
+      },
+      "planDescriptions": {
+        "monthlyUnlimited": "Unlimited monthly access",
+        "monthlyLimited": "Limited monthly plan - 12 visits",
+        "singleSession": "Single gym visit - pay as you go"
+      },
+      "planFeatures": {
+        "unlimitedGymVisits": "Unlimited gym visits",
+        "accessAllClasses": "Access to all classes",
+        "lockerPrivileges": "Locker privileges",
+        "guestPrivileges": "Guest privileges (2/month)",
+        "twelveVisitsPerMonth": "12 gym visits per month",
+        "flexibleSchedule": "Flexible schedule",
+        "accessAllEquipment": "Access to all equipment",
+        "validOneDay": "Valid for one day"
+      },
+      "planLimitations": {
+        "monthlyCommitment": "Monthly commitment",
+        "autoRenews": "Auto-renews",
+        "visitQuotaApplies": "Visit quota applies",
+        "noRollover": "No rollover of unused visits",
+        "singleEntryOnly": "Single entry only"
+      },
+      "durationDisplay": {
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "months_one": "{{count}} month",
+        "months_other": "{{count}} months"
+      },
+      "subscriptionsSection": {
+        "memberInfo": "👤 Member Information",
+        "subscriptionDetails": "📋 Subscription Details",
+        "usageStats": "📊 Usage Statistics"
+      },
+      "dayCount_one": "{{count}} day",
+      "dayCount_other": "{{count}} days",
+      "dialogs": {
+        "titles": {
+          "validation": "⚠️ Validation Error",
+          "duplicate": "⚠️ Duplicate Plan",
+          "updateFailed": "❌ Update Failed",
+          "success": "✅ Success",
+          "creationFailed": "❌ Creation Failed",
+          "error": "❌ Error",
+          "deletePlan": "🗑️ Delete Membership Plan",
+          "deleteFailed": "❌ Delete Failed",
+          "renewSubscription": "🔄 Renew Subscription",
+          "renewalComplete": "✅ Renewal Complete",
+          "renewalFailed": "❌ Renewal Failed",
+          "suspendSubscription": "⏸️ Suspend Subscription",
+          "suspendSuccess": "✅ Suspended",
+          "suspendFailed": "❌ Suspend Failed",
+          "cancelSubscription": "🗑️ Cancel Subscription",
+          "cancelled": "✅ Cancelled",
+          "cancellationFailed": "❌ Cancellation Failed",
+          "removeCompany": "🗑️ Remove Company",
+          "contactCompany": "📞 Contact Company",
+          "changeCompanyStatus": "🔄 Change Status ({{status}})",
+          "statusUpdated": "✅ Status Updated"
+        },
+        "messages": {
+          "planNameRequired": "Please enter a plan name",
+          "planPriceInvalid": "Please enter a valid price (greater than 0)",
+          "duplicatePlan": "A plan with the name \"{{name}}\" already exists. Please choose a different name.",
+          "planUpdateFailed": "Failed to update plan: {{error}}\n\nPlease check your connection and try again.",
+          "planUpdateSuccess": "Plan updated successfully!",
+          "planCreationFailed": "Failed to create plan: {{error}}\n\nPlease check your connection and try again.",
+          "planCreationSuccess": "Plan created successfully!",
+          "genericError": "An unexpected error occurred. Please try again.",
+          "deletePlan": "Plan: {{name}}\nPrice: {{price}}\nType: {{type}}\n\n⚠️ WARNING: This action cannot be undone.\n\nAll subscriptions using this plan will be affected. Are you sure you want to delete this plan?",
+          "deletePlanFailed": "Failed to delete plan: {{error}}",
+          "deletePlanSuccess": "Plan deleted successfully!",
+          "subscriptionUpdateSuccess": "Subscription updated successfully!",
+          "subscriptionUpdateFailed": "Failed to update subscription:\n\n{{error}}",
+          "subscriptionUpdateError": "An unexpected error occurred while updating the subscription.",
+          "renewSubscriptionConfirm": "Member: {{member}}\nPlan: {{plan}}\nCurrent Status: {{status}}\nCurrent End Date: {{endDate}}\n\nThis will extend the subscription period and reset available visits (if applicable).\n\nDo you want to renew this subscription?",
+          "renewalSuccess": "Subscription renewed successfully!\n\nThe subscription period has been extended.",
+          "renewalFailed": "Failed to renew subscription:\n\n{{error}}",
+          "renewalError": "An unexpected error occurred while renewing the subscription.",
+          "suspendSubscriptionConfirm": "Member: {{member}}\nPlan: {{plan}}\nCurrent Status: {{status}}\n\nThe subscription will be paused temporarily and can be reactivated later.\n\nThe member will not be able to access gym facilities while suspended.\n\nDo you want to continue?",
+          "suspendSuccess": "Subscription suspended successfully!\n\nThe member will not be able to access gym facilities until reactivated.",
+          "suspendFailed": "Failed to suspend subscription:\n\n{{error}}",
+          "suspendError": "An unexpected error occurred while suspending the subscription.",
+          "cancelSubscriptionConfirm": "Member: {{member}}\nEmail: {{email}}\nPlan: {{plan}}\nStart Date: {{startDate}}\nEnd Date: {{endDate}}\n\n⚠️ WARNING: This will mark the subscription as INACTIVE.\n\nThe member will immediately lose access to all membership benefits and gym facilities.\n\nThis action can be reversed by creating a new subscription.\n\nAre you sure you want to cancel this subscription?",
+          "cancellationSuccess": "Subscription cancelled successfully!\n\nThe member no longer has access to gym facilities.",
+          "cancellationFailed": "Failed to cancel subscription:\n\n{{error}}",
+          "cancellationError": "An unexpected error occurred while cancelling the subscription.",
+          "removeCompany": "Are you sure you want to remove {{name}} from company partnerships?",
+          "contactCompany": "Contact: {{contact}}\nCompany: {{company}}\nPhone: {{phone}}\n\nHow would you like to reach them?",
+          "companyStatusChange": "Company: {{company}}\nCurrent Status: {{currentStatus}}\n\n{{action}}",
+          "companyStatus": {
+            "active": "✅ Activate this company partnership?",
+            "pending": "⏳ Set this company partnership to pending?",
+            "suspended": "⏸️ Suspend this company partnership?"
+          },
+          "companyStatusUpdated": "Company status changed to: {{status}}"
+        },
+        "confirm": {
+          "deletePlan": "Yes, Delete It",
+          "renew": "Yes, Renew",
+          "suspend": "Yes, Suspend",
+          "cancelSubscription": "Yes, Cancel It",
+          "keepSubscription": "No, Keep It",
+          "deleteCompany": "Yes, Remove Company",
+          "contactWhatsApp": "📱 WhatsApp",
+          "contactCall": "☎️ Regular Call",
+          "changeStatus": "Yes, Change Status"
+        }
+      },
+      "labels": {
+        "memberManagement": "Member Management"
+      },
+      "addSubscriptionModal": {
+        "info": {
+          "noteTitle": "Note:",
+          "noteDescription": "To add a new subscription, please use the {{page}} page to assign a membership plan to a member.",
+          "detail": "This ensures all member details and payment information are properly recorded."
+        },
+        "quickActions": {
+          "title": "Quick Actions:",
+          "step1": "✅ Go to {{page}}",
+          "step2": "✅ Select the member",
+          "step3": "✅ Click \"Assign Membership\"",
+          "step4": "✅ Choose a plan and set dates",
+          "step5": "✅ Subscription will appear here automatically"
+        },
+        "buttons": {
+          "goToReception": "📋 Go to Reception Dashboard"
+        }
+      }
+    },
+    "birthdays": {
+      "back": "← Back to Reception",
+      "title": "🎂 Upcoming Birthdays",
+      "stats": {
+        "today": "Today's Birthdays",
+        "week": "This Week",
+        "month": "This Month",
+        "total": "Total Upcoming"
+      },
+      "filters": {
+        "all": "🗓️ All Upcoming",
+        "today": "🎉 Today",
+        "week": "📅 This Week",
+        "month": "🗓️ This Month"
+      },
+      "searchPlaceholder": "Search members...",
+      "noResults": {
+        "title": "No Upcoming Birthdays",
+        "description": "No birthdays found for the selected filter."
+      },
+      "status": {
+        "today": "Today!",
+        "tomorrow": "Tomorrow",
+        "inDays": "In {{count}} days"
+      },
+      "age": "{{age}} years old",
+      "labels": {
+        "email": "Email:",
+        "phone": "Phone:",
+        "membership": "Membership:",
+        "memberSince": "Member since:"
+      },
+      "actions": {
+        "sendWish": "🎉 Send Birthday Wish",
+        "call": "📞 Call Member",
+        "email": "📧 Send Email"
+      },
+      "modal": {
+        "title": "🎉 Send Birthday Wish to {{name}}",
+        "turning": "Turning {{age}} on {{date}}",
+        "templateLabel": "Message Template:",
+        "messageLabel": "Birthday Message:",
+        "messagePlaceholder": "Write your birthday message here...",
+        "deliveryTitle": "Delivery Options:",
+        "cancel": "Cancel",
+        "confirm": "🎉 Send Birthday Wish"
+      },
+      "templateOptions": {
+        "default": "🎉 Default Celebration",
+        "formal": "👔 Formal Greeting",
+        "casual": "😄 Casual & Fun",
+        "motivational": "💪 Motivational"
+      },
+      "templates": {
+        "default": "🎉 Happy Birthday {{firstName}}! 🎂\n\nWishing you a fantastic day filled with joy, laughter, and amazing workouts! Thank you for being such a wonderful member of our Viking Hammer family.\n\nHave a great celebration! 💪\n\n- Viking Hammer CrossFit Team",
+        "formal": "Dear {{firstName}} {{lastName}},\n\nOn behalf of the entire Viking Hammer CrossFit team, we would like to wish you a very Happy Birthday!\n\nWe appreciate your dedication to fitness and your membership with us. We hope you have a wonderful day celebrating with family and friends.\n\nBest regards,\nViking Hammer CrossFit Team",
+        "casual": "Hey {{firstName}}! 🎉\n\nIt's your special day! Hope you're ready to celebrate with some epic workouts and birthday gains! 💪\n\nThanks for being awesome and part of our gym family. Have the best birthday ever!\n\nCheers! 🥳\nYour Viking Hammer Crew",
+        "motivational": "Happy Birthday {{firstName}}! 🏆\n\nAnother year stronger, another year more amazing! Your dedication to fitness inspires us all.\n\nMay this new year bring you even more personal records, achievements, and fitness goals conquered!\n\nKeep crushing it! 💪🔥\n\n- Viking Hammer CrossFit"
+      },
+      "delivery": {
+        "email": "📧 Email ({{email}})",
+        "sms": "📱 SMS ({{phone}})",
+        "whatsapp": "💬 WhatsApp ({{phone}})",
+        "inApp": "🔔 In-App Notification"
+      },
+      "channels": {
+        "email": "Email",
+        "sms": "SMS",
+        "whatsapp": "WhatsApp",
+        "inApp": "In-App"
+      },
+      "emailSubject": "🎉 Happy Birthday {{firstName}}!",
+      "alerts": {
+        "prepared": "✅ Birthday message prepared for: {{channels}}\n\nPlease review and send the message from your device's {{firstChannel}} app.",
+        "selectOne": "⚠️ Please select at least one delivery method."
+      },
+      "notificationTitle": "🎉 Happy Birthday!"
     },
     "reception": {
       "title": "Reception Dashboard",
@@ -457,6 +696,8 @@
         "classDeleted": "Class deleted",
         "instructorDeleted": "Instructor deleted",
         "scheduleDeleted": "Schedule deleted",
+        "instructorAssigned": "Instructor assigned to class",
+        "instructorRemoved": "Instructor removed from class",
         "membershipChanged": "membership changed to",
         "by": "by",
         "member": "Member"
@@ -471,6 +712,8 @@
         "daysAgo": "{{count}} days ago"
       },
       "noRecentActivity": "No recent activity yet",
+      "page": "Page",
+      "of": "of",
       "qrPositionText": "Position the QR code in front of your camera",
       "qrScanner": {
         "title": "QR Code Scanner",

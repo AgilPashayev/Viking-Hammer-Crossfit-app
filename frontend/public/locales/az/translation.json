@@ -13,6 +13,7 @@
     "filter": "Süzgəc",
     "close": "Bağla",
     "submit": "Göndər",
+    "ok": "OK",
     "back": "Geri",
     "next": "Növbəti",
     "confirm": "Təsdiq et",
@@ -21,6 +22,7 @@
     "details": "Ətraflı",
     "minutes": "dəqiqə",
     "completed": "Tamamlandı",
+    "notAvailable": "Mövcud deyil",
     "sunday": "Bazar",
     "monday": "Bazar ertəsi",
     "tuesday": "Çərşənbə axşamı",
@@ -325,7 +327,8 @@
   },
   "admin": {
     "membership": {
-      "title": "Üzvlük İdarəçiliyə",
+  "title": "Üzvlük İdarəçiliyə",
+  "back": "← Resepsiyaya qayıt",
       "plans": "Planlar",
       "subscriptions": "Abunəliklər",
       "companies": "Şirkətlər",
@@ -408,7 +411,243 @@
       "employeeCount": "İşçi Sayı",
       "accessDenied": "Giriş Qadağandır",
       "noPermission": "Üzvlük İdarəçiliyinə giriş icazəniz yoxdur.",
-      "contactAdmin": "Bunun səhv olduğunu düşünürsünüzsə, administratorla əlaqə saxlayın."
+      "contactAdmin": "Bunun səhv olduğunu düşünürsünüzsə, administratorla əlaqə saxlayın.",
+      "stats": {
+        "monthlyRevenue": "Aylıq Gəlir"
+      },
+      "filters": {
+        "allTypes": "Bütün Növlər",
+        "companyPlans": "Şirkət Planları",
+        "allStatus": "Bütün Statuslar"
+      },
+      "statusLabels": {
+        "expired": "Müddəti bitib",
+        "suspended": "Dayandırılıb",
+        "paid": "Ödənilib",
+        "overdue": "Gecikib"
+      },
+      "countdown": {
+        "expired": "⚠️ MÜDDƏT BİTİB",
+        "days": "⏱️ {{count}} gün"
+      },
+      "planCard": {
+        "discount": "💰 {{discount}}% ENDİRİM",
+        "features": "✅ Xüsusiyyətlər:",
+        "limitations": "⚠️ Məhdudiyyətlər:",
+        "perDuration": "/ {{duration}}"
+      },
+      "planNames": {
+        "monthlyUnlimited": "Aylıq Limitsiz",
+        "monthlyLimited": "Aylıq Məhdud",
+        "singleSession": "Tək Seans"
+      },
+      "planDescriptions": {
+        "monthlyUnlimited": "Limitsiz aylıq giriş",
+        "monthlyLimited": "Məhdud aylıq plan - 12 ziyarət",
+        "singleSession": "Zala tək giriş - istifadəyə görə ödə"
+      },
+      "planFeatures": {
+        "unlimitedGymVisits": "Limitsiz zal istifadəsi",
+        "accessAllClasses": "Bütün dərslərə giriş",
+        "lockerPrivileges": "Şkafdan istifadə imkanı",
+        "guestPrivileges": "Qonaq hüquqları (ayda 2 dəfə)",
+        "twelveVisitsPerMonth": "Ayda 12 zal ziyarəti",
+        "flexibleSchedule": "Elastik cədvəl",
+        "accessAllEquipment": "Bütün avadanlıqlara giriş",
+        "validOneDay": "Bir gün üçün keçərlidir"
+      },
+      "planLimitations": {
+        "monthlyCommitment": "Aylıq öhdəlik",
+        "autoRenews": "Avtomatik yenilənir",
+        "visitQuotaApplies": "Ziyarət limiti tətbiq olunur",
+        "noRollover": "İstifadə olunmamış ziyarətlər ötürülmür",
+        "singleEntryOnly": "Yalnız bir giriş"
+      },
+      "durationDisplay": {
+        "days_one": "{{count}} gün",
+        "days_other": "{{count}} gün",
+        "months_one": "{{count}} ay",
+        "months_other": "{{count}} ay"
+      },
+      "subscriptionsSection": {
+        "memberInfo": "👤 Üzv məlumatları",
+        "subscriptionDetails": "📋 Abunə detalları",
+        "usageStats": "📊 İstifadə statistikası"
+      },
+      "dayCount_one": "{{count}} gün",
+      "dayCount_other": "{{count}} gün",
+      "dialogs": {
+        "titles": {
+          "validation": "⚠️ Doğrulama xətası",
+          "duplicate": "⚠️ Plan artıq mövcuddur",
+          "updateFailed": "❌ Yeniləmə alınmadı",
+          "success": "✅ Uğurlu",
+          "creationFailed": "❌ Yaratmaq alınmadı",
+          "error": "❌ Xəta",
+          "deletePlan": "🗑️ Üzvlük planını sil",
+          "deleteFailed": "❌ Silmə alınmadı",
+          "renewSubscription": "🔄 Abunəliyi yenilə",
+          "renewalComplete": "✅ Yenilənmə tamamlandı",
+          "renewalFailed": "❌ Yenilənmə alınmadı",
+          "suspendSubscription": "⏸️ Abunəliyi dayandır",
+          "suspendSuccess": "✅ Dayandırıldı",
+          "suspendFailed": "❌ Dayandırmaq alınmadı",
+          "cancelSubscription": "🗑️ Abunəliyi ləğv et",
+          "cancelled": "✅ Ləğv edildi",
+          "cancellationFailed": "❌ Ləğv alınmadı",
+          "removeCompany": "🗑️ Şirkəti sil",
+          "contactCompany": "📞 Şirkətlə əlaqə",
+          "changeCompanyStatus": "🔄 Statusu dəyiş ({{status}})",
+          "statusUpdated": "✅ Status yeniləndi"
+        },
+        "messages": {
+          "planNameRequired": "Zəhmət olmasa plan adı daxil edin",
+          "planPriceInvalid": "Zəhmət olmasa 0-dan böyük etibarlı qiymət daxil edin",
+          "duplicatePlan": "\"{{name}}\" adlı plan artıq mövcuddur. Zəhmət olmasa başqa ad seçin.",
+          "planUpdateFailed": "Plan yenilənmədi: {{error}}\n\nZəhmət olmasa bağlantınızı yoxlayın və yenidən cəhd edin.",
+          "planUpdateSuccess": "Plan uğurla yeniləndi!",
+          "planCreationFailed": "Plan yaratmaq alınmadı: {{error}}\n\nZəhmət olmasa bağlantınızı yoxlayın və yenidən cəhd edin.",
+          "planCreationSuccess": "Plan uğurla yaradıldı!",
+          "genericError": "Gözlənilməz xəta baş verdi. Lütfən yenidən cəhd edin.",
+          "deletePlan": "Plan: {{name}}\nQiymət: {{price}}\nNöv: {{type}}\n\n⚠️ XƏBƏRDARLIQ: Bu əməliyyat geri qaytarılmır.\n\nBu planı istifadə edən bütün abunəliklər təsirlənəcək. Planı silmək istədiyinizə əminsiniz?",
+          "deletePlanFailed": "Planı silmək alınmadı: {{error}}",
+          "deletePlanSuccess": "Plan uğurla silindi!",
+          "subscriptionUpdateSuccess": "Abunəlik uğurla yeniləndi!",
+          "subscriptionUpdateFailed": "Abunəliyi yeniləmək alınmadı:\n\n{{error}}",
+          "subscriptionUpdateError": "Abunəlik yenilənərkən gözlənilməz xəta baş verdi.",
+          "renewSubscriptionConfirm": "Üzv: {{member}}\nPlan: {{plan}}\nCari status: {{status}}\nHazırkı bitmə tarixi: {{endDate}}\n\nBu addım abunəliyin müddətini uzadacaq və varsa giriş limitini sıfırlayacaq.\n\nAbunəliyi yeniləmək istəyirsiniz?",
+          "renewalSuccess": "Abunəlik uğurla yeniləndi!\n\nAbunəliyin müddəti uzadıldı.",
+          "renewalFailed": "Abunəliyi yeniləmək alınmadı:\n\n{{error}}",
+          "renewalError": "Abunəlik yenilənərkən gözlənilməz xəta baş verdi.",
+          "suspendSubscriptionConfirm": "Üzv: {{member}}\nPlan: {{plan}}\nCari status: {{status}}\n\nAbunəlik müvəqqəti dayandırılacaq və sonradan aktiv edilə bilər.\n\nDayandırılan müddətdə üzv zal xidmətlərindən istifadə edə bilməyəcək.\n\nDavam etmək istəyirsiniz?",
+          "suspendSuccess": "Abunəlik uğurla dayandırıldı!\n\nÜzv yenidən aktiv edilənədək zal xidmətlərindən istifadə edə bilməyəcək.",
+          "suspendFailed": "Abunəliyi dayandırmaq alınmadı:\n\n{{error}}",
+          "suspendError": "Abunəlik dayandırılarkən gözlənilməz xəta baş verdi.",
+          "cancelSubscriptionConfirm": "Üzv: {{member}}\nE-poçt: {{email}}\nPlan: {{plan}}\nBaşlama tarixi: {{startDate}}\nBitmə tarixi: {{endDate}}\n\n⚠️ XƏBƏRDARLIQ: Bu abunəlik İNAKTİV olaraq işarələnəcək.\n\nÜzv dərhal bütün üzvlük üstünlüklərini və zal girişini itirəcək.\n\nBu addımı yeni abunəlik yaradaraq geri qaytara bilərsiniz.\n\nBu abunəliyi ləğv etmək qərarındasınız?",
+          "cancellationSuccess": "Abunəlik uğurla ləğv edildi!\n\nÜzv artıq zal xidmətlərindən istifadə edə bilməyəcək.",
+          "cancellationFailed": "Abunəliyi ləğv etmək alınmadı:\n\n{{error}}",
+          "cancellationError": "Abunəlik ləğv edilərkən gözlənilməz xəta baş verdi.",
+          "removeCompany": "{{name}} şirkətini əməkdaşlıqlardan silmək istədiyinizə əminsiniz?",
+          "contactCompany": "Əlaqə: {{contact}}\nŞirkət: {{company}}\nTelefon: {{phone}}\n\nOnlarla necə əlaqə saxlamaq istəyirsiniz?",
+          "companyStatusChange": "Şirkət: {{company}}\nCari status: {{currentStatus}}\n\n{{action}}",
+          "companyStatus": {
+            "active": "✅ Bu şirkət əməkdaşlığını aktivləşdirək?",
+            "pending": "⏳ Bu şirkət əməkdaşlığını gözləməyə keçirmək istəyirsiniz?",
+            "suspended": "⏸️ Bu şirkət əməkdaşlığını dayandıraq?"
+          },
+          "companyStatusUpdated": "Şirkətin statusu dəyişdirildi: {{status}}"
+        },
+        "confirm": {
+          "deletePlan": "Bəli, sil",
+          "renew": "Bəli, yenilə",
+          "suspend": "Bəli, dayandır",
+          "cancelSubscription": "Bəli, ləğv et",
+          "keepSubscription": "Xeyr, saxla",
+          "deleteCompany": "Bəli, şirkəti sil",
+          "contactWhatsApp": "📱 WhatsApp",
+          "contactCall": "☎️ Normal zəng",
+          "changeStatus": "Bəli, statusu dəyiş"
+        }
+      },
+      "labels": {
+        "memberManagement": "Üzv idarəçiliyi"
+      },
+      "addSubscriptionModal": {
+        "info": {
+          "noteTitle": "Qeyd:",
+          "noteDescription": "Yeni abunə əlavə etmək üçün {{page}} səhifəsindən istifadə edərək üzvə plan təyin edin.",
+          "detail": "Bu, üzv məlumatlarının və ödəniş məlumatlarının düzgün qeyd olunmasını təmin edir."
+        },
+        "quickActions": {
+          "title": "Sürətli addımlar:",
+          "step1": "✅ {{page}} bölməsinə keçin",
+          "step2": "✅ Üzvü seçin",
+          "step3": "✅ \"Üzvlük təyin et\" düyməsini seçin",
+          "step4": "✅ Planı seçin və tarixləri təyin edin",
+          "step5": "✅ Abunəlik burada avtomatik görünəcək"
+        },
+        "buttons": {
+          "goToReception": "📋 Resepsiya panelinə keç"
+        }
+      }
+    },
+    "birthdays": {
+      "back": "← Resepsiyaya qayıt",
+      "title": "🎂 Yaxın Ad Günləri",
+      "stats": {
+        "today": "Bu Gün",
+        "week": "Bu Həftə",
+        "month": "Bu Ay",
+        "total": "Ümumi Yaxınlaşan"
+      },
+      "filters": {
+        "all": "🗓️ Bütün Yaxınlar",
+        "today": "🎉 Bu Gün",
+        "week": "📅 Bu Həftə",
+        "month": "🗓️ Bu Ay"
+      },
+      "searchPlaceholder": "Üzvləri axtarın...",
+      "noResults": {
+        "title": "Yaxın Ad Günləri Tapılmadı",
+        "description": "Seçilən filtr üçün ad günü tapılmadı."
+      },
+      "status": {
+        "today": "Bu gün!",
+        "tomorrow": "Sabah",
+        "inDays": "{{count}} günə"
+      },
+      "age": "{{age}} yaş",
+      "labels": {
+        "email": "E-poçt:",
+        "phone": "Telefon:",
+        "membership": "Üzvlük:",
+        "memberSince": "Üzvlük tarixi:"
+      },
+      "actions": {
+        "sendWish": "🎉 Təbrik göndər",
+        "call": "📞 Üzvü zəng et",
+        "email": "📧 E-poçt göndər"
+      },
+      "modal": {
+        "title": "🎉 {{name}} üçün ad günü təbriki göndər",
+        "turning": "{{date}} tarixində {{age}} yaş olur",
+        "templateLabel": "Mesaj şablonu:",
+        "messageLabel": "Ad günü mesajı:",
+        "messagePlaceholder": "Ad günü mesajınızı buraya yazın...",
+        "deliveryTitle": "Çatdırılma üsulları:",
+        "cancel": "Ləğv et",
+        "confirm": "🎉 Təbrik göndər"
+      },
+      "templateOptions": {
+        "default": "🎉 Standart Təbrik",
+        "formal": "👔 Rəsmi Təbrik",
+        "casual": "😄 Səmimi və Əyləncəli",
+        "motivational": "💪 Motivasiyaedici"
+      },
+      "templates": {
+        "default": "🎉 Ad günün mübarək {{firstName}}! 🎂\n\nSevinc, gülüş və möhtəşəm məşqlərlə dolu əla gün arzulayırıq! Viking Hammer ailəmizin bir hissəsi olduğun üçün təşəkkür edirik.\n\nBayramın mübarək! 💪\n\n- Viking Hammer CrossFit komandası",
+        "formal": "Hörmətli {{firstName}} {{lastName}},\n\nViking Hammer CrossFit komandası adından Sizi ad gününüz münasibətilə ürəkdən təbrik edirik!\n\nFitnesə sadiqliyinizi və bizimlə üzvlüyünüzü yüksək qiymətləndiririk. Ailəniz və dostlarınızla birlikdə möhtəşəm bir gün keçirəcəyinizə inanırıq.\n\nHörmətlə,\nViking Hammer CrossFit komandası",
+        "casual": "Salam {{firstName}}! 🎉\n\nBu gün Sənin günündür! Ümid edirik ki, əla məşqlər və ad günü qənimətləri ilə qeyd etməyə hazırsan! 💪\n\nMöhtəşəm olduğun və klub ailəmizin bir hissəsi olduğun üçün təşəkkürlər. Ən möhtəşəm ad gününü keçir!\n\nŞənliklə! 🥳\nSənin Viking Hammer komandanda",
+        "motivational": "Ad günün mübarək {{firstName}}! 🏆\n\nBir il daha güclü, bir il daha möhtəşəm! Sənin fitnesə bağlılığın hamımıza ilham verir.\n\nBu yeni il sənə daha çox şəxsi rekordlar, nailiyyətlər və fəth edilmiş hədəflər gətirsin!\n\nBelə davam et! 💪🔥\n\n- Viking Hammer CrossFit"
+      },
+      "delivery": {
+        "email": "📧 E-poçt ({{email}})",
+        "sms": "📱 SMS ({{phone}})",
+        "whatsapp": "💬 WhatsApp ({{phone}})",
+        "inApp": "🔔 Tətbiqdaxili bildiriş"
+      },
+      "channels": {
+        "email": "E-poçt",
+        "sms": "SMS",
+        "whatsapp": "WhatsApp",
+        "inApp": "Tətbiqdaxili"
+      },
+      "emailSubject": "🎉 Ad günün mübarək {{firstName}}!",
+      "alerts": {
+        "prepared": "✅ Təbrik bu kanallar üçün hazırlandı: {{channels}}\n\nZəhmət olmasa mesajı cihazınızdakı {{firstChannel}} tətbiqindən yoxlayıb göndərin.",
+        "selectOne": "⚠️ Zəhmət olmasa ən azı bir çatdırılma üsulu seçin."
+      },
+      "notificationTitle": "🎉 Ad günün mübarək!"
     },
     "reception": {
       "title": "Qəbul Paneli",
@@ -457,6 +696,8 @@
         "classDeleted": "Məşğələ silindi",
         "instructorDeleted": "İnstruktor silindi",
         "scheduleDeleted": "Cədvəl silindi",
+        "instructorAssigned": "İnstruktora məşğələ təyin edildi",
+        "instructorRemoved": "İnstruktor məşğələdən çıxarıldı",
         "membershipChanged": "üzvlük dəyişdirildi",
         "by": "tərəfindən",
         "member": "Üzv"
@@ -471,6 +712,8 @@
         "daysAgo": "{{count}} gün əvvəl"
       },
       "noRecentActivity": "Hələ heç bir fəaliyyət yoxdur",
+      "page": "Səhifə",
+      "of": "-dən",
       "qrPositionText": "QR kodu kameranızın qarşısında yerləşdirin",
       "qrScanner": {
         "title": "QR Kod Skaneri",
