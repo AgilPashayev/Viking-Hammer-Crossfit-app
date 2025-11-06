@@ -290,6 +290,35 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
       );
     }
 
+    // Pattern 6: Instructor assignment/removal (e.g., "Instructor assigned to class: CrossFit")
+    const instructorActionMatch = message.match(
+      /^(Instructor assigned to class|Instructor removed from class): (.+)$/i,
+    );
+    if (instructorActionMatch) {
+      const [, action, className] = instructorActionMatch;
+      let translatedAction = action;
+      const actionLower = action.toLowerCase();
+      if (actionLower === 'instructor assigned to class')
+        translatedAction = t('admin.reception.activity.instructorAssigned');
+      else if (actionLower === 'instructor removed from class')
+        translatedAction = t('admin.reception.activity.instructorRemoved');
+
+      return (
+        <span>
+          <strong style={{ color: '#60a5fa' }}>{translatedAction}:</strong> {className}
+          {updatedBy && (
+            <span style={{ color: '#cbd5e1', fontSize: '0.9em', marginLeft: '4px' }}>
+              {t('admin.reception.activity.by')}{' '}
+              <strong style={{ color: '#fbbf24' }}>{updatedBy.name}</strong>
+              <span style={{ color: '#94a3b8', textTransform: 'capitalize', marginLeft: '2px' }}>
+                ({updatedBy.role})
+              </span>
+            </span>
+          )}
+        </span>
+      );
+    }
+
     // Default: try to bold any names (capitalized words at start)
     const defaultMatch = message.match(/^([A-Z][a-zA-Z]+(?: [A-Z][a-zA-Z]+)*)/);
     if (defaultMatch) {
