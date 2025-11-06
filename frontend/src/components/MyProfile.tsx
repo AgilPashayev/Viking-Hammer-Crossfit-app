@@ -198,12 +198,17 @@ const MyProfile: React.FC<MyProfileProps> = ({
             // Transform subscription data to match display expectations
             const transformedSub = {
               ...activeSub,
-              plan_name: activeSub.plans?.name || user?.membershipType || 'Basic Membership',
+              // Always use the plan name from the database, not user.membershipType
+              plan_name: activeSub.plans?.name || activeSub.plan_name || 'Basic Membership',
               plan_type: activeSub.plans ? 'membership' : 'default',
               amount: activeSub.plans?.price_cents ? activeSub.plans.price_cents / 100 : 0,
               currency: 'AZN',
               class_limit: activeSub.plans?.visit_quota || null,
               remaining_entries: activeSub.remaining_visits,
+              // Preserve the actual status from database
+              status: activeSub.status,
+              // Preserve notes from database
+              notes: activeSub.notes,
               next_billing_date: null, // Can be calculated if needed
             };
 
@@ -223,7 +228,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
     };
 
     loadSubscription();
-  }, [activeTab, user?.id, user?.membershipType]);
+  }, [activeTab, user?.id]);
 
   // Load membership history when modal opens
   useEffect(() => {
