@@ -261,12 +261,24 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       // Get real-time plan name from subscription or fallback to user.membershipType
       const actualPlanName = currentSubscription?.plans?.name || user.membershipType;
 
+      // Validate and use joinDate - ensure it's a valid date string
+      const validJoinDate = user.joinDate && user.joinDate.trim() !== '' ? user.joinDate : null;
+
+      console.log('🔍 MemberDashboard user data:', {
+        userId: user.id,
+        joinDate: user.joinDate,
+        validJoinDate: validJoinDate,
+        actualPlanName: actualPlanName,
+        membershipType: user.membershipType,
+        subscriptionPlanName: currentSubscription?.plans?.name,
+      });
+
       setUserProfile((prev) => ({
         ...prev,
         name: `${user.firstName} ${user.lastName}`,
         membershipType: user.membershipType, // Keep original for fallback
         actualPlanName: actualPlanName, // Real-time plan name
-        joinDate: user.joinDate,
+        joinDate: validJoinDate || prev.joinDate || new Date().toISOString(),
         visitsThisMonth: getMemberVisitsThisMonth(user.id),
         totalVisits: getMemberTotalVisits(user.id),
         avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || prev.avatar,
@@ -782,10 +794,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           <div className="welcome-text">
             <h1>{t('dashboard.welcomeBack', { name: userProfile.name })}</h1>
             <p className="membership-info">
-              {userProfile.actualPlanName || userProfile.membershipType} •{' '}
-              {userProfile.joinDate
-                ? t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })
-                : t('dashboard.memberSince', { date: 'N/A' })}
+              {userProfile.actualPlanName || userProfile.membershipType}
+              {userProfile.joinDate && userProfile.joinDate.trim() !== '' && (
+                <>
+                  {' • '}
+                  {t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })}
+                </>
+              )}
             </p>
           </div>
         </div>
