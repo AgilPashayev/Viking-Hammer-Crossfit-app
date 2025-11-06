@@ -24,6 +24,7 @@ interface UserProfile {
   visitsThisMonth: number;
   totalVisits: number;
   avatar?: string;
+  actualPlanName?: string; // Real-time plan name from subscription
 }
 
 interface ClassBooking {
@@ -83,6 +84,9 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     totalVisits: totalVisits,
     avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || undefined,
   });
+
+  // Subscription state for real-time plan name
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
 
   const [localClasses, setLocalClasses] = useState(classes);
   const [isLoadingClasses, setIsLoadingClasses] = useState(false);
@@ -150,6 +154,43 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     loadUserBookings();
   }, [user?.id]);
 
+  // Load user subscription for real-time plan name
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (user?.id) {
+        try {
+          console.log('💳 Loading subscription for dashboard:', user.id);
+          const response = await fetch(`http://localhost:4001/api/subscriptions/user/${user.id}`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data && result.data.length > 0) {
+              // Find active subscription or use the most recent one
+              const activeSub =
+                result.data.find((s: any) => s.status === 'active') || result.data[0];
+              setCurrentSubscription(activeSub);
+              console.log('✅ Dashboard subscription loaded:', activeSub);
+            } else {
+              setCurrentSubscription(null);
+            }
+          } else {
+            console.warn('⚠️ Could not load subscription:', response.status);
+            setCurrentSubscription(null);
+          }
+        } catch (error) {
+          console.error('❌ Failed to load subscription for dashboard:', error);
+          setCurrentSubscription(null);
+        }
+      }
+    };
+
+    loadSubscription();
+  }, [user?.id]);
+
   // Load classes from API on mount and when changes occur
   useEffect(() => {
     const loadClasses = async () => {
@@ -214,20 +255,31 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
     return members.find((member) => member.id === user.id);
   };
 
-  // Update user profile when user data changes OR when visits change
+  // Update user profile when user data changes OR when visits change OR when subscription changes
   useEffect(() => {
     if (user) {
+      // Get real-time plan name from subscription or fallback to user.membershipType
+      const actualPlanName = currentSubscription?.plans?.name || user.membershipType;
+
       setUserProfile((prev) => ({
         ...prev,
         name: `${user.firstName} ${user.lastName}`,
-        membershipType: user.membershipType,
+        membershipType: user.membershipType, // Keep original for fallback
+        actualPlanName: actualPlanName, // Real-time plan name
         joinDate: user.joinDate,
         visitsThisMonth: getMemberVisitsThisMonth(user.id),
         totalVisits: getMemberTotalVisits(user.id),
         avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || prev.avatar,
       }));
     }
-  }, [user, getMemberVisitsThisMonth, getMemberTotalVisits, checkIns, members]);
+  }, [
+    user,
+    currentSubscription,
+    getMemberVisitsThisMonth,
+    getMemberTotalVisits,
+    checkIns,
+    members,
+  ]);
 
   // Helper function to format dates according to current language
   const formatLocalizedDate = (dateStr: string) => {
@@ -730,8 +782,10 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
           <div className="welcome-text">
             <h1>{t('dashboard.welcomeBack', { name: userProfile.name })}</h1>
             <p className="membership-info">
-              {userProfile.membershipType} •{' '}
-              {t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })}
+              {userProfile.actualPlanName || userProfile.membershipType} •{' '}
+              {userProfile.joinDate
+                ? t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })
+                : t('dashboard.memberSince', { date: 'N/A' })}
             </p>
           </div>
         </div>
