@@ -1,4 +1,4 @@
-.announcement-manager {
+﻿.announcement-manager {
   padding: 20px;
   background: linear-gradient(135deg, var(--viking-light) 0%, var(--viking-medium) 50%, var(--viking-subtle) 100%);
   min-height: 100vh;
@@ -598,7 +598,7 @@
 }
 
 .date-preview::before {
-  content: "📅";
+  content: "ðŸ“…";
   font-size: 1.2rem;
 }
 

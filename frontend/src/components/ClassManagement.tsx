@@ -217,37 +217,38 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         `Loaded ${classesData.length} classes, ${instructorsData.length} instructors, ${scheduleData.length} schedule slots, ${membersData.length} members`,
       );
     } catch (error: any) {
-      // Function to refresh instructors list from backend
-      const refreshInstructors = async () => {
-        try {
-          const instructorsData = await instructorService.getAll();
-          if (Array.isArray(instructorsData)) {
-            setInstructors(instructorsData);
-            console.log(`✅ Refreshed ${instructorsData.length} instructors`);
-          }
-        } catch (error) {
-          console.error('Error refreshing instructors:', error);
-        }
-      };
-
-      // Function to refresh classes list from backend
-      const refreshClasses = async () => {
-        try {
-          const classesData = await classService.getAll();
-          if (Array.isArray(classesData)) {
-            setClasses(classesData);
-            console.log(`✅ Refreshed ${classesData.length} classes`);
-          }
-        } catch (error) {
-          console.error('Error refreshing classes:', error);
-        }
-      };
       console.error('Error loading data:', error);
       setError(error.message || 'Failed to load data. Please try again.');
       // Show user-friendly error
       alert(`Error loading data: ${error.message || 'Unknown error'}. Please refresh the page.`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Function to refresh instructors list from backend
+  const refreshInstructors = async () => {
+    try {
+      const instructorsData = await instructorService.getAll();
+      if (Array.isArray(instructorsData)) {
+        setInstructors(instructorsData);
+        console.log(`✅ Refreshed ${instructorsData.length} instructors`);
+      }
+    } catch (error) {
+      console.error('Error refreshing instructors:', error);
+    }
+  };
+
+  // Function to refresh classes list from backend
+  const refreshClasses = async () => {
+    try {
+      const classesData = await classService.getAll();
+      if (Array.isArray(classesData)) {
+        setClasses(classesData);
+        console.log(`✅ Refreshed ${classesData.length} classes`);
+      }
+    } catch (error) {
+      console.error('Error refreshing classes:', error);
     }
   };
 
@@ -882,10 +883,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         });
 
         setNotificationMessage(
-          `✅ ${assign 
-            ? t('admin.classManagement.notifications.instructorAssigned', { className: targetClass.name })
-            : t('admin.classManagement.notifications.instructorRemoved', { className: targetClass.name })
-          }`
+          `✅ ${
+            assign
+              ? t('admin.classManagement.notifications.instructorAssigned', {
+                  className: targetClass.name,
+                })
+              : t('admin.classManagement.notifications.instructorRemoved', {
+                  className: targetClass.name,
+                })
+          }`,
         );
         setShowNotificationModal(true);
       } else {
@@ -996,7 +1002,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <h3 className="stat-number">
                 {stats.currentEnrollment}/{stats.totalCapacity}
               </h3>
-              <p className="stat-label">{t('admin.classManagement.classes.stats.totalEnrollment')}</p>
+              <p className="stat-label">
+                {t('admin.classManagement.classes.stats.totalEnrollment')}
+              </p>
             </div>
           </div>
           <div className="stat-card">
@@ -1019,7 +1027,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 fontStyle: 'italic',
               }}
             >
-              {t('admin.classManagement.classes.lastUpdated', { time: lastRefresh.toLocaleTimeString() })}
+              {t('admin.classManagement.classes.lastUpdated', {
+                time: lastRefresh.toLocaleTimeString(),
+              })}
             </p>
           </div>
           <div className="header-actions">
@@ -1043,7 +1053,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 gap: '5px',
               }}
             >
-              🔄 {loading ? t('admin.classManagement.common.loading') : t('admin.classManagement.classes.refresh')}
+              🔄{' '}
+              {loading
+                ? t('admin.classManagement.common.loading')
+                : t('admin.classManagement.classes.refresh')}
             </button>
             <button
               className="add-btn"
@@ -1088,10 +1101,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               onChange={(e) => setFilterCategory(e.target.value)}
               className="filter-select"
             >
-              <option value="all">{t('admin.classManagement.classes.filters.allCategories')}</option>
+              <option value="all">
+                {t('admin.classManagement.classes.filters.allCategories')}
+              </option>
               <option value="Cardio">{t('admin.classManagement.classes.filters.cardio')}</option>
-              <option value="Strength">{t('admin.classManagement.classes.filters.strength')}</option>
-              <option value="Flexibility">{t('admin.classManagement.classes.filters.flexibility')}</option>
+              <option value="Strength">
+                {t('admin.classManagement.classes.filters.strength')}
+              </option>
+              <option value="Flexibility">
+                {t('admin.classManagement.classes.filters.flexibility')}
+              </option>
               <option value="Mixed">{t('admin.classManagement.classes.filters.mixed')}</option>
               <option value="Specialized">Specialized</option>
             </select>
@@ -1102,7 +1121,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             >
               <option value="all">{t('admin.classManagement.classes.filters.allStatus')}</option>
               <option value="active">{t('admin.classManagement.classes.filters.active')}</option>
-              <option value="inactive">{t('admin.classManagement.classes.filters.inactive')}</option>
+              <option value="inactive">
+                {t('admin.classManagement.classes.filters.inactive')}
+              </option>
               <option value="full">Full</option>
             </select>
           </div>
@@ -1134,7 +1155,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   </div>
                   <div className={`status-pill status-${gymClass.status}`}>
                     {gymClass.status === 'active' ? '🟢' : gymClass.status === 'full' ? '🔴' : '⚫'}{' '}
-                    {gymClass.status === 'active' ? t('admin.classManagement.classes.filters.active') : gymClass.status === 'inactive' ? t('admin.classManagement.classes.filters.inactive') : gymClass.status}
+                    {gymClass.status === 'active'
+                      ? t('admin.classManagement.classes.filters.active')
+                      : gymClass.status === 'inactive'
+                      ? t('admin.classManagement.classes.filters.inactive')
+                      : gymClass.status}
                   </div>
                 </div>
 
@@ -1146,7 +1171,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <div className="stats-row-modern">
                   <div className="stat-pill">
                     <span className="stat-icon">⏱️</span>
-                    <span className="stat-text">{gymClass.duration} {t('admin.classManagement.common.minutes')}</span>
+                    <span className="stat-text">
+                      {gymClass.duration} {t('admin.classManagement.common.minutes')}
+                    </span>
                   </div>
                   <div className="stat-pill">
                     <span className="stat-icon">💰</span>
@@ -1154,7 +1181,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   </div>
                   <div className={`stat-pill difficulty-${gymClass.difficulty.toLowerCase()}`}>
                     <span className="stat-icon">📊</span>
-                    <span className="stat-text">{t(`admin.classManagement.classes.difficulty.${gymClass.difficulty.toLowerCase()}`)}</span>
+                    <span className="stat-text">
+                      {t(
+                        `admin.classManagement.classes.difficulty.${gymClass.difficulty.toLowerCase()}`,
+                      )}
+                    </span>
                   </div>
                 </div>
 
@@ -1215,7 +1246,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         </span>
                       ))
                     ) : (
-                      <span className="no-data-text">{t('admin.classManagement.classes.noInstructors')}</span>
+                      <span className="no-data-text">
+                        {t('admin.classManagement.classes.noInstructors')}
+                      </span>
                     )}
                   </div>
                 </div>
@@ -1247,12 +1280,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                           onClick={() => toggleScheduleExpansion(gymClass.id)}
                           style={{ cursor: 'pointer' }}
                           title={
-                            expandedSchedules.has(gymClass.id) ? t('admin.classManagement.classes.showLess') : t('admin.classManagement.classes.showMoreDays')
+                            expandedSchedules.has(gymClass.id)
+                              ? t('admin.classManagement.classes.showLess')
+                              : t('admin.classManagement.classes.showMoreDays')
                           }
                         >
                           {expandedSchedules.has(gymClass.id)
                             ? t('admin.classManagement.classes.showLess')
-                            : t('admin.classManagement.classes.moreCount', { count: gymClass.schedule.length - 3 })}
+                            : t('admin.classManagement.classes.moreCount', {
+                                count: gymClass.schedule.length - 3,
+                              })}
                         </span>
                       )}
                     </div>
@@ -1281,7 +1318,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     title={t('admin.classManagement.classes.actions.edit')}
                   >
                     <span className="btn-icon">✏️</span>
-                    <span className="btn-text">{t('admin.classManagement.classes.actions.edit')}</span>
+                    <span className="btn-text">
+                      {t('admin.classManagement.classes.actions.edit')}
+                    </span>
                   </button>
                   <button
                     className="action-btn-modern action-delete"
@@ -1289,7 +1328,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     title={t('admin.classManagement.classes.actions.delete')}
                   >
                     <span className="btn-icon">🗑️</span>
-                    <span className="btn-text">{t('admin.classManagement.classes.actions.delete')}</span>
+                    <span className="btn-text">
+                      {t('admin.classManagement.classes.actions.delete')}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1319,14 +1360,18 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">👨‍🏫</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalInstructors}</h3>
-              <p className="stat-label">{t('admin.classManagement.instructors.stats.totalInstructors')}</p>
+              <p className="stat-label">
+                {t('admin.classManagement.instructors.stats.totalInstructors')}
+              </p>
             </div>
           </div>
           <div className="stat-card">
             <div className="stat-icon">✅</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.activeInstructors}</h3>
-              <p className="stat-label">{t('admin.classManagement.instructors.stats.activeInstructors')}</p>
+              <p className="stat-label">
+                {t('admin.classManagement.instructors.stats.activeInstructors')}
+              </p>
             </div>
           </div>
           <div className="stat-card">
@@ -1340,7 +1385,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">🎯</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.specializations}</h3>
-              <p className="stat-label">{t('admin.classManagement.instructors.stats.specializations')}</p>
+              <p className="stat-label">
+                {t('admin.classManagement.instructors.stats.specializations')}
+              </p>
             </div>
           </div>
         </div>
@@ -1401,9 +1448,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               onChange={(e) => setFilterStatus(e.target.value)}
               className="filter-select"
             >
-              <option value="all">{t('admin.classManagement.instructors.filters.allStatus')}</option>
-              <option value="active">{t('admin.classManagement.instructors.filters.active')}</option>
-              <option value="inactive">{t('admin.classManagement.instructors.filters.inactive')}</option>
+              <option value="all">
+                {t('admin.classManagement.instructors.filters.allStatus')}
+              </option>
+              <option value="active">
+                {t('admin.classManagement.instructors.filters.active')}
+              </option>
+              <option value="inactive">
+                {t('admin.classManagement.instructors.filters.inactive')}
+              </option>
               <option value="busy">{t('admin.classManagement.instructors.filters.busy')}</option>
             </select>
           </div>
@@ -1467,11 +1520,18 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <div className="instructor-rating">
                       <span className="rating-stars">⭐</span>
                       <span className="rating-value">{instructor.rating.toFixed(1)}</span>
-                      <span className="experience-badge">{instructor.experience}{t('admin.classManagement.instructors.experienceYears')}</span>
+                      <span className="experience-badge">
+                        {instructor.experience}
+                        {t('admin.classManagement.instructors.experienceYears')}
+                      </span>
                     </div>
                   </div>
                   <span className={`status-badge status-${instructor.status}`}>
-                    {instructor.status === 'active' ? t('admin.classManagement.instructors.filters.active') : instructor.status === 'inactive' ? t('admin.classManagement.instructors.filters.inactive') : t('admin.classManagement.instructors.filters.busy')}
+                    {instructor.status === 'active'
+                      ? t('admin.classManagement.instructors.filters.active')
+                      : instructor.status === 'inactive'
+                      ? t('admin.classManagement.instructors.filters.inactive')
+                      : t('admin.classManagement.instructors.filters.busy')}
                   </span>
                 </div>
 
@@ -1479,21 +1539,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   <div className="detail-item">
                     <span className="detail-icon">📧</span>
                     <div className="detail-content">
-                      <span className="detail-label">{t('admin.classManagement.instructorModal.form.email')}</span>
+                      <span className="detail-label">
+                        {t('admin.classManagement.instructorModal.form.email')}
+                      </span>
                       <span className="detail-value">{instructor.email}</span>
                     </div>
                   </div>
                   <div className="detail-item">
                     <span className="detail-icon">📱</span>
                     <div className="detail-content">
-                      <span className="detail-label">{t('admin.classManagement.instructorModal.form.phone')}</span>
+                      <span className="detail-label">
+                        {t('admin.classManagement.instructorModal.form.phone')}
+                      </span>
                       <span className="detail-value">{instructor.phone}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="specialization-section">
-                  <span className="detail-label">{t('admin.classManagement.instructors.specializationsLabel')}:</span>
+                  <span className="detail-label">
+                    {t('admin.classManagement.instructors.specializationsLabel')}:
+                  </span>
                   <div className="specialization-list">
                     {(Array.isArray(instructor.specialization)
                       ? instructor.specialization
@@ -1507,7 +1573,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 </div>
 
                 <div className="availability-section">
-                  <span className="detail-label">{t('admin.classManagement.instructors.availabilityLabel')}:</span>
+                  <span className="detail-label">
+                    {t('admin.classManagement.instructors.availabilityLabel')}:
+                  </span>
                   <div className="availability-list">
                     {(Array.isArray(instructor.availability) ? instructor.availability : []).map(
                       (day, index) => (
@@ -1584,10 +1652,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
       return gymClass ? gymClass.name : 'Unknown Class';
     };
 
-  const getInstructorName = (instructorId: string): string => {
-    const instructor = instructors.find((i) => i.id === instructorId);
-    return instructor ? instructor.name : t('admin.classManagement.schedule.unknownInstructor');
-  };    return (
+    const getInstructorName = (instructorId: string): string => {
+      const instructor = instructors.find((i) => i.id === instructorId);
+      return instructor ? instructor.name : t('admin.classManagement.schedule.unknownInstructor');
+    };
+    return (
       <div className="tab-content">
         {/* Stats Overview */}
         <div className="stats-overview">
@@ -1616,7 +1685,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             <div className="stat-icon">👥</div>
             <div className="stat-content">
               <h3 className="stat-number">{stats.totalEnrollments}</h3>
-              <p className="stat-label">{t('admin.classManagement.schedule.stats.totalEnrollments')}</p>
+              <p className="stat-label">
+                {t('admin.classManagement.schedule.stats.totalEnrollments')}
+              </p>
             </div>
           </div>
         </div>
@@ -1636,7 +1707,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <div key={dayIndex} className="day-column">
                 <div className="day-header">
                   <h4>{t(`admin.classManagement.schedule.days.${dayName.toLowerCase()}`)}</h4>
-                  <span className="slot-count">{t('admin.classManagement.schedule.slotsCount', { count: scheduleByDay[dayIndex].length })}</span>
+                  <span className="slot-count">
+                    {t('admin.classManagement.schedule.slotsCount', {
+                      count: scheduleByDay[dayIndex].length,
+                    })}
+                  </span>
                 </div>
                 <div className="day-slots">
                   {scheduleByDay[dayIndex].length === 0 ? (
@@ -1659,7 +1734,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                         </div>
                         <div className="slot-enrollment">
                           <span className="enrollment-icon">👥</span>
-                          <span>{t('admin.classManagement.schedule.enrolled', { count: slot.enrolledMembers.length })}</span>
+                          <span>
+                            {t('admin.classManagement.schedule.enrolled', {
+                              count: slot.enrolledMembers.length,
+                            })}
+                          </span>
                         </div>
                         <div className="slot-actions">
                           <button
@@ -1713,14 +1792,19 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         const deletedClass = classes.find((c) => c.id === scheduleSlotToDelete.classId);
         logActivity({
           type: 'schedule_deleted',
-          message: `Schedule slot deleted: ${deletedClass?.name || 'Unknown Class'} on ${scheduleSlotToDelete.date}`,
+          message: `Schedule slot deleted: ${deletedClass?.name || 'Unknown Class'} on ${
+            scheduleSlotToDelete.date
+          }`,
         });
         setShowDeleteScheduleModal(false);
         setScheduleSlotToDelete(null);
       }
     } catch (error) {
       console.error('Error deleting schedule slot:', error);
-      alert(t('admin.classManagement.deleteScheduleModal.errorMessage') || 'Error deleting schedule slot');
+      alert(
+        t('admin.classManagement.deleteScheduleModal.errorMessage') ||
+          'Error deleting schedule slot',
+      );
     }
   };
 
@@ -1784,7 +1868,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5em' }}>{editingClass ? '✏️' : '➕'}</span>
                 <h3 style={{ margin: 0, fontSize: '1.4em', fontWeight: '600' }}>
-                  {editingClass ? t('admin.classManagement.classModal.titleEdit') : t('admin.classManagement.classModal.titleAdd')}
+                  {editingClass
+                    ? t('admin.classManagement.classModal.titleEdit')
+                    : t('admin.classManagement.classModal.titleAdd')}
                 </h3>
               </div>
               <button
@@ -1874,10 +1960,18 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     value={newClass.category || 'Mixed'}
                     onChange={(e) => setNewClass({ ...newClass, category: e.target.value as any })}
                   >
-                    <option value="Cardio">{t('admin.classManagement.classes.filters.cardio')}</option>
-                    <option value="Strength">{t('admin.classManagement.classes.filters.strength')}</option>
-                    <option value="Flexibility">{t('admin.classManagement.classes.filters.flexibility')}</option>
-                    <option value="Mixed">{t('admin.classManagement.classes.filters.mixed')}</option>
+                    <option value="Cardio">
+                      {t('admin.classManagement.classes.filters.cardio')}
+                    </option>
+                    <option value="Strength">
+                      {t('admin.classManagement.classes.filters.strength')}
+                    </option>
+                    <option value="Flexibility">
+                      {t('admin.classManagement.classes.filters.flexibility')}
+                    </option>
+                    <option value="Mixed">
+                      {t('admin.classManagement.classes.filters.mixed')}
+                    </option>
                     <option value="Specialized">Specialized</option>
                   </select>
                 </div>
@@ -1890,9 +1984,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       setNewClass({ ...newClass, difficulty: e.target.value as any })
                     }
                   >
-                    <option value="Beginner">{t('admin.classManagement.classModal.form.beginner')}</option>
-                    <option value="Intermediate">{t('admin.classManagement.classModal.form.intermediate')}</option>
-                    <option value="Advanced">{t('admin.classManagement.classModal.form.advanced')}</option>
+                    <option value="Beginner">
+                      {t('admin.classManagement.classModal.form.beginner')}
+                    </option>
+                    <option value="Intermediate">
+                      {t('admin.classManagement.classModal.form.intermediate')}
+                    </option>
+                    <option value="Advanced">
+                      {t('admin.classManagement.classModal.form.advanced')}
+                    </option>
                   </select>
                 </div>
               </div>
@@ -1920,7 +2020,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               {/* Schedule Section */}
               <div className="form-group schedule-builder">
-                <label className="schedule-builder-label">{t('admin.classManagement.classModal.form.schedule')}:</label>
+                <label className="schedule-builder-label">
+                  {t('admin.classManagement.classModal.form.schedule')}:
+                </label>
                 <p className="schedule-helper-text">
                   {t('admin.classManagement.classModal.form.scheduleHelper')}
                 </p>
@@ -1974,7 +2076,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             }
                           }}
                         />
-                        <span className="weekday-label">{t(`admin.classManagement.schedule.days.${day.key}`).slice(0, 3)}</span>
+                        <span className="weekday-label">
+                          {t(`admin.classManagement.schedule.days.${day.key}`).slice(0, 3)}
+                        </span>
                       </label>
                     );
                   })}
@@ -2002,56 +2106,58 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                           t('admin.classManagement.schedule.days.saturday'),
                         ];
                         return (
-                        <div key={idx} className="schedule-time-row">
-                          <span className="day-name-in-schedule">
-                            {dayNames[scheduleItem.dayOfWeek].slice(0, 3)}
-                          </span>
-                          <div className="time-inputs-group">
-                            <input
-                              type="time"
-                              value={scheduleItem.startTime}
-                              required
-                              min="00:00"
-                              max="23:59"
-                              pattern="[0-9]{2}:[0-9]{2}"
-                              style={{
-                                fontFamily: "'Courier New', monospace",
-                                fontSize: '1rem',
-                                fontWeight: '700',
-                              }}
-                              onChange={(e) => {
-                                const updatedSchedule = [...(newClass.schedule || [])];
-                                updatedSchedule[idx] = {
-                                  ...updatedSchedule[idx],
-                                  startTime: e.target.value,
-                                };
-                                setNewClass({ ...newClass, schedule: updatedSchedule });
-                              }}
-                            />
-                            <span className="time-separator">{t('admin.classManagement.classModal.form.timeTo')}</span>
-                            <input
-                              type="time"
-                              value={scheduleItem.endTime}
-                              required
-                              min="00:00"
-                              max="23:59"
-                              pattern="[0-9]{2}:[0-9]{2}"
-                              style={{
-                                fontFamily: "'Courier New', monospace",
-                                fontSize: '1rem',
-                                fontWeight: '700',
-                              }}
-                              onChange={(e) => {
-                                const updatedSchedule = [...(newClass.schedule || [])];
-                                updatedSchedule[idx] = {
-                                  ...updatedSchedule[idx],
-                                  endTime: e.target.value,
-                                };
-                                setNewClass({ ...newClass, schedule: updatedSchedule });
-                              }}
-                            />
+                          <div key={idx} className="schedule-time-row">
+                            <span className="day-name-in-schedule">
+                              {dayNames[scheduleItem.dayOfWeek].slice(0, 3)}
+                            </span>
+                            <div className="time-inputs-group">
+                              <input
+                                type="time"
+                                value={scheduleItem.startTime}
+                                required
+                                min="00:00"
+                                max="23:59"
+                                pattern="[0-9]{2}:[0-9]{2}"
+                                style={{
+                                  fontFamily: "'Courier New', monospace",
+                                  fontSize: '1rem',
+                                  fontWeight: '700',
+                                }}
+                                onChange={(e) => {
+                                  const updatedSchedule = [...(newClass.schedule || [])];
+                                  updatedSchedule[idx] = {
+                                    ...updatedSchedule[idx],
+                                    startTime: e.target.value,
+                                  };
+                                  setNewClass({ ...newClass, schedule: updatedSchedule });
+                                }}
+                              />
+                              <span className="time-separator">
+                                {t('admin.classManagement.classModal.form.timeTo')}
+                              </span>
+                              <input
+                                type="time"
+                                value={scheduleItem.endTime}
+                                required
+                                min="00:00"
+                                max="23:59"
+                                pattern="[0-9]{2}:[0-9]{2}"
+                                style={{
+                                  fontFamily: "'Courier New', monospace",
+                                  fontSize: '1rem',
+                                  fontWeight: '700',
+                                }}
+                                onChange={(e) => {
+                                  const updatedSchedule = [...(newClass.schedule || [])];
+                                  updatedSchedule[idx] = {
+                                    ...updatedSchedule[idx],
+                                    endTime: e.target.value,
+                                  };
+                                  setNewClass({ ...newClass, schedule: updatedSchedule });
+                                }}
+                              />
+                            </div>
                           </div>
-                        </div>
                         );
                       });
                     })()}
@@ -2118,7 +2224,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   e.currentTarget.style.boxShadow = '0 2px 4px rgba(40, 167, 69, 0.2)';
                 }}
               >
-                {editingClass ? `✏️ ${t('admin.classManagement.classModal.actions.update')}` : `➕ ${t('admin.classManagement.classModal.actions.save')}`}
+                {editingClass
+                  ? `✏️ ${t('admin.classManagement.classModal.actions.update')}`
+                  : `➕ ${t('admin.classManagement.classModal.actions.save')}`}
               </button>
             </div>
           </div>
@@ -2133,7 +2241,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
             style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}
           >
             <div className="modal-header">
-              <h3>{editingInstructor ? t('admin.classManagement.instructorModal.titleEdit') : t('admin.classManagement.instructorModal.titleAdd')}</h3>
+              <h3>
+                {editingInstructor
+                  ? t('admin.classManagement.instructorModal.titleEdit')
+                  : t('admin.classManagement.instructorModal.titleAdd')}
+              </h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -2227,7 +2339,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       }}
                     >
                       <div style={{ fontWeight: 'bold', color: '#2d5016' }}>
-                        ✅ {t('admin.classManagement.instructorModal.selectedMember')}: {selectedMember.name}
+                        ✅ {t('admin.classManagement.instructorModal.selectedMember')}:{' '}
+                        {selectedMember.name}
                       </div>
                       <div style={{ fontSize: '0.9em', color: '#4a7c2a' }}>
                         {selectedMember.email} | {selectedMember.phone}
@@ -2294,7 +2407,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       experience: value === '' ? 0 : parseInt(value) || 0,
                     });
                   }}
-                  placeholder={t('admin.classManagement.instructorModal.form.experiencePlaceholder')}
+                  placeholder={t(
+                    'admin.classManagement.instructorModal.form.experiencePlaceholder',
+                  )}
                   min="0"
                   max="50"
                 />
@@ -2307,7 +2422,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   value={
                     newInstructor.specialization ? newInstructor.specialization.join(', ') : ''
                   }
-                  placeholder={t('admin.classManagement.instructorModal.form.specializationPlaceholder')}
+                  placeholder={t(
+                    'admin.classManagement.instructorModal.form.specializationPlaceholder',
+                  )}
                   onChange={(e) =>
                     setNewInstructor({
                       ...newInstructor,
@@ -2319,8 +2436,12 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               {/* Enhanced Weekday Availability Selector */}
               <div className="form-group schedule-builder">
-                <label className="schedule-builder-label">📅 {t('admin.classManagement.instructorModal.form.availability')}:</label>
-                <p className="schedule-helper-text">{t('admin.classManagement.instructorModal.form.availabilityHelper')}</p>
+                <label className="schedule-builder-label">
+                  📅 {t('admin.classManagement.instructorModal.form.availability')}:
+                </label>
+                <p className="schedule-helper-text">
+                  {t('admin.classManagement.instructorModal.form.availabilityHelper')}
+                </p>
 
                 {/* Weekday Checkboxes */}
                 <div className="weekday-checkboxes">
@@ -2363,7 +2484,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             }
                           }}
                         />
-                        <span className="weekday-label">{t(`admin.classManagement.instructorModal.form.days.${day.toLowerCase()}`).slice(0, 3)}</span>
+                        <span className="weekday-label">
+                          {t(
+                            `admin.classManagement.instructorModal.form.days.${day.toLowerCase()}`,
+                          ).slice(0, 3)}
+                        </span>
                       </label>
                     );
                   })}
@@ -2377,7 +2502,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   value={
                     newInstructor.certifications ? newInstructor.certifications.join(', ') : ''
                   }
-                  placeholder={t('admin.classManagement.instructorModal.form.certificationsPlaceholder')}
+                  placeholder={t(
+                    'admin.classManagement.instructorModal.form.certificationsPlaceholder',
+                  )}
                   onChange={(e) =>
                     setNewInstructor({
                       ...newInstructor,
@@ -2418,9 +2545,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     })
                   }
                 >
-                  <option value="active">{t('admin.classManagement.instructorModal.form.statusActive')}</option>
-                  <option value="inactive">{t('admin.classManagement.instructorModal.form.statusInactive')}</option>
-                  <option value="busy">{t('admin.classManagement.instructorModal.form.statusBusy')}</option>
+                  <option value="active">
+                    {t('admin.classManagement.instructorModal.form.statusActive')}
+                  </option>
+                  <option value="inactive">
+                    {t('admin.classManagement.instructorModal.form.statusInactive')}
+                  </option>
+                  <option value="busy">
+                    {t('admin.classManagement.instructorModal.form.statusBusy')}
+                  </option>
                 </select>
               </div>
             </div>
@@ -2445,7 +2578,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   cursor: !editingInstructor && !selectedMember ? 'not-allowed' : 'pointer',
                 }}
               >
-                {editingInstructor ? t('admin.classManagement.instructorModal.actions.update') : t('admin.classManagement.instructorModal.actions.add')}
+                {editingInstructor
+                  ? t('admin.classManagement.instructorModal.actions.update')
+                  : t('admin.classManagement.instructorModal.actions.add')}
               </button>
             </div>
           </div>
@@ -2511,12 +2646,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div>
                   <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
-                    👨‍🏫 {t('admin.classManagement.assignModal.currentInstructors')}: {selectedClass.instructors.length} / 5
+                    👨‍🏫 {t('admin.classManagement.assignModal.currentInstructors')}:{' '}
+                    {selectedClass.instructors.length} / 5
                   </div>
                   <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
                     {selectedClass.instructors.length >= 5
                       ? t('admin.classManagement.assignModal.maxInstructors')
-                      : t('admin.classManagement.assignModal.moreCanAssign', { count: 5 - selectedClass.instructors.length })}
+                      : t('admin.classManagement.assignModal.moreCanAssign', {
+                          count: 5 - selectedClass.instructors.length,
+                        })}
                   </div>
                 </div>
                 <div
@@ -2529,7 +2667,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     fontWeight: 'bold',
                   }}
                 >
-                  {selectedClass.instructors.length >= 5 ? t('admin.classManagement.assignModal.full') : t('admin.classManagement.assignModal.available')}
+                  {selectedClass.instructors.length >= 5
+                    ? t('admin.classManagement.assignModal.full')
+                    : t('admin.classManagement.assignModal.available')}
                 </div>
               </div>
               <div className="instructors-assignment">
@@ -2538,7 +2678,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     <div className="instructor-info">
                       <h4>{instructor.name}</h4>
                       <p>
-                        ⭐ {instructor.rating} | {instructor.experience} {t('admin.classManagement.instructors.stats.years')}
+                        ⭐ {instructor.rating} | {instructor.experience}{' '}
+                        {t('admin.classManagement.instructors.stats.years')}
                       </p>
                       <div className="specializations">
                         {(Array.isArray(instructor.specialization)
@@ -2596,7 +2737,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '1.5em' }}>👤</span>
                 <div>
-                  <div>{t('admin.classManagement.scheduleAssignModal.title', { name: instructorToSchedule.name })}</div>
+                  <div>
+                    {t('admin.classManagement.scheduleAssignModal.title', {
+                      name: instructorToSchedule.name,
+                    })}
+                  </div>
                   <div style={{ fontSize: '0.9em', fontWeight: 'normal', color: '#666' }}>
                     {t('admin.classManagement.scheduleAssignModal.subtitle')}
                   </div>
@@ -2629,7 +2774,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div>
                   <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>
-                    📚 {t('admin.classManagement.scheduleAssignModal.availableClasses')}: {classes.length}
+                    📚 {t('admin.classManagement.scheduleAssignModal.availableClasses')}:{' '}
+                    {classes.length}
                   </div>
                   <div style={{ opacity: 0.9, fontSize: '0.9em' }}>
                     {t('admin.classManagement.scheduleAssignModal.helpText')}
@@ -2639,7 +2785,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   <div style={{ fontSize: '1.3em', fontWeight: 'bold' }}>
                     {classes.filter((c) => c.instructors.includes(instructorToSchedule.id)).length}
                   </div>
-                  <div style={{ fontSize: '0.8em', opacity: 0.9 }}>{t('admin.classManagement.scheduleAssignModal.currentlyAssigned')}</div>
+                  <div style={{ fontSize: '0.8em', opacity: 0.9 }}>
+                    {t('admin.classManagement.scheduleAssignModal.currentlyAssigned')}
+                  </div>
                 </div>
               </div>
 
@@ -2710,7 +2858,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             fontWeight: 'bold',
                           }}
                         >
-                          {isAssigned ? `✓ ${t('admin.classManagement.assignModal.assigned')}` : t('admin.classManagement.assignModal.available')}
+                          {isAssigned
+                            ? `✓ ${t('admin.classManagement.assignModal.assigned')}`
+                            : t('admin.classManagement.assignModal.available')}
                         </div>
 
                         {/* Class Header */}
@@ -2759,10 +2909,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                               }}
                             >
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>🏷️</span> {t(`admin.classManagement.classes.filters.${classItem.category.toLowerCase()}`, classItem.category)}
+                                <span>🏷️</span>{' '}
+                                {t(
+                                  `admin.classManagement.classes.filters.${classItem.category.toLowerCase()}`,
+                                  classItem.category,
+                                )}
                               </span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                <span>👥</span> {classItem.maxCapacity} {t('admin.classManagement.scheduleAssignModal.maxCapacity')}
+                                <span>👥</span> {classItem.maxCapacity}{' '}
+                                {t('admin.classManagement.scheduleAssignModal.maxCapacity')}
                               </span>
                               <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                                 <span>💰</span> {classItem.price} ₼
@@ -2792,7 +2947,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                                 gap: '6px',
                               }}
                             >
-                              <span>📅</span> {t('admin.classManagement.scheduleAssignModal.weeklySchedule')}:
+                              <span>📅</span>{' '}
+                              {t('admin.classManagement.scheduleAssignModal.weeklySchedule')}:
                             </div>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                               {classItem.schedule.map((scheduleItem, idx) => (
@@ -2809,9 +2965,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                                   }}
                                 >
                                   <span style={{ fontWeight: 'bold' }}>
-                                    {t(`admin.classManagement.scheduleAssignModal.days.${
-                                      ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][scheduleItem.dayOfWeek]
-                                    }`)}
+                                    {t(
+                                      `admin.classManagement.scheduleAssignModal.days.${
+                                        ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][
+                                          scheduleItem.dayOfWeek
+                                        ]
+                                      }`,
+                                    )}
                                   </span>
                                   <span style={{ margin: '0 4px' }}>•</span>
                                   <span>
@@ -2844,12 +3004,16 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                             {isAssigned ? (
                               <>
                                 <span>✕</span>
-                                <span>{t('admin.classManagement.scheduleAssignModal.clickToRemove')}</span>
+                                <span>
+                                  {t('admin.classManagement.scheduleAssignModal.clickToRemove')}
+                                </span>
                               </>
                             ) : (
                               <>
                                 <span>✓</span>
-                                <span>{t('admin.classManagement.scheduleAssignModal.clickToAssign')}</span>
+                                <span>
+                                  {t('admin.classManagement.scheduleAssignModal.clickToAssign')}
+                                </span>
                               </>
                             )}
                           </div>
@@ -2940,7 +3104,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '15px' }}>
                   <span style={{ fontSize: '2em', marginRight: '10px' }}>⚠️</span>
-                  <h4 style={{ margin: 0, color: '#856404' }}>{t('admin.classManagement.deleteInstructorModal.warningTitle')}</h4>
+                  <h4 style={{ margin: 0, color: '#856404' }}>
+                    {t('admin.classManagement.deleteInstructorModal.warningTitle')}
+                  </h4>
                 </div>
                 <p style={{ margin: '0 0 10px 0', color: '#856404' }}>
                   {t('admin.classManagement.deleteInstructorModal.warningMessage')}
@@ -2960,7 +3126,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
               <div className="consequences-list" style={{ color: '#666', fontSize: '0.95em' }}>
                 <p>
-                  <strong>{t('admin.classManagement.deleteInstructorModal.actionWillTitle')}:</strong>
+                  <strong>
+                    {t('admin.classManagement.deleteInstructorModal.actionWillTitle')}:
+                  </strong>
                 </p>
                 <ul style={{ paddingLeft: '20px' }}>
                   <li>{t('admin.classManagement.deleteInstructorModal.consequence1')}</li>
@@ -2978,7 +3146,10 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 }}
               >
                 <p style={{ margin: 0, fontSize: '0.9em', color: '#495057' }}>
-                  <strong>💡 {t('admin.classManagement.deleteInstructorModal.alternativeTitle')}:</strong> {t('admin.classManagement.deleteInstructorModal.alternativeMessage')}
+                  <strong>
+                    💡 {t('admin.classManagement.deleteInstructorModal.alternativeTitle')}:
+                  </strong>{' '}
+                  {t('admin.classManagement.deleteInstructorModal.alternativeMessage')}
                 </p>
               </div>
             </div>
@@ -3018,7 +3189,11 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{editingScheduleSlot ? t('admin.classManagement.scheduleSlotModal.titleEdit') : t('admin.classManagement.scheduleSlotModal.titleAdd')}</h3>
+              <h3>
+                {editingScheduleSlot
+                  ? t('admin.classManagement.scheduleSlotModal.titleEdit')
+                  : t('admin.classManagement.scheduleSlotModal.titleAdd')}
+              </h3>
               <button
                 className="close-btn"
                 onClick={() => {
@@ -3049,7 +3224,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     setNewScheduleSlot({ ...newScheduleSlot, classId: e.target.value })
                   }
                 >
-                  <option value="">{t('admin.classManagement.scheduleSlotModal.form.selectClass')}</option>
+                  <option value="">
+                    {t('admin.classManagement.scheduleSlotModal.form.selectClass')}
+                  </option>
                   {classes.map((gymClass) => (
                     <option key={gymClass.id} value={gymClass.id}>
                       {gymClass.name} ({gymClass.category})
@@ -3066,7 +3243,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     setNewScheduleSlot({ ...newScheduleSlot, instructorId: e.target.value })
                   }
                 >
-                  <option value="">{t('admin.classManagement.scheduleSlotModal.form.selectInstructor')}</option>
+                  <option value="">
+                    {t('admin.classManagement.scheduleSlotModal.form.selectInstructor')}
+                  </option>
                   {instructors.map((instructor) => (
                     <option key={instructor.id} value={instructor.id}>
                       {instructor.name} - {instructor.specialization.join(', ')}
@@ -3083,13 +3262,27 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     setNewScheduleSlot({ ...newScheduleSlot, dayOfWeek: parseInt(e.target.value) })
                   }
                 >
-                  <option value={0}>{t('admin.classManagement.scheduleSlotModal.form.days.sunday')}</option>
-                  <option value={1}>{t('admin.classManagement.scheduleSlotModal.form.days.monday')}</option>
-                  <option value={2}>{t('admin.classManagement.scheduleSlotModal.form.days.tuesday')}</option>
-                  <option value={3}>{t('admin.classManagement.scheduleSlotModal.form.days.wednesday')}</option>
-                  <option value={4}>{t('admin.classManagement.scheduleSlotModal.form.days.thursday')}</option>
-                  <option value={5}>{t('admin.classManagement.scheduleSlotModal.form.days.friday')}</option>
-                  <option value={6}>{t('admin.classManagement.scheduleSlotModal.form.days.saturday')}</option>
+                  <option value={0}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.sunday')}
+                  </option>
+                  <option value={1}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.monday')}
+                  </option>
+                  <option value={2}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.tuesday')}
+                  </option>
+                  <option value={3}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.wednesday')}
+                  </option>
+                  <option value={4}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.thursday')}
+                  </option>
+                  <option value={5}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.friday')}
+                  </option>
+                  <option value={6}>
+                    {t('admin.classManagement.scheduleSlotModal.form.days.saturday')}
+                  </option>
                 </select>
               </div>
 
@@ -3152,9 +3345,15 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     setNewScheduleSlot({ ...newScheduleSlot, status: e.target.value as any })
                   }
                 >
-                  <option value="scheduled">{t('admin.classManagement.scheduleSlotModal.form.statusScheduled')}</option>
-                  <option value="completed">{t('admin.classManagement.scheduleSlotModal.form.statusCompleted')}</option>
-                  <option value="cancelled">{t('admin.classManagement.scheduleSlotModal.form.statusCancelled')}</option>
+                  <option value="scheduled">
+                    {t('admin.classManagement.scheduleSlotModal.form.statusScheduled')}
+                  </option>
+                  <option value="completed">
+                    {t('admin.classManagement.scheduleSlotModal.form.statusCompleted')}
+                  </option>
+                  <option value="cancelled">
+                    {t('admin.classManagement.scheduleSlotModal.form.statusCancelled')}
+                  </option>
                 </select>
               </div>
             </div>
@@ -3180,7 +3379,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 {t('admin.classManagement.scheduleSlotModal.actions.cancel')}
               </button>
               <button className="confirm-btn" onClick={handleAddScheduleSlot}>
-                {editingScheduleSlot ? t('admin.classManagement.scheduleSlotModal.actions.update') : t('admin.classManagement.scheduleSlotModal.actions.add')}
+                {editingScheduleSlot
+                  ? t('admin.classManagement.scheduleSlotModal.actions.update')
+                  : t('admin.classManagement.scheduleSlotModal.actions.add')}
               </button>
             </div>
           </div>
@@ -3195,11 +3396,13 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
               <div>
                 <h3>{t('admin.classManagement.rosterModal.title')}</h3>
                 <p className="roster-subtitle">
-                  {rosterClassDetails?.name || t('admin.classManagement.schedule.unknownInstructor')} • {rosterModalSlot.startTime} -{' '}
-                  {rosterModalSlot.endTime}
+                  {rosterClassDetails?.name ||
+                    t('admin.classManagement.schedule.unknownInstructor')}{' '}
+                  • {rosterModalSlot.startTime} - {rosterModalSlot.endTime}
                 </p>
                 <p className="roster-subtitle">
-                  {t('admin.classManagement.rosterModal.instructor')}: {rosterInstructor?.name || t('admin.classManagement.rosterModal.unassigned')}
+                  {t('admin.classManagement.rosterModal.instructor')}:{' '}
+                  {rosterInstructor?.name || t('admin.classManagement.rosterModal.unassigned')}
                 </p>
               </div>
               <button className="close-btn" onClick={handleCloseRosterModal}>
@@ -3221,16 +3424,22 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   onClick={handleRefreshRoster}
                   disabled={rosterLoading}
                 >
-                  {rosterLoading ? t('admin.classManagement.rosterModal.refreshing') : `🔄 ${t('admin.classManagement.rosterModal.refresh')}`}
+                  {rosterLoading
+                    ? t('admin.classManagement.rosterModal.refreshing')
+                    : `🔄 ${t('admin.classManagement.rosterModal.refresh')}`}
                 </button>
               </div>
 
               {rosterError && <div className="roster-error">{rosterError}</div>}
 
               {rosterLoading ? (
-                <div className="roster-loading">{t('admin.classManagement.rosterModal.loadingRoster')}</div>
+                <div className="roster-loading">
+                  {t('admin.classManagement.rosterModal.loadingRoster')}
+                </div>
               ) : rosterEntries.length === 0 ? (
-                <div className="roster-empty">{t('admin.classManagement.rosterModal.noMembers')}</div>
+                <div className="roster-empty">
+                  {t('admin.classManagement.rosterModal.noMembers')}
+                </div>
               ) : (
                 <div className="roster-table-wrapper">
                   <table className="roster-table">
@@ -3297,32 +3506,46 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                   }}
                 >
                   <div style={{ marginBottom: '10px' }}>
-                    <strong>{t('admin.classManagement.deleteConfirm.classLabel')}:</strong> "{classToDelete.name}"
+                    <strong>{t('admin.classManagement.deleteConfirm.classLabel')}:</strong> "
+                    {classToDelete.name}"
                   </div>
-                  
+
                   {classDeleteInfo.hasScheduleSlots && (
                     <div style={{ marginTop: '8px' }}>
-                      ⚠️ <strong>{t('admin.classManagement.deleteConfirm.activeScheduleSlots')}:</strong> {classDeleteInfo.scheduleCount}
+                      ⚠️{' '}
+                      <strong>
+                        {t('admin.classManagement.deleteConfirm.activeScheduleSlots')}:
+                      </strong>{' '}
+                      {classDeleteInfo.scheduleCount}
                     </div>
                   )}
-                  
+
                   {classDeleteInfo.hasInstructors && (
                     <div style={{ marginTop: '8px' }}>
-                      👨‍🏫 <strong>{t('admin.classManagement.deleteConfirm.assignedInstructors')}:</strong> {classDeleteInfo.instructorCount}
+                      👨‍🏫{' '}
+                      <strong>
+                        {t('admin.classManagement.deleteConfirm.assignedInstructors')}:
+                      </strong>{' '}
+                      {classDeleteInfo.instructorCount}
                     </div>
                   )}
-                  
+
                   {classDeleteInfo.hasBookings && (
                     <div style={{ marginTop: '8px' }}>
-                      👥 <strong>{t('admin.classManagement.deleteConfirm.currentEnrollment')}:</strong> {classDeleteInfo.currentEnrollment}/{classDeleteInfo.maxCapacity} {t('admin.classManagement.deleteConfirm.members')}
+                      👥{' '}
+                      <strong>{t('admin.classManagement.deleteConfirm.currentEnrollment')}:</strong>{' '}
+                      {classDeleteInfo.currentEnrollment}/{classDeleteInfo.maxCapacity}{' '}
+                      {t('admin.classManagement.deleteConfirm.members')}
                     </div>
                   )}
-                  
-                  {!classDeleteInfo.hasScheduleSlots && !classDeleteInfo.hasInstructors && !classDeleteInfo.hasBookings && (
-                    <div style={{ marginTop: '8px', color: '#28a745' }}>
-                      ✅ {t('admin.classManagement.deleteConfirm.noDependencies')}
-                    </div>
-                  )}
+
+                  {!classDeleteInfo.hasScheduleSlots &&
+                    !classDeleteInfo.hasInstructors &&
+                    !classDeleteInfo.hasBookings && (
+                      <div style={{ marginTop: '8px', color: '#28a745' }}>
+                        ✅ {t('admin.classManagement.deleteConfirm.noDependencies')}
+                      </div>
+                    )}
                 </div>
 
                 {classDeleteInfo.hasScheduleSlots ||
@@ -3345,12 +3568,18 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                     </p>
                     <ul style={{ color: '#856404', marginBottom: '15px' }}>
                       {classDeleteInfo.hasScheduleSlots && (
-                        <li>{t('admin.classManagement.classes.deleteConfirm.removeScheduleSlots')}</li>
+                        <li>
+                          {t('admin.classManagement.classes.deleteConfirm.removeScheduleSlots')}
+                        </li>
                       )}
                       {classDeleteInfo.hasInstructors && (
-                        <li>{t('admin.classManagement.classes.deleteConfirm.unlinkInstructors')}</li>
+                        <li>
+                          {t('admin.classManagement.classes.deleteConfirm.unlinkInstructors')}
+                        </li>
                       )}
-                      {classDeleteInfo.hasBookings && <li>{t('admin.classManagement.classes.deleteConfirm.cancelBookings')}</li>}
+                      {classDeleteInfo.hasBookings && (
+                        <li>{t('admin.classManagement.classes.deleteConfirm.cancelBookings')}</li>
+                      )}
                     </ul>
 
                     {classDeleteInfo.canForceDelete ? (
@@ -3393,7 +3622,9 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       marginBottom: '20px',
                     }}
                   >
-                    <h4 style={{ color: '#155724', marginTop: 0 }}>✅ {t('admin.classManagement.classes.deleteConfirm.safeToDelete')}</h4>
+                    <h4 style={{ color: '#155724', marginTop: 0 }}>
+                      ✅ {t('admin.classManagement.classes.deleteConfirm.safeToDelete')}
+                    </h4>
                     <p style={{ color: '#155724', margin: 0 }}>
                       {t('admin.classManagement.classes.deleteConfirm.noDependencies')}
                     </p>
@@ -3532,8 +3763,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                 <h3>{t('admin.classManagement.classEnrolledModal.title')}</h3>
                 <p className="roster-subtitle">{selectedClassForEnrollment.name}</p>
                 <p className="roster-subtitle">
-                  {t('admin.classManagement.classEnrolledModal.totalEnrollment')}: {classEnrolledMembers.length} /{' '}
-                  {selectedClassForEnrollment.maxCapacity}
+                  {t('admin.classManagement.classEnrolledModal.totalEnrollment')}:{' '}
+                  {classEnrolledMembers.length} / {selectedClassForEnrollment.maxCapacity}
                 </p>
               </div>
               <button className="close-btn" onClick={handleCloseClassEnrollmentModal}>
@@ -3543,18 +3774,29 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
 
             <div className="modal-body">
               <div className="roster-summary">
-                <span>📊 {t('admin.classManagement.classEnrolledModal.class')}: {selectedClassForEnrollment.name}</span>
                 <span>
-                  👥 {classEnrolledMembers.length} {t('admin.classManagement.classEnrolledModal.enrolled')}
+                  📊 {t('admin.classManagement.classEnrolledModal.class')}:{' '}
+                  {selectedClassForEnrollment.name}
+                </span>
+                <span>
+                  👥 {classEnrolledMembers.length}{' '}
+                  {t('admin.classManagement.classEnrolledModal.enrolled')}
                   {selectedClassForEnrollment.maxCapacity > 0
-                    ? ` / ${selectedClassForEnrollment.maxCapacity} ${t('admin.classManagement.classEnrolledModal.maxCapacity')}`
+                    ? ` / ${selectedClassForEnrollment.maxCapacity} ${t(
+                        'admin.classManagement.classEnrolledModal.maxCapacity',
+                      )}`
                     : ''}
                 </span>
-                <span>🎯 {t('admin.classManagement.classEnrolledModal.category')}: {selectedClassForEnrollment.category}</span>
+                <span>
+                  🎯 {t('admin.classManagement.classEnrolledModal.category')}:{' '}
+                  {selectedClassForEnrollment.category}
+                </span>
               </div>
 
               {classEnrolledMembers.length === 0 ? (
-                <div className="roster-empty">{t('admin.classManagement.classEnrolledModal.noMembers')}</div>
+                <div className="roster-empty">
+                  {t('admin.classManagement.classEnrolledModal.noMembers')}
+                </div>
               ) : (
                 <div className="roster-table-wrapper">
                   <table className="roster-table">
@@ -3637,7 +3879,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       {t('admin.classManagement.deleteScheduleModal.class')}:
                     </span>
                     <span className="info-value">
-                      {classes.find((c) => c.id === scheduleSlotToDelete.classId)?.name || 'Unknown Class'}
+                      {classes.find((c) => c.id === scheduleSlotToDelete.classId)?.name ||
+                        'Unknown Class'}
                     </span>
                   </div>
                   <div className="info-row">
@@ -3645,7 +3888,8 @@ const ClassManagement: React.FC<ClassManagementProps> = ({ onBack }) => {
                       {t('admin.classManagement.deleteScheduleModal.instructor')}:
                     </span>
                     <span className="info-value">
-                      {instructors.find((i) => i.id === scheduleSlotToDelete.instructorId)?.name || t('admin.classManagement.schedule.unknownInstructor')}
+                      {instructors.find((i) => i.id === scheduleSlotToDelete.instructorId)?.name ||
+                        t('admin.classManagement.schedule.unknownInstructor')}
                     </span>
                   </div>
                   <div className="info-row">
