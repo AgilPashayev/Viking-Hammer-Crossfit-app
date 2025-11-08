@@ -787,6 +787,8 @@
         "list": "List"
       },
       "card": {
+        "personalInfo": "Member Contact Details",
+        "additionalInfo": "Account Information",
         "collapseTooltip": "Collapse",
         "expandTooltip": "Expand",
         "emailLabel": "Email:",

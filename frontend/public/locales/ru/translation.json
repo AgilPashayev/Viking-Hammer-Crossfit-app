@@ -793,6 +793,8 @@
         "list": "Список"
       },
       "card": {
+        "personalInfo": "Контактные Данные Участника",
+        "additionalInfo": "Информация об Аккаунте",
         "collapseTooltip": "Свернуть",
         "expandTooltip": "Развернуть",
         "emailLabel": "Email:",

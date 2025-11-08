@@ -787,6 +787,8 @@
         "list": "Siyahı"
       },
       "card": {
+        "personalInfo": "Üzvün Əlaqə Məlumatları",
+        "additionalInfo": "Hesab Məlumatları",
         "collapseTooltip": "Bağla",
         "expandTooltip": "Genişləndir",
         "emailLabel": "Email:",

@@ -72,6 +72,50 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
 
   const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
+  // Translation helper functions for dynamic values
+  const translateRole = (role: string): string => {
+    const roleMap: Record<string, string> = {
+      member: t('admin.memberManagement.roles.member'),
+      instructor: t('admin.memberManagement.roles.instructor'),
+      admin: t('admin.memberManagement.roles.admin'),
+      reception: t('admin.memberManagement.roles.reception'),
+      sparta: t('admin.memberManagement.roles.sparta'),
+    };
+    return roleMap[role.toLowerCase()] || role;
+  };
+
+  const translateStatus = (status: string): string => {
+    const statusMap: Record<string, string> = {
+      active: t('admin.memberManagement.status.active'),
+      inactive: t('admin.memberManagement.status.inactive'),
+      suspended: t('admin.memberManagement.status.suspended'),
+    };
+    return statusMap[status.toLowerCase()] || status;
+  };
+
+  const translateMembershipType = (type: string): string => {
+    // Normalize the membership type (remove dashes, lowercase, trim)
+    const normalized = type.replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+
+    const membershipMap: Record<string, string> = {
+      'monthly unlimited': t('admin.membership.planNames.monthlyUnlimited'),
+      'monthly limited': t('admin.membership.planNames.monthlyLimited'),
+      'single session': t('admin.membership.planNames.singleSession'),
+      single: t('admin.membership.planNames.singleSession'),
+    };
+    return membershipMap[normalized] || type;
+  };
+
+  const translateGender = (gender: string): string => {
+    if (!gender) return '';
+    const genderMap: Record<string, string> = {
+      male: t('admin.memberManagement.gender.male'),
+      female: t('admin.memberManagement.gender.female'),
+      other: t('admin.memberManagement.gender.other'),
+    };
+    return genderMap[gender.toLowerCase()] || gender;
+  };
+
   React.useEffect(() => {
     refreshMembers().catch((error) => console.error('Failed to refresh members:', error));
   }, [refreshMembers]);
@@ -530,7 +574,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                     </h3>
                     <p>{member.email}</p>
                     <div className={`status-badge ${getStatusColor(member.status)}`}>
-                      {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
+                      {translateStatus(member.status)}
                     </div>
                   </div>
                   <button
@@ -564,13 +608,13 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                       <span className="label">
                         💎 {t('admin.memberManagement.card.membershipLabel')}
                       </span>
-                      <span className="value">{member.membershipType}</span>
+                      <span className="value">
+                        {translateMembershipType(member.membershipType)}
+                      </span>
                     </div>
                     <div className="detail-row">
                       <span className="label">👤 {t('admin.memberManagement.card.roleLabel')}</span>
-                      <span className="value">
-                        {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                      </span>
+                      <span className="value">{translateRole(member.role)}</span>
                     </div>
                     <div className="detail-row">
                       <span className="label">
@@ -591,7 +635,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                         <span className="label">
                           ⚧ {t('admin.memberManagement.card.genderLabel')}
                         </span>
-                        <span className="value">{member.gender}</span>
+                        <span className="value">{translateGender(member.gender)}</span>
                       </div>
                     )}
                     {member.lastCheckIn && (
@@ -658,175 +702,209 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
           </div>
         ) : (
           <div className="members-list">
-            <div className="list-header">
-              <div className="col">{t('admin.memberManagement.list.nameColumn')}</div>
-              <div className="col">{t('admin.memberManagement.list.membershipColumn')}</div>
-              <div className="col">{t('admin.memberManagement.list.phoneColumn')}</div>
-              <div className="col">{t('admin.memberManagement.list.roleColumn')}</div>
-              <div className="col">{t('admin.memberManagement.list.statusColumn')}</div>
-              <div className="col">{t('admin.memberManagement.list.actionsColumn')}</div>
-            </div>
-            {filteredMembers.map((member) => (
-              <React.Fragment key={member.id}>
-                <div className="list-row">
-                  <div className="col">
-                    <div className="member-name">
-                      <span className="avatar-sm">
-                        {member.firstName.charAt(0)}
-                        {member.lastName.charAt(0)}
-                      </span>
-                      {member.firstName} {member.lastName}
-                    </div>
-                  </div>
-                  <div className="col">{member.membershipType}</div>
-                  <div className="col">{member.phone}</div>
-                  <div className="col">
-                    <span className="role-indicator">
-                      {getRoleIcon(member.role)} {member.role}
-                    </span>
-                  </div>
-                  <div className="col">
-                    <div className={`status-badge ${getStatusColor(member.status)}`}>
-                      {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
-                    </div>
-                  </div>
-                  <div className="col">
-                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      <button
-                        className="btn btn-outline btn-xs"
-                        onClick={() => handleEditMember(member)}
-                        title={t('admin.memberManagement.card.editTooltip')}
-                      >
-                        <span className="btn-icon" aria-hidden="true">
-                          ✏️
-                        </span>
-                        <span className="btn-label">
-                          {t('admin.memberManagement.card.editButton')}
-                        </span>
-                      </button>
-                      <button
-                        className="btn btn-danger btn-xs"
-                        onClick={() => handleDeleteMember(member)}
-                        title={t('admin.memberManagement.card.deleteTooltip')}
-                      >
-                        <span className="btn-icon" aria-hidden="true">
-                          🗑️
-                        </span>
-                        <span className="btn-label">
-                          {t('admin.memberManagement.card.deleteButton')}
-                        </span>
-                      </button>
-                      <button
-                        className="expand-btn"
-                        onClick={() => toggleMemberExpansion(member.id)}
-                        title={
-                          expandedMembers.has(member.id)
-                            ? t('admin.memberManagement.card.collapseTooltip')
-                            : t('admin.memberManagement.card.expandTooltip')
-                        }
-                      >
-                        {expandedMembers.has(member.id) ? '−' : '+'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
+            {filteredMembers.map((member) => {
+              const isExpanded = expandedMembers.has(member.id);
 
-                {expandedMembers.has(member.id) && (
-                  <div className="list-row-expanded">
-                    <div className="expanded-details">
-                      <div className="detail-group">
-                        <span className="detail-label">
-                          📧 {t('admin.memberManagement.card.emailLabel')}
+              return (
+                <div
+                  key={member.id}
+                  className={`member-list-item ${isExpanded ? 'expanded' : 'collapsed'}`}
+                >
+                  {/* Clickable Header Row */}
+                  <div
+                    className="member-list-header"
+                    onClick={() => toggleMemberExpansion(member.id)}
+                  >
+                    <div className="expand-icon">{isExpanded ? '▼' : '▶'}</div>
+
+                    <div className="header-member-info">
+                      <div className="member-name-row">
+                        <span className="avatar-sm">
+                          {member.firstName.charAt(0)}
+                          {member.lastName.charAt(0)}
                         </span>
-                        <span className="detail-value">{member.email}</span>
+                        <div className="name-email-container">
+                          <span className="member-name-text">
+                            {member.firstName} {member.lastName}
+                          </span>
+                          <span className="member-email-text">{member.email}</span>
+                        </div>
                       </div>
-                      <div className="detail-group">
-                        <span className="detail-label">
-                          📞 {t('admin.memberManagement.card.phoneLabel')}
-                        </span>
-                        <span className="detail-value">{member.phone}</span>
-                      </div>
-                      <div className="detail-group">
-                        <span className="detail-label">
-                          💎 {t('admin.memberManagement.card.membershipLabel')}
-                        </span>
-                        <span className="detail-value">{member.membershipType}</span>
-                      </div>
-                      <div className="detail-group">
-                        <span className="detail-label">
-                          👤 {t('admin.memberManagement.card.roleLabel')}
-                        </span>
-                        <span className="detail-value">
-                          {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                        </span>
-                      </div>
-                      <div className="detail-group">
-                        <span className="detail-label">
-                          📅 {t('admin.memberManagement.card.joinDateLabel')}
-                        </span>
-                        <span className="detail-value">{formatDate(member.joinDate)}</span>
-                      </div>
-                      {member.dateOfBirth && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            🎂 {t('admin.memberManagement.card.dateOfBirthLabel')}
-                          </span>
-                          <span className="detail-value">{formatDate(member.dateOfBirth)}</span>
-                        </div>
-                      )}
-                      {member.lastCheckIn && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
-                          </span>
-                          <span className="detail-value">{formatDate(member.lastCheckIn)}</span>
-                        </div>
-                      )}
-                      {member.gender && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            ⚧ {t('admin.memberManagement.card.genderLabel')}
-                          </span>
-                          <span className="detail-value">{member.gender}</span>
-                        </div>
-                      )}
-                      {member.lastCheckIn && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
-                          </span>
-                          <span className="detail-value">{formatDate(member.lastCheckIn)}</span>
-                        </div>
-                      )}
-                      {member.company && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            🏢 {t('admin.memberManagement.card.companyLabel')}
-                          </span>
-                          <span className="detail-value">{member.company}</span>
-                        </div>
-                      )}
-                      {member.emergencyContact && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            🚨 {t('admin.memberManagement.card.emergencyContactLabel')}
-                          </span>
-                          <span className="detail-value">{member.emergencyContact}</span>
-                        </div>
-                      )}
-                      {member.address && (
-                        <div className="detail-group">
-                          <span className="detail-label">
-                            🏠 {t('admin.memberManagement.card.addressLabel')}
-                          </span>
-                          <span className="detail-value">{member.address}</span>
-                        </div>
-                      )}
+                    </div>
+
+                    <div className="header-membership-info">
+                      <span className="membership-type-text">
+                        {translateMembershipType(member.membershipType)}
+                      </span>
+                    </div>
+
+                    <div className="header-contact-info">
+                      <span className="phone-text">{member.phone}</span>
+                    </div>
+
+                    <div className="header-role-info">
+                      <span className="role-indicator">
+                        {getRoleIcon(member.role)} {translateRole(member.role)}
+                      </span>
+                    </div>
+
+                    <div className="header-status-info">
+                      <span className={`status-badge-mini ${getStatusColor(member.status)}`}>
+                        {translateStatus(member.status)}
+                      </span>
                     </div>
                   </div>
-                )}
-              </React.Fragment>
-            ))}
+
+                  {/* Expandable Details Section */}
+                  {isExpanded && (
+                    <div className="member-expanded-details">
+                      <div className="details-grid">
+                        <div className="detail-section">
+                          <h5>{t('admin.memberManagement.card.personalInfo')}</h5>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              📧 {t('admin.memberManagement.card.emailLabel')}
+                            </span>
+                            <span className="detail-value">{member.email}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              📞 {t('admin.memberManagement.card.phoneLabel')}
+                            </span>
+                            <span className="detail-value">{member.phone}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              💎 {t('admin.memberManagement.card.membershipLabel')}
+                            </span>
+                            <span className="detail-value">{member.membershipType}</span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              � {t('admin.memberManagement.card.joinDateLabel')}
+                            </span>
+                            <span className="detail-value">{formatDate(member.joinDate)}</span>
+                          </div>
+                          {member.dateOfBirth && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                🎂 {t('admin.memberManagement.card.dateOfBirthLabel')}
+                              </span>
+                              <span className="detail-value">{formatDate(member.dateOfBirth)}</span>
+                            </div>
+                          )}
+                          {member.gender && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                ⚧ {t('admin.memberManagement.card.genderLabel')}
+                              </span>
+                              <span className="detail-value">{member.gender}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="detail-section">
+                          <h5>{t('admin.memberManagement.card.additionalInfo')}</h5>
+                          <div className="detail-row">
+                            <span className="detail-value">
+                              {translateMembershipType(member.membershipType)}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              � {t('admin.memberManagement.card.joinDateLabel')}
+                            </span>
+                            <span className="detail-value">{formatDate(member.joinDate)}</span>
+                          </div>
+                          {member.dateOfBirth && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                🎂 {t('admin.memberManagement.card.dateOfBirthLabel')}
+                              </span>
+                              <span className="detail-value">{formatDate(member.dateOfBirth)}</span>
+                            </div>
+                          )}
+                          {member.gender && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                ⚧ {t('admin.memberManagement.card.genderLabel')}
+                              </span>
+                              <span className="detail-value">{translateGender(member.gender)}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="detail-section">
+                          <h5>{t('admin.memberManagement.card.additionalInfo')}</h5>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              👤 {t('admin.memberManagement.card.roleLabel')}
+                            </span>
+                            <span className="detail-value">
+                              {getRoleIcon(member.role)} {translateRole(member.role)}
+                            </span>
+                          </div>
+                          {member.lastCheckIn && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                ✅ {t('admin.memberManagement.card.lastCheckInLabel')}
+                              </span>
+                              <span className="detail-value">{formatDate(member.lastCheckIn)}</span>
+                            </div>
+                          )}
+                          {member.company && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                🏢 {t('admin.memberManagement.card.companyLabel')}
+                              </span>
+                              <span className="detail-value">{member.company}</span>
+                            </div>
+                          )}
+                          {member.emergencyContact && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                🚨 {t('admin.memberManagement.card.emergencyContactLabel')}
+                              </span>
+                              <span className="detail-value">{member.emergencyContact}</span>
+                            </div>
+                          )}
+                          {member.address && (
+                            <div className="detail-row">
+                              <span className="detail-label">
+                                🏠 {t('admin.memberManagement.card.addressLabel')}
+                              </span>
+                              <span className="detail-value">{member.address}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="member-actions-expanded">
+                        <button
+                          className="edit-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditMember(member);
+                          }}
+                        >
+                          ✏️ {t('admin.memberManagement.card.editButton')}
+                        </button>
+                        <button
+                          className="delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteMember(member);
+                          }}
+                        >
+                          🗑️ {t('admin.memberManagement.card.deleteButton')}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
