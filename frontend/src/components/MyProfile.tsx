@@ -94,6 +94,32 @@ const MyProfile: React.FC<MyProfileProps> = ({
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Translation helpers for plan names
+  const normalizeText = (value: string | undefined | null): string => {
+    if (!value) return '';
+    return value.replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+  };
+
+  const PLAN_NAME_KEY_MAP: Record<string, string> = {
+    'monthly unlimited': 'admin.membership.planNames.monthlyUnlimited',
+    'monthly limited': 'admin.membership.planNames.monthlyLimited',
+    'single session': 'admin.membership.planNames.singleSession',
+  };
+
+  const translateUsingMap = (
+    value: string | undefined | null,
+    map: Record<string, string>,
+  ): string => {
+    if (!value) return '';
+    const normalized = normalizeText(value);
+    const key = map[normalized];
+    return key ? t(key) : value;
+  };
+
+  const translatePlanName = (name: string | undefined | null): string => {
+    return translateUsingMap(name, PLAN_NAME_KEY_MAP);
+  };
+
   // Load user settings from API on mount
   // TODO: Re-enable when backend settings endpoint is implemented
   useEffect(() => {
@@ -1053,7 +1079,8 @@ const MyProfile: React.FC<MyProfileProps> = ({
                     <div className="detail-content">
                       <span className="detail-label">{t('profile.subscription.planName')}</span>
                       <span className="detail-value subscription-value">
-                        {subscription.plan_name || t('profile.subscription.basicMembership')}
+                        {translatePlanName(subscription.plan_name) ||
+                          t('profile.subscription.basicMembership')}
                       </span>
                     </div>
                   </div>
@@ -1456,7 +1483,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
                             onClick={() => toggleHistoryItem(record.id)}
                           >
                             <div className="plan-info">
-                              <h3>{record.plan_name}</h3>
+                              <h3>{translatePlanName(record.plan_name)}</h3>
                               <span className="plan-type">{record.plan_type.toUpperCase()}</span>
                             </div>
                             <div className="header-right">

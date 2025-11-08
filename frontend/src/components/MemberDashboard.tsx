@@ -69,6 +69,32 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
   const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
   const { t, i18n } = useTranslation(); // Add i18n for language detection
 
+  // Translation helpers for plan names
+  const normalizeText = (value: string | undefined | null): string => {
+    if (!value) return '';
+    return value.replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+  };
+
+  const PLAN_NAME_KEY_MAP: Record<string, string> = {
+    'monthly unlimited': 'admin.membership.planNames.monthlyUnlimited',
+    'monthly limited': 'admin.membership.planNames.monthlyLimited',
+    'single session': 'admin.membership.planNames.singleSession',
+  };
+
+  const translateUsingMap = (
+    value: string | undefined | null,
+    map: Record<string, string>,
+  ): string => {
+    if (!value) return '';
+    const normalized = normalizeText(value);
+    const key = map[normalized];
+    return key ? t(key) : value;
+  };
+
+  const translatePlanName = (name: string | undefined | null): string => {
+    return translateUsingMap(name, PLAN_NAME_KEY_MAP);
+  };
+
   // Debug logging
   console.log('MemberDashboard rendering, user:', user);
 
@@ -785,16 +811,40 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       <div className="dashboard-header">
         <div className="user-welcome">
           <div className="user-avatar">
-            <img
-              src={userProfile.avatar || '/api/placeholder/60/60'}
-              alt="User Avatar"
-              style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
-            />
+            {userProfile.avatar ? (
+              <img
+                src={userProfile.avatar}
+                alt="User Avatar"
+                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                onError={(e) => {
+                  // Fallback to default avatar if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div
+              className={userProfile.avatar ? 'hidden' : ''}
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                color: 'white',
+                fontWeight: 'bold',
+              }}
+            >
+              {userProfile.name.charAt(0).toUpperCase()}
+            </div>
           </div>
           <div className="welcome-text">
             <h1>{t('dashboard.welcomeBack', { name: userProfile.name })}</h1>
             <p className="membership-info">
-              {userProfile.actualPlanName || userProfile.membershipType}
+              {translatePlanName(userProfile.actualPlanName || userProfile.membershipType)}
               {userProfile.joinDate && userProfile.joinDate.trim() !== '' && (
                 <>
                   {' • '}
