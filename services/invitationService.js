@@ -103,6 +103,28 @@ async function sendInvitationEmail({ email, token, userName }) {
 
     if (error) {
       console.error('Resend email error:', error);
+
+      // DEVELOPMENT FALLBACK: Log invitation link to console for manual testing
+      if (process.env.NODE_ENV === 'development') {
+        console.log('\n' + '='.repeat(80));
+        console.log('📧 EMAIL SERVICE FAILED - DEVELOPMENT MODE FALLBACK');
+        console.log('='.repeat(80));
+        console.log('🔗 INVITATION LINK (Copy and send manually):');
+        console.log('\n   ' + registrationLink + '\n');
+        console.log('📧 Recipient:', email);
+        console.log('👤 User:', userName || 'New Member');
+        console.log('⏰ Expires:', new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString());
+        console.log('='.repeat(80) + '\n');
+
+        // Return success with flag indicating manual link required
+        return {
+          success: true,
+          data: { id: 'manual-fallback', link: registrationLink },
+          requiresManualDelivery: true,
+          error: 'Email service in test mode - link logged to console',
+        };
+      }
+
       return { success: false, error: error.message };
     }
 
@@ -110,6 +132,26 @@ async function sendInvitationEmail({ email, token, userName }) {
     return { success: true, data };
   } catch (error) {
     console.error('Error sending invitation email:', error);
+
+    // DEVELOPMENT FALLBACK: Log invitation link even on exception
+    if (process.env.NODE_ENV === 'development' && registrationLink) {
+      console.log('\n' + '='.repeat(80));
+      console.log('📧 EMAIL SERVICE ERROR - DEVELOPMENT MODE FALLBACK');
+      console.log('='.repeat(80));
+      console.log('🔗 INVITATION LINK (Copy and send manually):');
+      console.log('\n   ' + registrationLink + '\n');
+      console.log('📧 Recipient:', email);
+      console.log('👤 User:', userName || 'New Member');
+      console.log('='.repeat(80) + '\n');
+
+      return {
+        success: true,
+        data: { id: 'manual-fallback', link: registrationLink },
+        requiresManualDelivery: true,
+        error: error.message,
+      };
+    }
+
     return { success: false, error: error.message };
   }
 }
@@ -165,9 +207,28 @@ Click the link to complete your registration: ${appUrl}/register/${token}`;
         // Mark invitation as sent
         await markInvitationAsSent(token);
         console.log(`✅ Invitation created and email sent to ${email}`);
-        return { data, error: null, emailSent: true };
+        return {
+          data,
+          error: null,
+          emailSent: true,
+          invitationLink: `${appUrl}/invitation/${token}`,
+          requiresManualDelivery: emailResult.requiresManualDelivery || false,
+        };
       } else {
         console.error(`❌ Invitation created but email failed: ${emailResult.error}`);
+
+        // Log invitation link to console for manual delivery
+        const invitationLink = `${appUrl}/invitation/${token}`;
+        console.log('\n' + '='.repeat(80));
+        console.log('⚠️  EMAIL FAILED - MANUAL LINK REQUIRED');
+        console.log('='.repeat(80));
+        console.log('🔗 Copy this link and send to member manually:');
+        console.log('\n   ' + invitationLink + '\n');
+        console.log('📧 Recipient:', email);
+        console.log('👤 User:', userName || 'New Member');
+        console.log('❌ Error:', emailResult.error);
+        console.log('='.repeat(80) + '\n');
+
         // Update status to failed
         await supabase
           .from('invitations')
@@ -185,6 +246,8 @@ Click the link to complete your registration: ${appUrl}/register/${token}`;
           emailSent: false,
           emailError: emailResult.error,
           isTestModeRestriction: isResendTestMode,
+          invitationLink: invitationLink, // Include link in response
+          requiresManualDelivery: true,
         };
       }
     }

@@ -231,19 +231,24 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         // Check invitation email status
         if ((result as any).invitationStatus === 'created_but_email_failed') {
           if ((result as any).isTestModeRestriction) {
+            const invitationLink =
+              (result as any).invitationLink || 'Check backend console for link';
             showToast(
-              '⚠️ Member added, but invitation email NOT sent. Email service is in test mode and can only send to vikingshammerxfit@gmail.com. Please verify your domain at resend.com/domains to send to all members.',
-              8000,
+              `⚠️ Member added! Email service in TEST MODE. Copy invitation link from backend console and send manually to member.`,
+              10000,
             );
+            // Also show in browser console for easy copying
+            console.log('📧 INVITATION LINK:', invitationLink);
+            console.log('Send this link to:', newMember.email);
           } else {
             showToast(
-              '⚠️ Member added, but invitation email failed to send. Please check email configuration.',
+              '⚠️ Member added, but invitation email failed to send. Check backend console for invitation link.',
               5000,
             );
           }
         } else if ((result as any).invitationStatus === 'failed') {
           showToast(
-            '⚠️ Member added, but invitation system failed. Member may need manual onboarding.',
+            '⚠️ Member added, but invitation system failed. Check backend console for invitation link.',
             5000,
           );
         } else {
