@@ -307,12 +307,12 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }
   }, [transformApiMember]);
 
-  // Load members only once on mount if authenticated as admin
+  // Load members on mount AND whenever authentication state changes
   useEffect(() => {
     if (isAuthenticated() && isAdmin()) {
       loadMembers();
     }
-  }, []); // Only run once on mount
+  }, [loadMembers]); // Re-run when loadMembers changes to ensure fresh data
 
   // Calculate real-time stats whenever members or checkIns change
   useEffect(() => {
@@ -982,12 +982,12 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // Load activities on mount
+  // Load activities whenever authentication changes to get fresh data
   useEffect(() => {
     if (isAuthenticated() && isAdmin()) {
       loadActivities();
     }
-  }, [loadActivities]);
+  }, [loadActivities]); // Re-run to ensure fresh activity data
 
   const getUpcomingBirthdays = (): Member[] => {
     const today = new Date();
