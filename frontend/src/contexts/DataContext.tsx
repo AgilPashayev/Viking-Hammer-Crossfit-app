@@ -33,7 +33,7 @@ export interface Member {
   email: string;
   phone: string;
   membershipType: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'suspended';
   joinDate: string;
   lastCheckIn?: string;
   role: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
@@ -50,7 +50,7 @@ export interface CheckIn {
   memberName: string;
   membershipType: string;
   phone: string;
-  status: 'active' | 'inactive' | 'pending';
+  status: 'active' | 'inactive' | 'pending' | 'suspended';
   checkInTime: string;
   checkOutTime?: string;
   duration?: number;
@@ -262,8 +262,15 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         ? new Date(apiMember.last_check_in).toISOString()
         : undefined;
 
-      const normalizedStatus = (apiMember.status as Member['status']) || 'active';
+      // Use the actual status from the database - don't default to 'active'
+      // If status is missing, it means the database has no value set
+      const normalizedStatus = (apiMember.status as Member['status']) || 'pending';
       const normalizedRole = (apiMember.role as Member['role']) || 'member';
+
+      // DEBUG: Log actual status from API
+      console.log(
+        `🔍 Member ${apiMember.email} - API status: "${apiMember.status}" → normalized: "${normalizedStatus}"`,
+      );
 
       return {
         id: apiMember.id,

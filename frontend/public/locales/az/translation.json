@@ -791,11 +791,12 @@
         "additionalInfo": "Hesab Məlumatları",
         "collapseTooltip": "Bağla",
         "expandTooltip": "Genişləndir",
-        "emailLabel": "Email:",
-        "phoneLabel": "Telefon:",
-        "membershipLabel": "Üzvlük:",
-        "roleLabel": "Rol:",
-        "joinDateLabel": "Qoşulma Tarixi:",
+        "statusLabel": "STATUS:",
+        "emailLabel": "EMAIL:",
+        "phoneLabel": "TELEFON:",
+        "membershipLabel": "ÜZVLÜK:",
+        "roleLabel": "ROL:",
+        "joinDateLabel": "QOŞULMA TARİXİ:",
         "dateOfBirthLabel": "Doğum Tarixi:",
         "genderLabel": "Cins:",
         "lastCheckInLabel": "Son Giriş:",
@@ -1597,6 +1598,61 @@
           "promotion": "Təşviqat"
         }
       }
+    }
+  },
+  "register": {
+    "title": "Qeydiyyatınızı Tamamlayın",
+    "titlePassword": "Şifrənizi Yaradın",
+    "subtitle": "Xoş gəlmisiniz! İcmamıza qoşulmaq üçün hesabınızı yaradın.",
+    "subtitlePassword": "Hesabınızı aktivləşdirmək üçün şifrənizi təyin edin",
+    "validatingInvitation": "Dəvət təsdiqlənir...",
+    "invalidInvitation": "Yanlış Dəvət",
+    "invitationInfo": {
+      "name": "Ad",
+      "email": "E-poçt",
+      "membership": "Üzvlük"
+    },
+    "form": {
+      "firstName": "Ad",
+      "firstNamePlaceholder": "Vəli",
+      "lastName": "Soyad",
+      "lastNamePlaceholder": "Məmmədov",
+      "phone": "Telefon Nömrəsi (istəyə bağlı)",
+      "phonePlaceholder": "+994501234567",
+      "dateOfBirth": "Doğum Tarixi (istəyə bağlı)",
+      "password": "Şifrə",
+      "passwordPlaceholder": "Ən azı 6 simvol",
+      "passwordHint": "Minimum 6 simvol",
+      "confirmPassword": "Şifrəni Təsdiq Edin",
+      "confirmPasswordPlaceholder": "Şifrəni yenidən daxil edin",
+      "agreeToTermsPrefix": "Mən",
+      "termsOfService": "İstifadə Şərtləri",
+      "agreeToTermsMiddle": "və",
+      "privacyPolicy": "Məxfilik Siyasəti",
+      "agreeToTermsSuffix": "ilə razıyam",
+      "required": "*"
+    },
+    "actions": {
+      "createAccount": "🚀 Hesabımı Yarat",
+      "creating": "Hesab Yaradılır...",
+      "cancel": "Ləğv Et",
+      "returnHome": "Ana Səhifəyə Qayıt"
+    },
+    "footer": {
+      "alreadyHaveAccount": "Artıq hesabınız var?",
+      "signIn": "Daxil Ol"
+    },
+    "errors": {
+      "invalidToken": "Yanlış və ya vaxtı keçmiş dəvət linki",
+      "validationFailed": "Dəvət təsdiqlənə bilmədi. Zəhmət olmasa yenidən cəhd edin.",
+      "enterFullName": "Zəhmət olmasa tam adınızı daxil edin",
+      "passwordLength": "Şifrə ən azı 6 simvoldan ibarət olmalıdır",
+      "passwordMismatch": "Şifrələr uyğun gəlmir",
+      "agreeToTermsRequired": "Zəhmət olmasa şərtlər və qaydalarla razılaşın",
+      "registrationFailed": "Qeydiyyat uğursuz oldu. Zəhmət olmasa yenidən cəhd edin."
+    },
+    "success": {
+      "registrationComplete": "Qeydiyyat tamamlandı"
     }
   }
 }

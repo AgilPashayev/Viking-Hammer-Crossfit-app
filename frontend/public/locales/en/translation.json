@@ -791,6 +791,7 @@
         "additionalInfo": "Account Information",
         "collapseTooltip": "Collapse",
         "expandTooltip": "Expand",
+        "statusLabel": "Status:",
         "emailLabel": "Email:",
         "phoneLabel": "Phone:",
         "membershipLabel": "Membership:",
@@ -1597,6 +1598,61 @@
           "promotion": "Promotion"
         }
       }
+    }
+  },
+  "register": {
+    "title": "Complete Your Registration",
+    "titlePassword": "Create Your Password",
+    "subtitle": "Welcome! Create your account to join our community.",
+    "subtitlePassword": "Set your password to activate your account",
+    "validatingInvitation": "Validating invitation...",
+    "invalidInvitation": "Invalid Invitation",
+    "invitationInfo": {
+      "name": "Name",
+      "email": "Email",
+      "membership": "Membership"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "phone": "Phone Number (optional)",
+      "phonePlaceholder": "+1234567890",
+      "dateOfBirth": "Date of Birth (optional)",
+      "password": "Password",
+      "passwordPlaceholder": "At least 6 characters",
+      "passwordHint": "Minimum 6 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter password",
+      "agreeToTermsPrefix": "I agree to the",
+      "termsOfService": "Terms of Service",
+      "agreeToTermsMiddle": "and",
+      "privacyPolicy": "Privacy Policy",
+      "agreeToTermsSuffix": "",
+      "required": "*"
+    },
+    "actions": {
+      "createAccount": "🚀 Create My Account",
+      "creating": "Creating Account...",
+      "cancel": "Cancel",
+      "returnHome": "Return to Home"
+    },
+    "footer": {
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In"
+    },
+    "errors": {
+      "invalidToken": "Invalid or expired invitation link",
+      "validationFailed": "Failed to validate invitation. Please try again.",
+      "enterFullName": "Please enter your full name",
+      "passwordLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "agreeToTermsRequired": "Please agree to the terms and conditions",
+      "registrationFailed": "Registration failed. Please try again."
+    },
+    "success": {
+      "registrationComplete": "Registration completed"
     }
   }
 }

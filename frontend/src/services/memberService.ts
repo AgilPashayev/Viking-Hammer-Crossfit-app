@@ -50,7 +50,7 @@ export interface CreateMemberData {
   phone?: string;
   dob?: string;
   role?: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
-  status?: 'active' | 'inactive' | 'pending';
+  status?: 'active' | 'inactive' | 'pending' | 'suspended';
   membershipType?: string;
   company?: string;
   joinDate?: string | Date;
@@ -63,7 +63,7 @@ export interface UpdateMemberData {
   phone?: string;
   dob?: string;
   role?: 'member' | 'instructor' | 'admin' | 'reception' | 'sparta';
-  status?: 'active' | 'inactive' | 'pending';
+  status?: 'active' | 'inactive' | 'pending' | 'suspended';
   avatar_url?: string;
   membershipType?: string;
   company?: string;

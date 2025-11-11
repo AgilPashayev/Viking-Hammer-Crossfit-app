@@ -8,9 +8,9 @@ import {
   formatDateForStorage,
   updateUserProfile,
 } from '../services/supabaseService';
-import { 
-  createVerificationToken, 
-  sendVerificationEmail 
+import {
+  createVerificationToken,
+  sendVerificationEmail,
 } from '../services/emailVerificationService';
 import * as authService from '../services/authService';
 
@@ -101,7 +101,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
       try {
         console.log('🎯 === AUTHFORM: Initiating Login (Backend JWT) ===');
         console.log('📧 Form Email:', formData.email);
-        
+
         // Use backend JWT authentication
         const result = await authService.signIn(formData.email, formData.password);
 
@@ -120,7 +120,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           const { user, token } = result.data;
           console.log('✅ User data and JWT token received');
           console.log('🔑 Token stored in localStorage');
-          
+
           const userData = {
             id: user.id,
             email: user.email,
@@ -141,12 +141,12 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
 
           console.log('👤 Prepared userData:', userData);
           setIsLoading(false);
-          
+
           // Always store userData for session (JWT token is already stored by authService)
           try {
             localStorage.setItem('userData', JSON.stringify(userData));
             console.log('💾 User data stored in localStorage');
-            
+
             // Additionally persist in viking_remembered_user if Remember Me is checked
             if (rememberMe) {
               console.log('💾 Saving to viking_remembered_user (Remember Me)');
@@ -158,7 +158,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           } catch (err) {
             console.error('⚠️ Storage error:', err);
           }
-          
+
           console.log('📞 Calling onLogin callback with userData');
           onLogin(userData);
           console.log('🎯 === AUTHFORM: Login Complete ===');
@@ -278,34 +278,45 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
             // Send verification email
             console.log('📧 Sending verification email...');
             try {
-              const { token, expiresAt, error: tokenError } = await createVerificationToken(
-                updatedUser.id,
-                updatedUser.email
-              );
+              const {
+                token,
+                expiresAt,
+                error: tokenError,
+              } = await createVerificationToken(updatedUser.id, updatedUser.email);
 
               if (tokenError || !token) {
                 console.error('Failed to create verification token:', tokenError);
                 // Continue with signup even if email verification fails
-                alert('✅ Account created successfully!\n\n⚠️ Note: Email verification is not available in demo mode, but you can login now with your email and password.');
+                alert(
+                  '✅ Account created successfully!\n\n⚠️ Note: Email verification is not available in demo mode, but you can login now with your email and password.',
+                );
               } else {
                 const emailResult = await sendVerificationEmail({
                   email: updatedUser.email,
                   firstName: updatedUser.firstName,
                   token: token,
-                  expiresAt: expiresAt || ''
+                  expiresAt: expiresAt || '',
                 });
 
                 if (emailResult.success) {
-                  alert('✅ ' + emailResult.message + '\n\nYou can login now with your email and password.');
+                  alert(
+                    '✅ ' +
+                      emailResult.message +
+                      '\n\nYou can login now with your email and password.',
+                  );
                 } else {
                   console.error('Failed to send verification email:', emailResult.error);
-                  alert('✅ Account created successfully!\n\n⚠️ Note: Verification email could not be sent in demo mode, but you can login now with your email and password.');
+                  alert(
+                    '✅ Account created successfully!\n\n⚠️ Note: Verification email could not be sent in demo mode, but you can login now with your email and password.',
+                  );
                 }
               }
             } catch (emailError) {
               console.error('Email verification error:', emailError);
               // Continue with signup
-              alert('✅ Account created successfully! You can login now with your email and password.');
+              alert(
+                '✅ Account created successfully! You can login now with your email and password.',
+              );
             }
 
             setIsLoading(false);
@@ -372,7 +383,7 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
   const renderLoginForm = () => {
     const isDemoMode =
       window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    
+
     return (
       <div className="auth-form-content">
         <div className="auth-header">
@@ -380,88 +391,88 @@ const AuthForm: React.FC<AuthFormProps> = ({ onLogin, onNavigate }) => {
           <p>Ready to unleash your inner warrior?</p>
         </div>
 
-      <div className="form-group">
-        <label htmlFor="email">Email *</label>
-        <input
-          type="email"
-          id="email"
-          value={formData.email}
-          onChange={(e) => handleInputChange('email', e.target.value)}
-          placeholder="your@email.com"
-          className={errors.email ? 'error' : ''}
-          required
-        />
-        {errors.email && <span className="error-message">{errors.email}</span>}
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="password">Password *</label>
-        <input
-          type="password"
-          id="password"
-          value={formData.password}
-          onChange={(e) => handleInputChange('password', e.target.value)}
-          placeholder="Enter your password"
-          className={errors.password ? 'error' : ''}
-          required
-        />
-        {errors.password && <span className="error-message">{errors.password}</span>}
-      </div>
-
-      <div className="remember-row">
-        <label className="remember-checkbox">
+        <div className="form-group">
+          <label htmlFor="email">Email *</label>
           <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
+            type="email"
+            id="email"
+            value={formData.email}
+            onChange={(e) => handleInputChange('email', e.target.value)}
+            placeholder="your@email.com"
+            className={errors.email ? 'error' : ''}
+            required
           />
-          <span>Remember me</span>
-        </label>
-        <button
-          type="button"
-          className="forgot-password-link"
-          onClick={() => onNavigate && onNavigate('forgot-password')}
-        >
-          Forgot password?
-        </button>
-      </div>
+          {errors.email && <span className="error-message">{errors.email}</span>}
+        </div>
 
-      {errors.general && <div className="general-error">{errors.general}</div>}
+        <div className="form-group">
+          <label htmlFor="password">Password *</label>
+          <input
+            type="password"
+            id="password"
+            value={formData.password}
+            onChange={(e) => handleInputChange('password', e.target.value)}
+            placeholder="Enter your password"
+            className={errors.password ? 'error' : ''}
+            required
+          />
+          {errors.password && <span className="error-message">{errors.password}</span>}
+        </div>
 
-      <button type="submit" className="submit-button" disabled={isLoading}>
-        {isLoading ? 'Signing In...' : 'Login →'}
-      </button>
-
-      <p className="auth-switch">
-        New warrior?{' '}
-        <button type="button" onClick={toggleMode} className="link-button">
-          Join the Viking Army
-        </button>
-      </p>
-
-      {isDemoMode && (
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <div className="remember-row">
+          <label className="remember-checkbox">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <span>Remember me</span>
+          </label>
           <button
             type="button"
-            onClick={handleClearDemoData}
-            style={{
-              padding: '8px 16px',
-              background: '#ff4444',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '12px',
-            }}
+            className="forgot-password-link"
+            onClick={() => onNavigate && onNavigate('forgot-password')}
           >
-            🧹 Clear Demo Data & Start Fresh
+            Forgot password?
           </button>
-          <p style={{ fontSize: '11px', color: '#666', marginTop: '8px' }}>
-            Having login issues? Click above to reset demo users.
-          </p>
         </div>
-      )}
-    </div>
+
+        {errors.general && <div className="general-error">{errors.general}</div>}
+
+        <button type="submit" className="submit-button" disabled={isLoading}>
+          {isLoading ? 'Signing In...' : 'Login →'}
+        </button>
+
+        <p
+          className="auth-info"
+          style={{ textAlign: 'center', fontSize: '14px', color: '#666', marginTop: '20px' }}
+        >
+          New member? Contact reception to get your invitation link.
+        </p>
+
+        {isDemoMode && (
+          <div style={{ marginTop: '20px', textAlign: 'center' }}>
+            <button
+              type="button"
+              onClick={handleClearDemoData}
+              style={{
+                padding: '8px 16px',
+                background: '#ff4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '12px',
+              }}
+            >
+              🧹 Clear Demo Data & Start Fresh
+            </button>
+            <p style={{ fontSize: '11px', color: '#666', marginTop: '8px' }}>
+              Having login issues? Click above to reset demo users.
+            </p>
+          </div>
+        )}
+      </div>
     );
   };
 

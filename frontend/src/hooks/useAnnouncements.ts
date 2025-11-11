@@ -69,7 +69,9 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
 
     try {
       setIsLoading(true);
-      const response = await fetch(getEndpoint());
+      // Pass userId to enable date-based filtering (show only announcements after user registration)
+      const endpoint = `${getEndpoint()}?userId=${userId}`;
+      const response = await fetch(endpoint);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -81,8 +83,8 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
           title: ann.title,
           message: ann.content,
           date: ann.published_at || ann.created_at,
-          type: ann.priority === 'urgent' ? 'warning' : 
-                ann.priority === 'high' ? 'success' : 'info',
+          type:
+            ann.priority === 'urgent' ? 'warning' : ann.priority === 'high' ? 'success' : 'info',
           readBy: ann.read_by_users || [],
         }));
 
@@ -99,13 +101,19 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
           const isRead = ann.readBy && ann.readBy.includes(userId);
           const isDismissed = dismissedIds.includes(ann.id);
           const shouldShow = !isRead && !isDismissed;
-          
-          console.log(`  Announcement #${ann.id} "${ann.title}": ${isRead ? 'READ(DB) ✓' : 'UNREAD(DB) ⚠'} ${isDismissed ? '+ DISMISSED(CACHE) ✓' : ''} → ${shouldShow ? 'SHOW' : 'HIDE'}`);
-          
+
+          console.log(
+            `  Announcement #${ann.id} "${ann.title}": ${isRead ? 'READ(DB) ✓' : 'UNREAD(DB) ⚠'} ${
+              isDismissed ? '+ DISMISSED(CACHE) ✓' : ''
+            } → ${shouldShow ? 'SHOW' : 'HIDE'}`,
+          );
+
           return shouldShow;
         });
 
-        console.log(`📊 [${role.toUpperCase()}] Total: ${transformed.length}, Unread: ${unread.length}`);
+        console.log(
+          `📊 [${role.toUpperCase()}] Total: ${transformed.length}, Unread: ${unread.length}`,
+        );
 
         if (unread.length > 0) {
           console.log(`🔔 [${role.toUpperCase()}] Showing popup with ${unread.length} unread`);
@@ -130,7 +138,9 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
       return false;
     }
 
-    console.log(`📝 [${role.toUpperCase()}] Marking announcement #${announcementId} as read for user ${userId}`);
+    console.log(
+      `📝 [${role.toUpperCase()}] Marking announcement #${announcementId} as read for user ${userId}`,
+    );
 
     try {
       const response = await fetch(
@@ -139,7 +149,7 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -149,7 +159,10 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
       }
 
       const result = await response.json();
-      console.log(`✅ [${role.toUpperCase()}] Announcement #${announcementId} marked as read:`, result);
+      console.log(
+        `✅ [${role.toUpperCase()}] Announcement #${announcementId} marked as read:`,
+        result,
+      );
 
       return true;
     } catch (error) {
@@ -160,7 +173,11 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
 
   // Handle closing popup (mark all as read)
   const handleClosePopup = async () => {
-    console.log(`🚪 [${role.toUpperCase()}] Closing popup, marking ${unreadAnnouncements.length} announcements`);
+    console.log(
+      `🚪 [${role.toUpperCase()}] Closing popup, marking ${
+        unreadAnnouncements.length
+      } announcements`,
+    );
 
     setIsMarking(true);
 
@@ -172,7 +189,9 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
 
     // Save to localStorage cache as backup
     unreadAnnouncements.forEach((ann) => addDismissedId(ann.id));
-    console.log(`💾 [${role.toUpperCase()}] Saved ${unreadAnnouncements.length} IDs to dismissed cache`);
+    console.log(
+      `💾 [${role.toUpperCase()}] Saved ${unreadAnnouncements.length} IDs to dismissed cache`,
+    );
 
     // Update local state
     if (userId) {
@@ -208,12 +227,14 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
       return false;
     }
 
-    console.log(`🗑️ [${role.toUpperCase()}] Dismissing announcement #${announcementId} for user ${userId}`);
+    console.log(
+      `🗑️ [${role.toUpperCase()}] Dismissing announcement #${announcementId} for user ${userId}`,
+    );
 
     try {
       // First mark as read in backend
       const marked = await markAnnouncementAsRead(announcementId);
-      
+
       if (!marked) {
         throw new Error('Failed to mark as read');
       }
@@ -222,10 +243,12 @@ export const useAnnouncements = ({ userId, role, enabled = true }: UseAnnounceme
       addDismissedId(announcementId);
 
       // Remove from local announcements list (UI update)
-      setAnnouncements(prev => prev.filter(ann => ann.id !== announcementId));
-      setUnreadAnnouncements(prev => prev.filter(ann => ann.id !== announcementId));
+      setAnnouncements((prev) => prev.filter((ann) => ann.id !== announcementId));
+      setUnreadAnnouncements((prev) => prev.filter((ann) => ann.id !== announcementId));
 
-      console.log(`✅ [${role.toUpperCase()}] Announcement #${announcementId} dismissed successfully`);
+      console.log(
+        `✅ [${role.toUpperCase()}] Announcement #${announcementId} dismissed successfully`,
+      );
       return true;
     } catch (error) {
       console.error(`❌ [${role.toUpperCase()}] Failed to dismiss #${announcementId}:`, error);

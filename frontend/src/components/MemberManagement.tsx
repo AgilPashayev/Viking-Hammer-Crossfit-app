@@ -89,6 +89,7 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
       active: t('admin.memberManagement.status.active'),
       inactive: t('admin.memberManagement.status.inactive'),
       suspended: t('admin.memberManagement.status.suspended'),
+      pending: t('admin.memberManagement.status.pending'),
     };
     return statusMap[status.toLowerCase()] || status;
   };
@@ -343,6 +344,8 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
         return 'danger';
       case 'pending':
         return 'warning';
+      case 'suspended':
+        return 'danger';
       default:
         return 'secondary';
     }
@@ -599,7 +602,15 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                   <div className="member-details">
                     <div className="detail-row">
                       <span className="label">
-                        📧 {t('admin.memberManagement.card.emailLabel')}
+                        � {t('admin.memberManagement.card.statusLabel')}
+                      </span>
+                      <span className={`value status-badge ${getStatusColor(member.status)}`}>
+                        {translateStatus(member.status)}
+                      </span>
+                    </div>
+                    <div className="detail-row">
+                      <span className="label">
+                        �📧 {t('admin.memberManagement.card.emailLabel')}
                       </span>
                       <span className="value">{member.email}</span>
                     </div>
@@ -843,7 +854,19 @@ const MemberManagement: React.FC<MemberManagementProps> = ({ onBack }) => {
                           <h5>{t('admin.memberManagement.card.additionalInfo')}</h5>
                           <div className="detail-row">
                             <span className="detail-label">
-                              👤 {t('admin.memberManagement.card.roleLabel')}
+                              � {t('admin.memberManagement.card.statusLabel')}
+                            </span>
+                            <span
+                              className={`detail-value status-badge ${getStatusColor(
+                                member.status,
+                              )}`}
+                            >
+                              {translateStatus(member.status)}
+                            </span>
+                          </div>
+                          <div className="detail-row">
+                            <span className="detail-label">
+                              �👤 {t('admin.memberManagement.card.roleLabel')}
                             </span>
                             <span className="detail-value">
                               {getRoleIcon(member.role)} {translateRole(member.role)}

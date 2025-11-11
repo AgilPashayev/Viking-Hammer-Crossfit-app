@@ -2,6 +2,7 @@
 // Registration page for invitation-based signup
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import './Register.css';
 
 const API_URL = 'http://localhost:4001/api';
@@ -28,6 +29,17 @@ interface InvitationData {
 }
 
 export default function Register({ token, onSuccess, onCancel }: RegisterProps) {
+  const { t, i18n } = useTranslation();
+
+  // Set Azerbaijani as default language for registration
+  useEffect(() => {
+    if (i18n.language !== 'az') {
+      i18n.changeLanguage('az').catch((err) => {
+        console.error('Failed to change language:', err);
+      });
+    }
+  }, [i18n]);
+
   const [loading, setLoading] = useState(true);
   const [validating, setValidating] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -57,7 +69,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       const result = await response.json();
 
       if (!response.ok || !result.valid) {
-        setError(result.error || 'Invalid or expired invitation link');
+        setError(result.error || t('register.errors.invalidToken'));
         setValidating(false);
         setLoading(false);
         return;
@@ -72,11 +84,11 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
         const nameParts = result.data.users_profile.name.split(' ');
         setFirstName(nameParts[0] || '');
         setLastName(nameParts.slice(1).join(' ') || '');
-        
+
         if (result.data.users_profile.phone) {
           setPhone(result.data.users_profile.phone);
         }
-        
+
         if (result.data.users_profile.dob) {
           setDateOfBirth(result.data.users_profile.dob);
         }
@@ -97,7 +109,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       setLoading(false);
     } catch (err) {
       console.error('Token validation error:', err);
-      setError('Failed to validate invitation. Please try again.');
+      setError(t('register.errors.validationFailed'));
       setValidating(false);
       setLoading(false);
     }
@@ -112,22 +124,22 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
 
     // Validation - less strict for existing profiles (only password required)
     if (!hasExistingProfile && (!firstName.trim() || !lastName.trim())) {
-      setError('Please enter your full name');
+      setError(t('register.errors.enterFullName'));
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError(t('register.errors.passwordLength'));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError(t('register.errors.passwordMismatch'));
       return;
     }
 
     if (!agreeToTerms) {
-      setError('Please agree to the terms and conditions');
+      setError(t('register.errors.agreeToTermsRequired'));
       return;
     }
 
@@ -136,7 +148,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
 
       // For existing members, only send password
       // For new users, send all fields
-      const registrationData = hasExistingProfile 
+      const registrationData = hasExistingProfile
         ? { password }
         : {
             password,
@@ -156,19 +168,19 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       const result = await response.json();
 
       if (!response.ok) {
-        setError(result.error || 'Registration failed. Please try again.');
+        setError(result.error || t('register.errors.registrationFailed'));
         setSubmitting(false);
         return;
       }
 
       // Registration successful - auto-login
-      console.log('✅ Registration successful');
-      
+      console.log('✅', t('register.success.registrationComplete'));
+
       // Call success handler with user data and token
       onSuccess(result.data.user, result.data.token);
     } catch (err) {
       console.error('Registration error:', err);
-      setError('Registration failed. Please try again.');
+      setError(t('register.errors.registrationFailed'));
       setSubmitting(false);
     }
   };
@@ -180,12 +192,12 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
         <div className="register-container">
           <div className="register-header">
             <h1>🔨 Viking Hammer CrossFit</h1>
-            <h2>Complete Your Registration</h2>
+            <h2>{t('register.title')}</h2>
           </div>
           <div className="register-body">
             <div className="loading-spinner">
               <div className="spinner"></div>
-              <p>Validating invitation...</p>
+              <p>{t('register.validatingInvitation')}</p>
             </div>
           </div>
         </div>
@@ -200,7 +212,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
         <div className="register-container">
           <div className="register-header error">
             <h1>🔨 Viking Hammer CrossFit</h1>
-            <h2>Invalid Invitation</h2>
+            <h2>{t('register.invalidInvitation')}</h2>
           </div>
           <div className="register-body">
             <div className="error-message">
@@ -209,7 +221,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
             </div>
             <div className="register-actions">
               <button className="btn-secondary" onClick={onCancel}>
-                Return to Home
+                {t('register.actions.returnHome')}
               </button>
             </div>
           </div>
@@ -226,11 +238,9 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       <div className="register-container">
         <div className="register-header">
           <h1>🔨 Viking Hammer CrossFit</h1>
-          <h2>{hasExistingProfile ? 'Create Your Password' : 'Complete Your Registration'}</h2>
+          <h2>{hasExistingProfile ? t('register.titlePassword') : t('register.title')}</h2>
           <p className="register-subtitle">
-            {hasExistingProfile 
-              ? 'Set your password to activate your account'
-              : 'Welcome! Create your account to join our community.'}
+            {hasExistingProfile ? t('register.subtitlePassword') : t('register.subtitle')}
           </p>
         </div>
 
@@ -239,15 +249,23 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
             <div className="invitation-info">
               {hasExistingProfile && invitationData.users_profile ? (
                 <>
-                  <p><strong>Name:</strong> {invitationData.users_profile.name}</p>
-                  <p><strong>Email:</strong> {invitationData.email}</p>
+                  <p>
+                    <strong>{t('register.invitationInfo.name')}:</strong>{' '}
+                    {invitationData.users_profile.name}
+                  </p>
+                  <p>
+                    <strong>{t('register.invitationInfo.email')}:</strong> {invitationData.email}
+                  </p>
                   {invitationData.users_profile.membership_type && (
-                    <p><strong>Membership:</strong> {invitationData.users_profile.membership_type}</p>
+                    <p>
+                      <strong>{t('register.invitationInfo.membership')}:</strong>{' '}
+                      {invitationData.users_profile.membership_type}
+                    </p>
                   )}
                 </>
               ) : (
                 <p>
-                  <strong>Email:</strong> {invitationData.email}
+                  <strong>{t('register.invitationInfo.email')}:</strong> {invitationData.email}
                 </p>
               )}
             </div>
@@ -267,14 +285,15 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="firstName">
-                      First Name <span className="required">*</span>
+                      {t('register.form.firstName')}{' '}
+                      <span className="required">{t('register.form.required')}</span>
                     </label>
                     <input
                       type="text"
                       id="firstName"
                       value={firstName}
                       onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="John"
+                      placeholder={t('register.form.firstNamePlaceholder')}
                       required
                       autoFocus
                     />
@@ -282,32 +301,33 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
 
                   <div className="form-group">
                     <label htmlFor="lastName">
-                      Last Name <span className="required">*</span>
+                      {t('register.form.lastName')}{' '}
+                      <span className="required">{t('register.form.required')}</span>
                     </label>
                     <input
                       type="text"
                       id="lastName"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
-                      placeholder="Doe"
+                      placeholder={t('register.form.lastNamePlaceholder')}
                       required
                     />
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="phone">Phone Number (optional)</label>
+                  <label htmlFor="phone">{t('register.form.phone')}</label>
                   <input
                     type="tel"
                     id="phone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1234567890"
+                    placeholder={t('register.form.phonePlaceholder')}
                   />
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="dateOfBirth">Date of Birth (optional)</label>
+                  <label htmlFor="dateOfBirth">{t('register.form.dateOfBirth')}</label>
                   <input
                     type="date"
                     id="dateOfBirth"
@@ -320,30 +340,32 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
 
             <div className="form-group">
               <label htmlFor="password">
-                Password <span className="required">*</span>
+                {t('register.form.password')}{' '}
+                <span className="required">{t('register.form.required')}</span>
               </label>
               <input
                 type="password"
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder={t('register.form.passwordPlaceholder')}
                 required
                 minLength={6}
               />
-              <small className="form-hint">Minimum 6 characters</small>
+              <small className="form-hint">{t('register.form.passwordHint')}</small>
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword">
-                Confirm Password <span className="required">*</span>
+                {t('register.form.confirmPassword')}{' '}
+                <span className="required">{t('register.form.required')}</span>
               </label>
               <input
                 type="password"
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter password"
+                placeholder={t('register.form.confirmPasswordPlaceholder')}
                 required
                 minLength={6}
               />
@@ -358,24 +380,27 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
                   required
                 />
                 <span>
-                  I agree to the <a href="/terms" target="_blank">Terms of Service</a> and{' '}
-                  <a href="/privacy" target="_blank">Privacy Policy</a>
+                  {t('register.form.agreeToTermsPrefix')}{' '}
+                  <a href="/terms" target="_blank">
+                    {t('register.form.termsOfService')}
+                  </a>{' '}
+                  {t('register.form.agreeToTermsMiddle')}{' '}
+                  <a href="/privacy" target="_blank">
+                    {t('register.form.privacyPolicy')}
+                  </a>{' '}
+                  {t('register.form.agreeToTermsSuffix')}
                 </span>
               </label>
             </div>
 
             <div className="register-actions">
-              <button
-                type="submit"
-                className="btn-primary"
-                disabled={submitting}
-              >
+              <button type="submit" className="btn-primary" disabled={submitting}>
                 {submitting ? (
                   <>
-                    <span className="spinner-small"></span> Creating Account...
+                    <span className="spinner-small"></span> {t('register.actions.creating')}
                   </>
                 ) : (
-                  '🚀 Create My Account'
+                  t('register.actions.createAccount')
                 )}
               </button>
 
@@ -385,14 +410,19 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
                 onClick={onCancel}
                 disabled={submitting}
               >
-                Cancel
+                {t('register.actions.cancel')}
               </button>
             </div>
           </form>
         </div>
 
         <div className="register-footer">
-          <p>Already have an account? <a href="#" onClick={onCancel}>Sign In</a></p>
+          <p>
+            {t('register.footer.alreadyHaveAccount')}{' '}
+            <a href="#" onClick={onCancel}>
+              {t('register.footer.signIn')}
+            </a>
+          </p>
         </div>
       </div>
     </div>

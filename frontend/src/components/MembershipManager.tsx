@@ -1352,6 +1352,23 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
                 <div className="header-plan-info">
                   <span className="plan-name-text">{translatedPlanName}</span>
+                  {subscription.remainingEntries !== undefined && (
+                    <span
+                      className="visits-text-inline"
+                      style={{
+                        fontSize: '0.85rem',
+                        fontWeight: '600',
+                        color:
+                          subscription.remainingEntries <= 3
+                            ? '#ff6b35'
+                            : subscription.remainingEntries <= 6
+                            ? '#ffc107'
+                            : '#28a745',
+                      }}
+                    >
+                      {subscription.remainingEntries}/{subscription.totalEntries}
+                    </span>
+                  )}
                 </div>
 
                 <div className="header-status-info">
@@ -1361,6 +1378,9 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                   >
                     {translateStatus(subscription.status)}
                   </span>
+                </div>
+
+                <div className="header-countdown-info">
                   {daysLeft !== null && (
                     <span
                       className="countdown-badge-mini"
@@ -1370,25 +1390,6 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
                       }}
                     >
                       {getCountdownLabel(daysLeft)}
-                    </span>
-                  )}
-                </div>
-
-                <div className="header-visits-info">
-                  {subscription.remainingEntries !== undefined && (
-                    <span
-                      className="visits-text"
-                      style={{
-                        fontWeight: 'bold',
-                        color:
-                          subscription.remainingEntries <= 3
-                            ? '#ff6b35'
-                            : subscription.remainingEntries <= 6
-                            ? '#ffc107'
-                            : '#28a745',
-                      }}
-                    >
-                      {subscription.remainingEntries} / {subscription.totalEntries}
                     </span>
                   )}
                 </div>
