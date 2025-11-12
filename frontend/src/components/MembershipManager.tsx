@@ -1137,11 +1137,62 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString(getCurrentLocale(), {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+    const currentLang = i18n.language;
+
+    // Format based on language
+    if (currentLang === 'az') {
+      const months = [
+        'Yan',
+        'Fev',
+        'Mar',
+        'Apr',
+        'May',
+        'İyn',
+        'İyl',
+        'Avq',
+        'Sen',
+        'Okt',
+        'Noy',
+        'Dek',
+      ];
+      return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    } else if (currentLang === 'ru') {
+      const months = [
+        'Янв',
+        'Фев',
+        'Мар',
+        'Апр',
+        'Май',
+        'Июн',
+        'Июл',
+        'Авг',
+        'Сен',
+        'Окт',
+        'Ноя',
+        'Дек',
+      ];
+      return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    } else {
+      // English - default
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -1352,18 +1403,22 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
                 <div className="header-plan-info">
                   <span className="plan-name-text">{translatedPlanName}</span>
-                  {subscription.remainingEntries !== undefined && (
+                  {subscription.remainingEntries !== undefined && subscription.totalEntries && (
                     <span
                       className="visits-text-inline"
                       style={{
-                        fontSize: '0.85rem',
+                        fontSize: '0.75rem',
                         fontWeight: '600',
-                        color:
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        marginLeft: '8px',
+                        backgroundColor:
                           subscription.remainingEntries <= 3
                             ? '#ff6b35'
                             : subscription.remainingEntries <= 6
                             ? '#ffc107'
                             : '#28a745',
+                        color: '#fff',
                       }}
                     >
                       {subscription.remainingEntries}/{subscription.totalEntries}

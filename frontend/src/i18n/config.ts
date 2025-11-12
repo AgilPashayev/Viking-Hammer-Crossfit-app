@@ -38,8 +38,9 @@ i18n
     // Fallback language chain: az → ru → en
     fallbackLng: ['az', 'ru', 'en'],
 
-    // Default language (Azerbaijani as primary)
-    lng: 'az',
+    // Don't set lng here - let LanguageDetector handle it
+    // If no language is detected, fallbackLng will be used
+    // lng: 'az', // REMOVED - this was overriding localStorage detection
 
     // Language detection options
     detection: detectionOptions,

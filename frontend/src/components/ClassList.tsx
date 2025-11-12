@@ -88,12 +88,20 @@ const ClassList: React.FC<ClassListProps> = ({ onNavigate, user }) => {
 
     const targetDay = nextSchedule.dayOfWeek;
     const now = new Date();
-    let daysUntilClass = targetDay - now.getDay();
-    if (daysUntilClass <= 0) {
+    const currentDay = now.getDay();
+
+    // Calculate days until target day
+    let daysUntilClass = targetDay - currentDay;
+
+    // If target day is in the past or today (and time might have passed), go to next week
+    if (
+      daysUntilClass < 0 ||
+      (daysUntilClass === 0 && now.toTimeString().slice(0, 5) >= nextSchedule.startTime)
+    ) {
       daysUntilClass += 7;
     }
 
-    const nextDate = new Date();
+    const nextDate = new Date(now);
     nextDate.setDate(now.getDate() + daysUntilClass);
 
     setSelectedClass(gymClass);

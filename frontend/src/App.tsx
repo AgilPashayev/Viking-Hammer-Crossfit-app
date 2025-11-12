@@ -11,6 +11,7 @@ import InvitationRegistration from './components/InvitationRegistration';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import LandingPage from './components/LandingPage';
 import { DataProvider } from './contexts/DataContext';
 import { isAuthenticated, logout as authLogout } from './services/authService';
 import './styles.css';
@@ -363,86 +364,12 @@ export default function App() {
     <DataProvider>
       <div className="app-root">
         {currentPage === 'home' ? (
-          <div className="landing-page">
-            <header className="landing-header">
-              <div className="logo">
-                <h1>🔨 Viking Hammer CrossFit</h1>
-              </div>
-              {user && (
-                <div className="user-menu">
-                  <span>Welcome, {user.firstName}!</span>
-                  <button onClick={() => setCurrentPage('dashboard')} className="nav-button">
-                    Dashboard
-                  </button>
-                  <button onClick={handleLogout} className="nav-button secondary">
-                    Logout
-                  </button>
-                </div>
-              )}
-            </header>
-            <main className="landing-main">
-              <div className="hero-section">
-                <h2>Welcome to Viking Hammer CrossFit</h2>
-                <p>
-                  Transform your body, forge your spirit, and join the strongest community in town.
-                </p>
-                <div className="hero-stats">
-                  <div className="stat">
-                    <span className="stat-number">500+</span>
-                    <span className="stat-label">Active Members</span>
-                  </div>
-                  <div className="stat">
-                    <span className="stat-number">50+</span>
-                    <span className="stat-label">Daily Classes</span>
-                  </div>
-                  <div className="stat">
-                    <span className="stat-number">10+</span>
-                    <span className="stat-label">Expert Trainers</span>
-                  </div>
-                </div>
-                <div className="cta-buttons">
-                  {!user ? (
-                    <>
-                      <button className="cta-button primary" onClick={handleGetStarted}>
-                        🔨 Start Your Journey
-                      </button>
-                      <button
-                        className="cta-button secondary"
-                        onClick={() => setCurrentPage('auth')}
-                      >
-                        Sign In
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        className="cta-button primary"
-                        onClick={() => setCurrentPage('dashboard')}
-                      >
-                        🏋️ Go to Dashboard
-                      </button>
-                      {(user.role === 'sparta' || user.role === 'reception') && (
-                        <button
-                          className="cta-button secondary"
-                          onClick={() => setCurrentPage('reception')}
-                        >
-                          🏢 Reception Panel
-                        </button>
-                      )}
-                      {user.role === 'sparta' && (
-                        <button
-                          className="cta-button secondary"
-                          onClick={() => setCurrentPage('sparta')}
-                        >
-                          ⚔️ Sparta Panel
-                        </button>
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </main>
-          </div>
+          <LandingPage
+            user={user}
+            onNavigate={handleNavigate}
+            onGetStarted={handleGetStarted}
+            onLogout={handleLogout}
+          />
         ) : currentPage === 'dashboard' ? (
           <div>
             <div className="navigation-bar">

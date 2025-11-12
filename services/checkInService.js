@@ -33,6 +33,56 @@ async function createCheckIn(checkInData) {
       };
     }
 
+    // Get user's active subscription to decrement remaining visits
+    const { data: activeSubscription, error: subError } = await supabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single();
+
+    // If user has an active subscription with visit limits, decrement it
+    if (
+      activeSubscription &&
+      activeSubscription.remaining_visits !== null &&
+      activeSubscription.remaining_visits !== undefined
+    ) {
+      const newRemainingVisits = Math.max(0, activeSubscription.remaining_visits - 1);
+
+      // Update the subscription with decremented visits
+      const { error: updateError } = await supabase
+        .from('subscriptions')
+        .update({
+          remaining_visits: newRemainingVisits,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', activeSubscription.id);
+
+      if (updateError) {
+        console.error('Error updating subscription visits:', updateError);
+      } else {
+        console.log(
+          `✅ Decremented visits for subscription ${activeSubscription.id}: ${activeSubscription.remaining_visits} → ${newRemainingVisits}`,
+        );
+      }
+
+      // Check if subscription should be marked as expired (no visits left)
+      if (newRemainingVisits === 0 && activeSubscription.total_visits !== null) {
+        const { error: statusError } = await supabase
+          .from('subscriptions')
+          .update({ status: 'expired' })
+          .eq('id', activeSubscription.id);
+
+        if (statusError) {
+          console.error('Error updating subscription status:', statusError);
+        } else {
+          console.log(
+            `⚠️ Subscription ${activeSubscription.id} marked as expired (0 visits remaining)`,
+          );
+        }
+      }
+    }
+
     // Create check-in record
     const { data: checkIn, error: insertError } = await supabase
       .from('checkins')

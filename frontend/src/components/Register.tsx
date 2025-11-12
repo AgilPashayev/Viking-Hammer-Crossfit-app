@@ -31,13 +31,17 @@ interface InvitationData {
 export default function Register({ token, onSuccess, onCancel }: RegisterProps) {
   const { t, i18n } = useTranslation();
 
-  // Set Azerbaijani as default language for registration
+  // Set Azerbaijani as default ONLY if no language is saved in localStorage
   useEffect(() => {
-    if (i18n.language !== 'az') {
+    const savedLanguage = localStorage.getItem('viking-hammer-language');
+    if (!savedLanguage && i18n.language !== 'az') {
+      // Only set to Azerbaijani if user has never chosen a language
       i18n.changeLanguage('az').catch((err) => {
         console.error('Failed to change language:', err);
       });
+      localStorage.setItem('viking-hammer-language', 'az');
     }
+    // If savedLanguage exists, i18n will automatically use it from LanguageDetector
   }, [i18n]);
 
   const [loading, setLoading] = useState(true);

@@ -418,14 +418,13 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
         // Calculate next date for this class
         const targetDay = nextSchedule.dayOfWeek;
         let daysUntilClass = targetDay - currentDay;
-        if (
-          daysUntilClass <= 0 ||
-          (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)
-        ) {
+
+        // If target day is in the past or today (and time has passed), go to next week
+        if (daysUntilClass < 0 || (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)) {
           daysUntilClass += 7;
         }
 
-        const nextDate = new Date();
+        const nextDate = new Date(now);
         nextDate.setDate(now.getDate() + daysUntilClass);
 
         // Validate the date before converting to ISO string

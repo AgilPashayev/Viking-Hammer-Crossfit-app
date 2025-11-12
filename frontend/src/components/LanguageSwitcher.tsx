@@ -13,8 +13,10 @@ const LanguageSwitcher: React.FC = () => {
   const { i18n, t } = useTranslation();
 
   const handleLanguageChange = (languageCode: string) => {
+    // Change language and persist to localStorage
     i18n.changeLanguage(languageCode);
-    console.log(`🌐 Language changed to: ${languageCode}`);
+    localStorage.setItem('viking-hammer-language', languageCode);
+    console.log(`🌐 Language changed to: ${languageCode} (saved to localStorage)`);
   };
 
   const currentLanguage = languages.find((lang) => lang.code === i18n.language) || languages[0];

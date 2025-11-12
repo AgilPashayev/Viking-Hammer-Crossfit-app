@@ -352,6 +352,7 @@
       "plan": "Plan",
       "totalVisits": "Total Visits",
       "remainingVisits": "Remaining Visits",
+      "visitsRemaining": "visits",
       "usedVisits": "Used Visits",
       "nextPayment": "Next Payment",
       "daysRemaining": "Days Remaining",

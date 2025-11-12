@@ -727,49 +727,86 @@
   to { transform: rotate(360deg); }
 }
 
-/* Enhanced QR Button Styling */
+/* Enhanced QR Code Button Styling - Premium Design */
 .qr-code-btn {
-  padding: 16px 24px !important;
+  padding: 18px 28px !important;
   height: auto !important;
-  min-width: 200px !important;
+  min-width: 240px !important;
   font-size: 1rem !important;
   flex-direction: row !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 14px !important;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35), 
+              0 2px 8px rgba(118, 75, 162, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: none !important;
+  border-radius: 12px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.qr-code-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.qr-code-btn:hover::before {
+  left: 100%;
 }
 
 .qr-code-btn:hover {
-  transform: translateY(-3px) !important;
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.45), 
+              0 4px 12px rgba(118, 75, 162, 0.35),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  background: linear-gradient(135deg, #7c8ff0 0%, #8a5cb8 100%) !important;
+}
+
+.qr-code-btn:active {
+  transform: translateY(0px) scale(0.98) !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
 }
 
 .qr-code-btn .icon {
-  font-size: 2rem;
-  animation: pulse 2s ease-in-out infinite;
+  font-size: 2.2rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+  animation: pulse 2.5s ease-in-out infinite;
 }
 
 .qr-code-btn .btn-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 3px;
   text-align: left;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .qr-code-btn .btn-text strong {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   display: block;
-  line-height: 1.2;
+  line-height: 1.3;
+  letter-spacing: 0.3px;
+  color: #ffffff;
 }
 
 .qr-code-btn .btn-text small {
-  font-size: 0.75rem;
-  opacity: 0.9;
+  font-size: 0.8rem;
+  opacity: 0.95;
   font-weight: 400;
-  line-height: 1.2;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.2px;
 }
 
 @keyframes pulse {
