@@ -629,7 +629,17 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     return (
       <div className="sparta-dashboard">
         <div className="sparta-welcome">
-          <div className="sparta-avatar">⚔️</div>
+          <div className="sparta-avatar">
+            <img
+              src="/tenor.gif"
+              alt="Sparta Logo"
+              onError={(e) => {
+                // Fallback to emoji if GIF not found
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = '⚔️';
+              }}
+            />
+          </div>
           <div className="welcome-text">
             <h1>{t('admin.sparta.title')}</h1>
             <p className="subtitle">{t('admin.sparta.subtitle')}</p>
