@@ -740,7 +740,87 @@
     },
     "sparta": {
       "title": "Sparta Dashboard",
-      "subtitle": "Thiss iss SPARTAAAA!"    },
+      "subtitle": "Thiss iss SPARTAAAA!"
+    },
+    "landingPage": {
+      "header": {
+        "brandName": "Viking Hammer CrossFit",
+        "welcome": "Welcome",
+        "dashboard": "Dashboard",
+        "logout": "Logout",
+        "login": "Sign In",
+        "signup": "Get Started"
+      },
+      "hero": {
+        "title": "VIKING HAMMER CROSSFIT",
+        "location": "BAKU, AZERBAIJAN",
+        "tagline": "Unleash Your Inner Strength. Build the Warrior Within.",
+        "description": "At Viking Hammer CrossFit, we believe strength is more than muscle — it's mindset, discipline, and community. Located in the heart of Baku, our box combines the power of CrossFit training, functional fitness, and personal coaching to help you become the best version of yourself.",
+        "getStarted": "Start Your Journey",
+        "scrollText": "Scroll to explore more"
+      },
+      "stats": {
+        "activeMembers": "Active Members",
+        "dailyClasses": "Daily Classes",
+        "expertTrainers": "Expert Trainers"
+      },
+      "features": {
+        "title": "What We Offer",
+        "groupWorkouts": {
+          "title": "Group Workouts",
+          "description": "High-intensity, community-driven sessions that challenge and motivate."
+        },
+        "personalTraining": {
+          "title": "Personal Training",
+          "description": "Tailored programs designed for your individual goals and fitness level."
+        },
+        "athleteDevelopment": {
+          "title": "Athlete Development",
+          "description": "Advanced training for professionals and competitors seeking peak performance."
+        },
+        "community": {
+          "title": "Supportive Community",
+          "description": "Train alongside like-minded athletes who push, inspire, and celebrate every milestone."
+        }
+      },
+      "whyChooseUs": {
+        "title": "Why Choose Us",
+        "item1": "Certified and experienced CrossFit coaches",
+        "item2": "State-of-the-art equipment and safe training environment",
+        "item3": "Flexible membership plans for every fitness journey",
+        "item4": "Real results. Real progress. Real community."
+      },
+      "gallery": {
+        "title": "Our Gym",
+        "subtitle": "Get a glimpse of our world-class facility and vibrant community",
+        "addYourPhoto": "Add gym photo here",
+        "addPhotosNote": "Add your gym photos to /public/images/ folder (gym1.jpg - gym6.jpg)",
+        "imageAlt": {
+          "gym1": "CrossFit Training Area",
+          "gym2": "Group Workout Session",
+          "gym3": "Personal Training",
+          "gym4": "Professional Gym Equipment",
+          "gym5": "Supportive Community",
+          "gym6": "Elite Athletes Training"
+        }
+      },
+      "contact": {
+        "title": "Visit Us",
+        "addressLabel": "Address",
+        "address": "Baku AZ1072, Azerbaijan",
+        "phoneLabel": "Phone",
+        "phone": "+994 50 300 33 23",
+        "followLabel": "Instagram",
+        "instagram": "@vikings__hammer",
+        "followButton": "Follow us on Instagram",
+        "mapTitle": "Viking Hammer CrossFit Location"
+      },
+      "footer": {
+        "brandName": "Viking Hammer CrossFit",
+        "tagline": "Transform your body, forge your spirit, and join the strongest community in Baku.",
+        "copyright": "© 2025 Viking Hammer CrossFit. All rights reserved."
+      }
+    },
     "memberManagement": {
       "pageTitle": "Viking Hammer Member Management",
       "returnButton": "Return to Dashboard",

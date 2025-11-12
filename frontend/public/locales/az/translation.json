@@ -740,7 +740,86 @@
     },
     "sparta": {
       "title": "Sparta Paneli",
-      "subtitle": "Tam sistem nəzarəti və idarəçiliyə"
+      "subtitle": "Thiss iss SPARTAAAA!"
+    },
+    "landingPage": {
+      "header": {
+        "brandName": "Viking Hammer CrossFit",
+        "welcome": "Xoş gəlmisiniz",
+        "dashboard": "Panel",
+        "logout": "Çıxış",
+        "login": "Daxil Ol",
+        "signup": "Başla"
+      },
+      "hero": {
+        "title": "VİKİNG HAMMER CROSSFIT",
+        "location": "BAKI, AZƏRBAYCAN",
+        "tagline": "Daxili Gücünü Azad Et. Daxilindəki Döyüşçünü Formalaşdır.",
+        "description": "Viking Hammer CrossFit-də biz güc sadəcə əzələdən daha çoxdur — bu zehni güc, intizam və ictimaiyyətdir. Bakının mərkəzində yerləşən bizim box CrossFit məşqləri, funksional fitnes və fərdi məşqlərin gücünü birləşdirir ki, siz özünüzün ən yaxşı versiyasına çevriləsiniz.",
+        "getStarted": "Səyahətinə Başla",
+        "scrollText": "Daha çox kəşf etmək üçün aşağı sürüşdürün"
+      },
+      "stats": {
+        "activeMembers": "Aktiv Üzvlər",
+        "dailyClasses": "Gündəlik Məşqlər",
+        "expertTrainers": "Ekspert Məşqçilər"
+      },
+      "features": {
+        "title": "Nə Təklif Edirik",
+        "groupWorkouts": {
+          "title": "Qrup Məşqləri",
+          "description": "Yüksək intensivlikli, icma əsaslı seanslar ki, sizi çətinləşdirir və motivasiya edir."
+        },
+        "personalTraining": {
+          "title": "Fərdi Məşqlər",
+          "description": "Fərdi məqsədləriniz və fitnes səviyyəniz üçün hazırlanmış proqramlar."
+        },
+        "athleteDevelopment": {
+          "title": "İdmançı İnkişafı",
+          "description": "Peşəkarlar və yarışmaçılar üçün pik performans axtaran qabaqcıl məşqlər."
+        },
+        "community": {
+          "title": "Dəstəkləyici İcma",
+          "description": "Hər bir nailiyyəti sürükləyən, ilhamlandıran və qeyd edən həmfikir idmançılarla birlikdə məşq edin."
+        }
+      },
+      "whyChooseUs": {
+        "title": "Niyə Bizi Seçəsiniz",
+        "item1": "Sertifikatlı və təcrübəli CrossFit məşqçiləri",
+        "item2": "Müasir avadanlıq və təhlükəsiz məşq mühiti",
+        "item3": "Hər fitnes səyahəti üçün çevik üzvlük planları",
+        "item4": "Real nəticələr. Real tərəqqi. Real icma."
+      },
+      "gallery": {
+        "title": "Bizim Zalımız",
+        "subtitle": "Dünya səviyyəli obyektimizə və canlı icmamıza nəzər salın",
+        "addYourPhoto": "Zal şəklini buraya əlavə edin",
+        "addPhotosNote": "Zal şəkillərinizi /public/images/ qovluğuna əlavə edin (gym1.jpg - gym6.jpg)",
+        "imageAlt": {
+          "gym1": "CrossFit Məşq Sahəsi",
+          "gym2": "Qrup Məşq Seansı",
+          "gym3": "Fərdi Məşqlər",
+          "gym4": "Peşəkar Zal Avadanlıqları",
+          "gym5": "Dəstəkləyici İcma",
+          "gym6": "Elit İdmançıların Məşqləri"
+        }
+      },
+      "contact": {
+        "title": "Bizi Ziyarət Edin",
+        "addressLabel": "Ünvan",
+        "address": "Bakı AZ1072, Azərbaycan",
+        "phoneLabel": "Telefon",
+        "phone": "+994 50 300 33 23",
+        "followLabel": "Instagram",
+        "instagram": "@vikings__hammer",
+        "followButton": "Instagram-da izləyin",
+        "mapTitle": "Viking Hammer CrossFit Yeri"
+      },
+      "footer": {
+        "brandName": "Viking Hammer CrossFit",
+        "tagline": "Bədəninizi dəyişdirin, ruhunuzu formalaşdırın və Bakının ən güclü icmasına qoşulun.",
+        "copyright": "© 2025 Viking Hammer CrossFit. Bütün hüquqlar qorunur."
+      }
     },
     "memberManagement": {
       "pageTitle": "Viking Hammer Üzv İdarəetməsi",

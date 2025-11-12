@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import './LandingPage.css';
 
 interface LandingPageProps {
@@ -9,48 +10,78 @@ interface LandingPageProps {
 }
 
 const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarted, onLogout }) => {
+  const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
   const [logoError, setLogoError] = useState(false);
 
   // Gallery images - you can add your own photos here
   const galleryImages = [
-    { id: 1, url: '/images/gym1.jpg', alt: 'CrossFit Training Area', fallback: true },
-    { id: 2, url: '/images/gym2.jpg', alt: 'Group Workout Session', fallback: true },
-    { id: 3, url: '/images/gym3.jpg', alt: 'Personal Training', fallback: true },
-    { id: 4, url: '/images/gym4.jpg', alt: 'Professional Gym Equipment', fallback: true },
-    { id: 5, url: '/images/gym5.jpg', alt: 'Supportive Community', fallback: true },
-    { id: 6, url: '/images/gym6.jpg', alt: 'Elite Athletes Training', fallback: true },
+    {
+      id: 1,
+      url: '/images/gym1.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym1'),
+      fallback: true,
+    },
+    {
+      id: 2,
+      url: '/images/gym2.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym2'),
+      fallback: true,
+    },
+    {
+      id: 3,
+      url: '/images/gym3.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym3'),
+      fallback: true,
+    },
+    {
+      id: 4,
+      url: '/images/gym4.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym4'),
+      fallback: true,
+    },
+    {
+      id: 5,
+      url: '/images/gym5.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym5'),
+      fallback: true,
+    },
+    {
+      id: 6,
+      url: '/images/gym6.jpg',
+      alt: t('admin.landingPage.gallery.imageAlt.gym6'),
+      fallback: true,
+    },
   ];
 
   const features = [
     {
       icon: '👥',
-      title: 'Group Workouts',
-      description: 'High-intensity, community-driven sessions that challenge and motivate.',
+      title: t('admin.landingPage.features.groupWorkouts.title'),
+      description: t('admin.landingPage.features.groupWorkouts.description'),
     },
     {
       icon: '🎯',
-      title: 'Personal Training',
-      description: 'Tailored programs designed for your individual goals and fitness level.',
+      title: t('admin.landingPage.features.personalTraining.title'),
+      description: t('admin.landingPage.features.personalTraining.description'),
     },
     {
       icon: '🏆',
-      title: 'Athlete Development',
-      description: 'Advanced training for professionals and competitors seeking peak performance.',
+      title: t('admin.landingPage.features.athleteDevelopment.title'),
+      description: t('admin.landingPage.features.athleteDevelopment.description'),
     },
     {
       icon: '💪',
-      title: 'Supportive Community',
-      description:
-        'Train alongside like-minded athletes who push, inspire, and celebrate every milestone.',
+      title: t('admin.landingPage.features.community.title'),
+      description: t('admin.landingPage.features.community.description'),
     },
   ];
 
   const whyChooseUs = [
-    { icon: '✅', text: 'Certified and experienced CrossFit coaches' },
-    { icon: '🏋️', text: 'State-of-the-art equipment and safe training environment' },
-    { icon: '💳', text: 'Flexible membership plans for every fitness journey' },
-    { icon: '📈', text: 'Real results. Real progress. Real community.' },
+    { icon: '✅', text: t('admin.landingPage.whyChooseUs.item1') },
+    { icon: '🏋️', text: t('admin.landingPage.whyChooseUs.item2') },
+    { icon: '💳', text: t('admin.landingPage.whyChooseUs.item3') },
+    { icon: '📈', text: t('admin.landingPage.whyChooseUs.item4') },
   ];
 
   return (
@@ -60,26 +91,28 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="header-content">
           <div className="logo-new">
             <span className="logo-icon">🔨</span>
-            <span className="logo-text">Viking Hammer CrossFit</span>
+            <span className="logo-text">{t('admin.landingPage.header.brandName')}</span>
           </div>
           <nav className="header-nav">
             {user ? (
               <div className="user-menu-new">
-                <span className="welcome-text">Welcome, {user.firstName}!</span>
+                <span className="welcome-text">
+                  {t('admin.landingPage.header.welcome')}, {user.firstName}!
+                </span>
                 <button onClick={() => onNavigate('dashboard')} className="nav-btn-new primary">
-                  Dashboard
+                  {t('admin.landingPage.header.dashboard')}
                 </button>
                 <button onClick={onLogout} className="nav-btn-new secondary">
-                  Logout
+                  {t('admin.landingPage.header.logout')}
                 </button>
               </div>
             ) : (
               <div className="auth-buttons">
                 <button onClick={() => onNavigate('auth')} className="nav-btn-new secondary">
-                  Sign In
+                  {t('admin.landingPage.header.login')}
                 </button>
                 <button onClick={onGetStarted} className="nav-btn-new primary">
-                  Get Started
+                  {t('admin.landingPage.header.signup')}
                 </button>
               </div>
             )}
@@ -102,32 +135,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
             </div>
           )}
 
-          <h1 className="hero-title">VIKING HAMMER CROSSFIT</h1>
-          <p className="hero-location">BAKU, AZERBAIJAN</p>
-          <h2 className="hero-tagline">Unleash Your Inner Strength. Build the Warrior Within.</h2>
-          <p className="hero-description">
-            At Viking Hammer CrossFit, we believe strength is more than muscle — it's mindset,
-            discipline, and community. Located in the heart of Baku, our box combines the power of
-            CrossFit training, functional fitness, and personal coaching to help you become the best
-            version of yourself.
-          </p>
+          <h1 className="hero-title">{t('admin.landingPage.hero.title')}</h1>
+          <p className="hero-location">{t('admin.landingPage.hero.location')}</p>
+          <h2 className="hero-tagline">{t('admin.landingPage.hero.tagline')}</h2>
+          <p className="hero-description">{t('admin.landingPage.hero.description')}</p>
           <div className="hero-cta">
             {!user ? (
               <button className="hero-btn-primary" onClick={onGetStarted}>
-                <span className="btn-icon">⚡</span>
-                Start Your Journey
+                <span className="btn-icon">✓</span>
+                {t('admin.landingPage.hero.getStarted')}
               </button>
             ) : (
               <button className="hero-btn-primary" onClick={() => onNavigate('dashboard')}>
                 <span className="btn-icon">🏋️</span>
-                Go to Dashboard
+                {t('admin.landingPage.header.dashboard')}
               </button>
             )}
           </div>
 
           {/* Scroll Indicator - Below Button */}
           <div className="scroll-indicator">
-            <span className="scroll-text">Scroll to explore more</span>
+            <span className="scroll-text">{t('admin.landingPage.hero.scrollText')}</span>
             <span className="scroll-arrow">↓</span>
           </div>
         </div>
@@ -138,15 +166,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="stats-container">
           <div className="stat-card-new">
             <div className="stat-number">500+</div>
-            <div className="stat-label">Active Members</div>
+            <div className="stat-label">{t('admin.landingPage.stats.activeMembers')}</div>
           </div>
           <div className="stat-card-new">
             <div className="stat-number">50+</div>
-            <div className="stat-label">Daily Classes</div>
+            <div className="stat-label">{t('admin.landingPage.stats.dailyClasses')}</div>
           </div>
           <div className="stat-card-new">
             <div className="stat-number">10+</div>
-            <div className="stat-label">Expert Trainers</div>
+            <div className="stat-label">{t('admin.landingPage.stats.expertTrainers')}</div>
           </div>
         </div>
       </section>
@@ -156,7 +184,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="section-container">
           <h2 className="section-title">
             <span className="title-icon">💪</span>
-            What We Offer
+            {t('admin.landingPage.features.title')}
           </h2>
           <div className="features-grid">
             {features.map((feature, index) => (
@@ -174,8 +202,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
       <section className="why-section">
         <div className="section-container">
           <h2 className="section-title">
-            <span className="title-icon">⚡</span>
-            Why Choose Us
+            <span className="title-icon">✓</span>
+            {t('admin.landingPage.whyChooseUs.title')}
           </h2>
           <div className="why-grid">
             {whyChooseUs.map((item, index) => (
@@ -193,11 +221,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="section-container">
           <h2 className="section-title">
             <span className="title-icon">📸</span>
-            Our Gym
+            {t('admin.landingPage.gallery.title')}
           </h2>
-          <p className="gallery-subtitle">
-            Get a glimpse of our world-class facility and vibrant community
-          </p>
+          <p className="gallery-subtitle">{t('admin.landingPage.gallery.subtitle')}</p>
           <div className="gallery-grid">
             {galleryImages.map((image) => (
               <div
@@ -214,13 +240,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
                   <div className="gallery-placeholder">
                     <div className="placeholder-icon">🏋️</div>
                     <div className="placeholder-text">{image.alt}</div>
-                    <div className="placeholder-hint">Add gym{image.id}.jpg to display</div>
+                    <div className="placeholder-hint">
+                      {t('admin.landingPage.gallery.addYourPhoto')}
+                    </div>
                   </div>
                 ) : (
                   <>
                     <img src={image.url} alt={image.alt} />
                     <div className="gallery-overlay">
-                      <span className="view-icon">🔍</span>
+                      <span className="view-icon">👁</span>
                     </div>
                   </>
                 )}
@@ -229,9 +257,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
           </div>
           <div className="gallery-note">
             <span className="note-icon">💡</span>
-            <span>
-              Add your gym photos to <code>/public/images/</code> folder (gym1.jpg - gym6.jpg)
-            </span>
+            <span>{t('admin.landingPage.gallery.addPhotosNote')}</span>
           </div>
         </div>
       </section>
@@ -256,38 +282,38 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="section-container">
           <h2 className="section-title">
             <span className="title-icon">📍</span>
-            Visit Us
+            {t('admin.landingPage.contact.title')}
           </h2>
           <div className="contact-grid">
             <div className="contact-info">
               <div className="contact-item">
                 <div className="contact-icon">📌</div>
                 <div className="contact-details">
-                  <h3>Address</h3>
+                  <h3>{t('admin.landingPage.contact.addressLabel')}</h3>
                   <p>Genclik m., Olimpiya 6</p>
-                  <p>Baku AZ1072, Azerbaijan</p>
+                  <p>{t('admin.landingPage.contact.address')}</p>
                 </div>
               </div>
               <div className="contact-item">
                 <div className="contact-icon">📞</div>
                 <div className="contact-details">
-                  <h3>Phone</h3>
+                  <h3>{t('admin.landingPage.contact.phoneLabel')}</h3>
                   <a href="tel:+994503003323" className="contact-link">
-                    +994 50 300 33 23
+                    {t('admin.landingPage.contact.phone')}
                   </a>
                 </div>
               </div>
               <div className="contact-item">
                 <div className="contact-icon">📸</div>
                 <div className="contact-details">
-                  <h3>Instagram</h3>
+                  <h3>{t('admin.landingPage.contact.followLabel')}</h3>
                   <a
                     href="https://www.instagram.com/vikings__hammer"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="contact-link instagram-link"
                   >
-                    @vikings__hammer
+                    {t('admin.landingPage.contact.instagram')}
                     <span className="external-icon">↗</span>
                   </a>
                 </div>
@@ -300,7 +326,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
                   className="social-btn instagram"
                 >
                   <span className="social-icon">📸</span>
-                  Follow us on Instagram
+                  {t('admin.landingPage.contact.followButton')}
                 </a>
               </div>
             </div>
@@ -325,12 +351,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
         <div className="footer-content">
           <div className="footer-logo">
             <span className="logo-icon">🔨</span>
-            <span>Viking Hammer CrossFit</span>
+            <span>{t('admin.landingPage.footer.brandName')}</span>
           </div>
-          <p className="footer-text">
-            Transform your body, forge your spirit, and join the strongest community in Baku.
-          </p>
-          <p className="footer-copyright">© 2025 Viking Hammer CrossFit. All rights reserved.</p>
+          <p className="footer-text">{t('admin.landingPage.footer.tagline')}</p>
+          <p className="footer-copyright">{t('admin.landingPage.footer.copyright')}</p>
         </div>
       </footer>
     </div>
