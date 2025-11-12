@@ -307,7 +307,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ user, onNavigate, onGetStarte
             <div className="map-container">
               <iframe
                 title="Viking Hammer CrossFit Location"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3037.8!2d49.8673!3d40.4093!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40307d6bd6211cf9%3A0x343f6b5e7ae56c6b!2sOlimpiya%206%2C%20Baku%201072%2C%20Azerbaijan!5e0!3m2!1sen!2sus!4v1699999999999!5m2!1sen!2sus&markers=color:red%7Clabel:V%7C40.4093,49.8673"
+                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=9VX4%2B6H+Baku,+Azerbaijan&zoom=17"
                 width="100%"
                 height="100%"
                 style={{ border: 0, borderRadius: '12px' }}

@@ -762,6 +762,7 @@
 }
 
 .map-container {
+  position: relative;
   height: 500px;
   border-radius: 16px;
   overflow: hidden;
