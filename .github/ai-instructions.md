@@ -494,21 +494,55 @@ mobile/app/src/
 
 ## APPENDIX E: MIGRATION TESTING PROTOCOL
 
+### QA TESTING STRATEGY: BROWSER MOBILE VIEW
+
+**CRITICAL**: Use **Browser DevTools Mobile View** for rapid QA testing during development.
+
+**Setup Instructions:**
+```
+1. Open web app: http://localhost:5173
+2. Open Chrome/Edge DevTools (F12)
+3. Click "Toggle Device Toolbar" (Ctrl+Shift+M)
+4. Select device: iPhone 14 Pro, Pixel 7, or custom dimensions
+5. Test responsive behavior at various screen sizes:
+   - 375x667 (iPhone SE)
+   - 390x844 (iPhone 14 Pro)
+   - 412x915 (Pixel 7)
+   - 360x740 (Samsung Galaxy S21)
+```
+
+**Why This Approach:**
+- ✅ **Faster iteration** - No need to rebuild React Native app for UI changes
+- ✅ **Same backend** - Uses localhost:4001 API (no changes needed)
+- ✅ **Real responsive CSS** - Tests actual web app mobile behavior
+- ✅ **Quick validation** - Immediately see if mobile layout works before RN conversion
+- ✅ **Design verification** - Confirms responsive breakpoints match mobile screen sizes
+
+**Workflow:**
+1. First, ensure web app looks perfect in mobile view (375px-412px width)
+2. Then, migrate that exact visual design to React Native
+3. Use browser mobile view as the reference for pixel-perfect comparison
+
+---
+
 ### BEFORE MOVING TO NEXT COMPONENT:
 
-#### 1. VISUAL COMPARISON TEST
+#### 1. VISUAL COMPARISON TEST (BROWSER MOBILE VIEW + REACT NATIVE)
 ```
-□ Open web app: http://localhost:5173
-□ Open mobile app: iOS Simulator / Android Emulator
-□ Take screenshot of web version
-□ Take screenshot of mobile version
-□ Compare side-by-side:
-  - Colors match
-  - Spacing matches
-  - Typography matches
-  - Layout structure matches
-  - Icons match
-  - Shadows/gradients match
+□ Open web app in browser mobile view (Chrome DevTools, iPhone 14 Pro size)
+□ Verify web app responsive design works at 390px width
+□ Take screenshot of browser mobile view
+□ Open React Native app: iOS Simulator / Android Emulator
+□ Take screenshot of React Native version
+□ Compare side-by-side (web mobile view vs RN app):
+  - Colors match EXACTLY
+  - Spacing matches EXACTLY
+  - Typography matches EXACTLY
+  - Layout structure matches EXACTLY
+  - Icons match EXACTLY
+  - Shadows/gradients match EXACTLY
+  - Button sizes match EXACTLY
+  - Touch target sizes adequate (min 44x44px)
 ```
 
 #### 2. FUNCTIONAL TESTING
@@ -564,7 +598,8 @@ Stability Check:
 - ✅ Integration testing passed (API working, auth working)
 
 Testing Evidence:
-- Screenshots: [web vs mobile comparison link/file]
+- Screenshots: Browser mobile view (390px) vs React Native app
+- Web mobile view URL: http://localhost:5173 (DevTools mobile mode)
 - API test results: [success responses]
 - Performance metrics: [if applicable]
 
@@ -575,7 +610,70 @@ Next Steps:
 
 ---
 
-## APPENDIX F: CRITICAL MIGRATION CONSTRAINTS
+## APPENDIX F: DEVELOPMENT WORKFLOW - BROWSER MOBILE VIEW FIRST
+
+### THREE-STAGE MIGRATION WORKFLOW:
+
+#### **STAGE 1: WEB RESPONSIVE VERIFICATION (Browser Mobile View)**
+```
+1. Open http://localhost:5173 in Chrome/Edge
+2. Open DevTools (F12) → Toggle Device Toolbar (Ctrl+Shift+M)
+3. Select device: iPhone 14 Pro (390x844)
+4. Test component at mobile width:
+   - Does layout adapt properly to 390px width?
+   - Are buttons/touch targets large enough (min 44x44px)?
+   - Is text readable at mobile size?
+   - Do gradients/shadows render correctly?
+   - Does scrolling work smoothly?
+5. Fix any responsive CSS issues in web app FIRST
+6. Take reference screenshot (this is your migration target)
+```
+
+**Why Stage 1 is Critical:**
+- Web app already has responsive CSS (@media queries)
+- Faster to fix layout issues in web before RN conversion
+- Browser mobile view = exact visual target for RN migration
+- Ensures mobile UX is correct before spending time on RN
+
+#### **STAGE 2: REACT NATIVE MIGRATION (Pixel-Perfect Conversion)**
+```
+1. Reference: Browser mobile view screenshot from Stage 1
+2. Convert component TSX → React Native (use APPENDIX B)
+3. Convert CSS → StyleSheet (use APPENDIX A color values)
+4. Test in iOS Simulator / Android Emulator
+5. Compare RN app vs browser mobile view screenshot
+6. Adjust until pixel-perfect match achieved
+```
+
+#### **STAGE 3: FINAL VALIDATION (Side-by-Side QA)**
+```
+1. Browser mobile view (left): http://localhost:5173 (DevTools, iPhone 14 Pro)
+2. React Native app (right): iOS Simulator (iPhone 14 Pro)
+3. Visual comparison (take screenshots, compare)
+4. Functional testing (all buttons, API calls, validations)
+5. Performance check (smooth, no lag)
+6. Generate mandatory report (APPENDIX E format)
+```
+
+### RECOMMENDED DEVICE SIZES FOR BROWSER TESTING:
+
+**Primary Test Device (Most Important):**
+```
+iPhone 14 Pro: 390 x 844 (standard modern iPhone size)
+```
+
+**Secondary Test Devices:**
+```
+iPhone SE: 375 x 667 (smallest iOS device still in use)
+Pixel 7: 412 x 915 (standard Android size)
+Samsung Galaxy S21: 360 x 740 (compact Android)
+```
+
+**Test at these widths to ensure responsive design works across all mobile devices.**
+
+---
+
+## APPENDIX G: CRITICAL MIGRATION CONSTRAINTS
 
 ### FROZEN ELEMENTS (NEVER MODIFY):
 
@@ -598,24 +696,38 @@ Next Steps:
 1. This file (.github/ai-instructions.md) - Overall protocol
 2. APPENDIX A - Design System (colors, typography, spacing)
 3. APPENDIX B - CSS to RN Conversion Guide
-4. APPENDIX C - Quality Checklist (24 items per component)
+4. APPENDIX C - Quality Checklist (60+ items per component)
 5. APPENDIX D - File Structure Mapping
-6. APPENDIX E - Testing Protocol
-7. mobile/web-app-backup/frontend/ - Source of truth for ALL web code
+6. APPENDIX E - Testing Protocol (Browser Mobile View QA)
+7. APPENDIX F - Development Workflow (3-stage process)
+8. mobile/web-app-backup/frontend/ - Source of truth for ALL web code
 ```
 
-### CHECKPOINT-BASED EXECUTION:
+### CHECKPOINT-BASED EXECUTION (3-STAGE WORKFLOW):
 
 ```
-1. Read web component source (TSX + CSS)
-2. Extract design values (colors, sizes, spacing) using APPENDIX A
-3. Convert CSS to StyleSheet using APPENDIX B
-4. Create mobile screen/component
-5. Run through APPENDIX C checklist (all 24 items)
-6. Execute APPENDIX E testing protocol
-7. Generate mandatory report
-8. WAIT for approval/confirmation before next component
+STAGE 1 - WEB RESPONSIVE VERIFICATION:
+1. Open web app in browser mobile view (http://localhost:5173, DevTools, 390px)
+2. Test component responsive behavior at mobile width
+3. Fix any CSS issues in web app (if needed)
+4. Take reference screenshot (migration target)
+
+STAGE 2 - REACT NATIVE MIGRATION:
+5. Read web component source (TSX + CSS from backup)
+6. Extract design values (colors, sizes, spacing) using APPENDIX A
+7. Convert CSS to StyleSheet using APPENDIX B
+8. Create React Native screen/component
+9. Test in iOS Simulator / Android Emulator
+10. Compare RN app vs browser mobile view screenshot
+
+STAGE 3 - FINAL VALIDATION:
+11. Run through APPENDIX C checklist (all 60+ items)
+12. Execute APPENDIX E testing protocol (browser mobile view + RN side-by-side)
+13. Generate mandatory report with screenshots
+14. WAIT for approval/confirmation before next component
 ```
+
+**CRITICAL RULE**: Always test web responsive design FIRST (browser mobile view) before spending time on React Native conversion. This ensures the mobile layout is correct and saves rework time.
 
 ---
 
