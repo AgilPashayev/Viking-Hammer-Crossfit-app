@@ -1,0 +1,1171 @@
+import React, { useState, useEffect } from 'react';
+import './MemberDashboard.css';
+import { useData } from '../contexts/DataContext';
+import { classService, GymClass } from '../services/classManagementService';
+import { bookingService } from '../services/bookingService';
+import ClassDetailsModal from './ClassDetailsModal';
+import { formatDate } from '../utils/dateFormatter';
+import {
+  generateQRCodeData,
+  generateQRCodeImage,
+  storeQRCode,
+  getUserQRCode,
+  QRCodeData,
+} from '../services/qrCodeService';
+import { pushNotificationService } from '../services/pushNotificationService';
+import AnnouncementPopup from './AnnouncementPopup';
+import { useAnnouncements } from '../hooks/useAnnouncements';
+import { useTranslation } from 'react-i18next';
+
+interface UserProfile {
+  name: string;
+  membershipType: string;
+  joinDate: string;
+  visitsThisMonth: number;
+  totalVisits: number;
+  avatar?: string;
+  actualPlanName?: string; // Real-time plan name from subscription
+}
+
+interface ClassBooking {
+  id: string;
+  className: string;
+  instructor: string;
+  date: string;
+  time: string;
+  status: 'upcoming' | 'completed' | 'cancelled';
+}
+
+interface Announcement {
+  id: string;
+  title: string;
+  message: string;
+  date: string;
+  type: 'info' | 'warning' | 'success';
+  readBy?: string[];
+}
+
+interface MemberDashboardProps {
+  onNavigate?: (page: string) => void;
+  user?: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    countryCode?: string;
+    dateOfBirth?: string;
+    gender?: string;
+    emergencyContactName?: string;
+    emergencyContactPhone?: string;
+    emergencyContactCountryCode?: string;
+    membershipType: string;
+    joinDate: string;
+    isAuthenticated: boolean;
+  } | null;
+}
+
+const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) => {
+  const { getMemberVisitsThisMonth, getMemberTotalVisits, classes, members, checkIns } = useData();
+  const { t, i18n } = useTranslation(); // Add i18n for language detection
+
+  // Translation helpers for plan names
+  const normalizeText = (value: string | undefined | null): string => {
+    if (!value) return '';
+    return value.replace(/[–—−]/g, '-').replace(/\s+/g, ' ').trim().toLowerCase();
+  };
+
+  const PLAN_NAME_KEY_MAP: Record<string, string> = {
+    'monthly unlimited': 'admin.membership.planNames.monthlyUnlimited',
+    'monthly limited': 'admin.membership.planNames.monthlyLimited',
+    'single session': 'admin.membership.planNames.singleSession',
+  };
+
+  const translateUsingMap = (
+    value: string | undefined | null,
+    map: Record<string, string>,
+  ): string => {
+    if (!value) return '';
+    const normalized = normalizeText(value);
+    const key = map[normalized];
+    return key ? t(key) : value;
+  };
+
+  const translatePlanName = (name: string | undefined | null): string => {
+    return translateUsingMap(name, PLAN_NAME_KEY_MAP);
+  };
+
+  // Debug logging
+  console.log('MemberDashboard rendering, user:', user);
+
+  // Calculate real-time visit statistics
+  const visitsThisMonth = user?.id ? getMemberVisitsThisMonth(user.id) : 0;
+  const totalVisits = user?.id ? getMemberTotalVisits(user.id) : 0;
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    name: user ? `${user.firstName} ${user.lastName}` : 'Viking Warrior',
+    membershipType: user?.membershipType || 'Viking Warrior Basic',
+    joinDate: user?.joinDate || new Date().toISOString(),
+    visitsThisMonth: visitsThisMonth,
+    totalVisits: totalVisits,
+    avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || undefined,
+  });
+
+  // Subscription state for real-time plan name
+  const [currentSubscription, setCurrentSubscription] = useState<any>(null);
+
+  const [localClasses, setLocalClasses] = useState(classes);
+  const [isLoadingClasses, setIsLoadingClasses] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<GymClass | null>(null);
+  const [selectedClassDate, setSelectedClassDate] = useState<string>('');
+  const [selectedClassTime, setSelectedClassTime] = useState<string>('');
+  const [selectedClassDayOfWeek, setSelectedClassDayOfWeek] = useState<number | undefined>(
+    undefined,
+  );
+  const [isBooking, setIsBooking] = useState(false);
+  const [userBookings, setUserBookings] = useState<string[]>([]);
+  const [bookingMessage, setBookingMessage] = useState<{
+    type: 'success' | 'error';
+    text: string;
+  } | null>(null);
+
+  // Confirmation modal state for announcement dismiss
+  const [dismissConfirmModal, setDismissConfirmModal] = useState<{
+    show: boolean;
+    announcementId: string;
+    title: string;
+  }>({ show: false, announcementId: '', title: '' });
+
+  // Announcements collapse state - show only last 3 by default
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false);
+
+  // Helper function to normalize time format to HH:MM:SS for consistent comparison
+  const normalizeTime = (time: string): string => {
+    if (!time) return '';
+    // If time is HH:MM, convert to HH:MM:SS (database format)
+    return time.length === 5 ? `${time}:00` : time;
+  };
+
+  // Helper function to get day of week from date string (YYYY-MM-DD)
+  const getDayOfWeek = (dateString: string): number => {
+    // Parse date components to avoid timezone issues
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    return date.getDay();
+  };
+
+  // Load user bookings
+  useEffect(() => {
+    const loadUserBookings = async () => {
+      if (user?.id) {
+        const bookings = await bookingService.getMemberBookings(user.id);
+        console.log('📋 Loaded user bookings (raw):', JSON.stringify(bookings, null, 2));
+        // Parse backend response format: booking.slot.class.id, booking.booking_date, booking.slot.start_time
+        const bookingKeys = bookings.map((b: any) => {
+          const classId = b.slot?.class?.id || b.classId;
+          const date = b.booking_date || b.date;
+          const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+          const key = `${classId}-${date}-${startTime}`;
+          console.log(`  📝 Booking ${b.id}:`);
+          console.log(`     classId: "${classId}"`);
+          console.log(`     date: "${date}"`);
+          console.log(`     startTime: "${startTime}"`);
+          console.log(`     => key: "${key}"`);
+          return key;
+        });
+        console.log('🔑 Final booking keys array:', bookingKeys);
+        setUserBookings(bookingKeys);
+      }
+    };
+    loadUserBookings();
+  }, [user?.id]);
+
+  // Load user subscription for real-time plan name
+  useEffect(() => {
+    const loadSubscription = async () => {
+      if (user?.id) {
+        try {
+          console.log('💳 Loading subscription for dashboard:', user.id);
+          const response = await fetch(`http://localhost:4001/api/subscriptions/user/${user.id}`, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success && result.data && result.data.length > 0) {
+              // Find active subscription or use the most recent one
+              const activeSub =
+                result.data.find((s: any) => s.status === 'active') || result.data[0];
+              setCurrentSubscription(activeSub);
+              console.log('✅ Dashboard subscription loaded:', activeSub);
+            } else {
+              setCurrentSubscription(null);
+            }
+          } else {
+            console.warn('⚠️ Could not load subscription:', response.status);
+            setCurrentSubscription(null);
+          }
+        } catch (error) {
+          console.error('❌ Failed to load subscription for dashboard:', error);
+          setCurrentSubscription(null);
+        }
+      }
+    };
+
+    loadSubscription();
+  }, [user?.id]);
+
+  // Load classes from API on mount and when changes occur
+  useEffect(() => {
+    const loadClasses = async () => {
+      try {
+        setIsLoadingClasses(true);
+        const classesData = await classService.getAll();
+        setLocalClasses(classesData);
+      } catch (error) {
+        console.error('Failed to load classes:', error);
+        // Fall back to context classes if API fails
+        setLocalClasses(classes);
+      } finally {
+        setIsLoadingClasses(false);
+      }
+    };
+
+    loadClasses();
+
+    // Set up polling to check for updates every 30 seconds
+    const pollInterval = setInterval(loadClasses, 30000);
+
+    return () => clearInterval(pollInterval);
+  }, []); // Empty dependency - only load on mount and poll
+
+  // Sync localClasses with DataContext classes when they change
+  useEffect(() => {
+    setLocalClasses(classes);
+  }, [classes]);
+
+  // Helper function to get instructor name by ID or from class data
+  const getInstructorName = (instructorId: string, classData?: any): string => {
+    // First try to find instructor in members data (available for admins)
+    const instructor = members.find(
+      (member) => member.id === instructorId && member.role === 'instructor',
+    );
+
+    if (instructor) {
+      return `${instructor.firstName} ${instructor.lastName}`;
+    }
+
+    // Try to get instructor name from class data if available
+    if (classData && classData.instructorNames && classData.instructorNames.length > 0) {
+      const instructorIndex = classData.instructors?.indexOf(instructorId) ?? -1;
+      if (instructorIndex >= 0 && classData.instructorNames[instructorIndex]) {
+        return classData.instructorNames[instructorIndex];
+      }
+      // If instructor ID not found in array, return the first instructor name
+      return classData.instructorNames[0];
+    }
+
+    // Fallback for regular members: return a user-friendly placeholder
+    if (instructorId && instructorId.length > 10) {
+      return 'Instructor'; // Generic placeholder for valid instructor IDs
+    }
+
+    return instructorId || 'TBA';
+  };
+
+  // Helper function to get full member data including status
+  const getFullMemberData = () => {
+    if (!user?.id) return null;
+    return members.find((member) => member.id === user.id);
+  };
+
+  // Update user profile when user data changes OR when visits change OR when subscription changes
+  useEffect(() => {
+    if (user) {
+      // Get real-time plan name from subscription or fallback to user.membershipType
+      const actualPlanName = currentSubscription?.plans?.name || user.membershipType;
+
+      // Validate and use joinDate - ensure it's a valid date string
+      const validJoinDate = user.joinDate && user.joinDate.trim() !== '' ? user.joinDate : null;
+
+      console.log('🔍 MemberDashboard user data:', {
+        userId: user.id,
+        joinDate: user.joinDate,
+        validJoinDate: validJoinDate,
+        actualPlanName: actualPlanName,
+        membershipType: user.membershipType,
+        subscriptionPlanName: currentSubscription?.plans?.name,
+      });
+
+      setUserProfile((prev) => ({
+        ...prev,
+        name: `${user.firstName} ${user.lastName}`,
+        membershipType: user.membershipType, // Keep original for fallback
+        actualPlanName: actualPlanName, // Real-time plan name
+        joinDate: validJoinDate || prev.joinDate || new Date().toISOString(),
+        visitsThisMonth: getMemberVisitsThisMonth(user.id),
+        totalVisits: getMemberTotalVisits(user.id),
+        avatar: (user as any)?.avatar_url || (user as any)?.profilePhoto || prev.avatar,
+      }));
+    }
+  }, [
+    user,
+    currentSubscription,
+    getMemberVisitsThisMonth,
+    getMemberTotalVisits,
+    checkIns,
+    members,
+  ]);
+
+  // Helper function to format dates according to current language
+  const formatLocalizedDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const currentLang = i18n.language;
+
+    // Use locale-specific formatting
+    if (currentLang === 'az') {
+      const dayNames = [
+        t('common.sunday'),
+        t('common.monday'),
+        t('common.tuesday'),
+        t('common.wednesday'),
+        t('common.thursday'),
+        t('common.friday'),
+        t('common.saturday'),
+      ];
+      const monthNames = [
+        t('classes.months.short.jan'),
+        t('classes.months.short.feb'),
+        t('classes.months.short.mar'),
+        t('classes.months.short.apr'),
+        t('classes.months.short.may'),
+        t('classes.months.short.jun'),
+        t('classes.months.short.jul'),
+        t('classes.months.short.aug'),
+        t('classes.months.short.sep'),
+        t('classes.months.short.oct'),
+        t('classes.months.short.nov'),
+        t('classes.months.short.dec'),
+      ];
+      const dayShort = dayNames[date.getDay()].substring(0, 3);
+      return `${dayShort}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+    } else if (currentLang === 'ru') {
+      const dayNames = [
+        t('common.sunday'),
+        t('common.monday'),
+        t('common.tuesday'),
+        t('common.wednesday'),
+        t('common.thursday'),
+        t('common.friday'),
+        t('common.saturday'),
+      ];
+      const monthNames = [
+        t('classes.months.short.jan'),
+        t('classes.months.short.feb'),
+        t('classes.months.short.mar'),
+        t('classes.months.short.apr'),
+        t('classes.months.short.may'),
+        t('classes.months.short.jun'),
+        t('classes.months.short.jul'),
+        t('classes.months.short.aug'),
+        t('classes.months.short.sep'),
+        t('classes.months.short.oct'),
+        t('classes.months.short.nov'),
+        t('classes.months.short.dec'),
+      ];
+      const dayShort = dayNames[date.getDay()].substring(0, 2);
+      return `${dayShort}, ${monthNames[date.getMonth()]} ${date.getDate()}`;
+    }
+
+    // English (default)
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  // Transform classes to ClassBooking format with real-time updates
+  const upcomingClasses: ClassBooking[] = localClasses
+    .filter((cls) => cls.status === 'active' && cls.schedule && cls.schedule.length > 0)
+    .map((cls) => {
+      try {
+        // Find next scheduled class
+        const now = new Date();
+        const currentDay = now.getDay();
+        const currentTime = now.toTimeString().slice(0, 5);
+
+        // Find the next upcoming schedule slot
+        let nextSchedule = cls.schedule.find((sch) => {
+          if (sch.dayOfWeek === currentDay) {
+            return sch.startTime > currentTime;
+          }
+          return sch.dayOfWeek > currentDay;
+        });
+
+        // If no schedule found this week, get first schedule slot (next week)
+        if (!nextSchedule && cls.schedule.length > 0) {
+          nextSchedule = [...cls.schedule].sort((a, b) => a.dayOfWeek - b.dayOfWeek)[0];
+        }
+
+        // Safety check: if still no schedule, return null to filter out
+        if (!nextSchedule || nextSchedule.dayOfWeek == null || !nextSchedule.startTime) {
+          return null;
+        }
+
+        // Calculate next date for this class
+        const targetDay = nextSchedule.dayOfWeek;
+        let daysUntilClass = targetDay - currentDay;
+
+        // If target day is in the past or today (and time has passed), go to next week
+        if (daysUntilClass < 0 || (daysUntilClass === 0 && nextSchedule.startTime <= currentTime)) {
+          daysUntilClass += 7;
+        }
+
+        const nextDate = new Date(now);
+        nextDate.setDate(now.getDate() + daysUntilClass);
+
+        // Validate the date before converting to ISO string
+        if (isNaN(nextDate.getTime())) {
+          console.error('Invalid date calculated for class:', cls.name);
+          return null;
+        }
+
+        const booking: ClassBooking = {
+          id: cls.id,
+          className: cls.name,
+          instructor:
+            cls.instructors && cls.instructors.length > 0
+              ? getInstructorName(cls.instructors[0], cls)
+              : 'TBA',
+          date: nextDate.toISOString().split('T')[0],
+          time: normalizeTime(nextSchedule.startTime), // Normalize time format
+          status: 'upcoming',
+        };
+
+        // DEBUG: Log the booking key that will be used
+        const debugKey = `${cls.id}-${booking.date}-${booking.time}`;
+        console.log(
+          `🗓️ Upcoming class "${cls.name}": key="${debugKey}", date="${booking.date}", time="${booking.time}"`,
+        );
+
+        return booking;
+      } catch (error) {
+        console.error('Error processing class:', cls.name, error);
+        return null;
+      }
+    })
+    .filter((cls): cls is ClassBooking => cls !== null)
+    .sort((a, b) => {
+      // Sort by date and time
+      const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      return a.time.localeCompare(b.time);
+    })
+    .slice(0, 5); // Show only next 5 upcoming classes
+
+  // Use announcements hook
+  const {
+    announcements: announcementsList,
+    unreadAnnouncements,
+    showPopup: showAnnouncementPopup,
+    isMarking: isMarkingAnnouncements,
+    handleClosePopup: handleCloseAnnouncementPopup,
+    dismissAnnouncement,
+  } = useAnnouncements({
+    userId: user?.id,
+    role: 'member',
+    enabled: true,
+  });
+
+  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState(false);
+
+  // Initialize push notifications
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      if (!user?.id) return;
+
+      // Check if notifications are supported
+      if (pushNotificationService.isSupported()) {
+        const permission = pushNotificationService.getPermissionStatus();
+        setPushNotificationsEnabled(permission.granted);
+
+        // If permission is granted, ensure subscription
+        if (permission.granted) {
+          try {
+            await pushNotificationService.subscribe(user.id);
+          } catch (error) {
+            console.error('Failed to subscribe to push notifications:', error);
+          }
+        }
+      }
+    };
+
+    initPushNotifications();
+  }, [user?.id]);
+
+  // Request push notification permission
+  const handleEnablePushNotifications = async () => {
+    if (!user?.id) return;
+
+    try {
+      const granted = await pushNotificationService.requestPermission();
+      if (granted) {
+        await pushNotificationService.subscribe(user.id);
+        setPushNotificationsEnabled(true);
+
+        // Show test notification
+        await pushNotificationService.showNotification('Notifications Enabled! 🎉', {
+          body: 'You will now receive updates about gym announcements and classes.',
+        });
+      }
+    } catch (error) {
+      console.error('Failed to enable push notifications:', error);
+    }
+  };
+
+  const [quickStats, setQuickStats] = useState({
+    nextClass: 'CrossFit WOD - Tomorrow 6:00 AM',
+    membershipExpiry: '2025-11-15',
+    qrCode: 'VH-JV-2024-001',
+  });
+
+  // QR Code state management
+  const [qrCodeData, setQRCodeData] = useState<QRCodeData | null>(null);
+  const [qrCodeImage, setQRCodeImage] = useState<string | null>(null);
+  const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  // Booking handlers
+  const handleShowDetails = (classItem: any) => {
+    const gymClass = localClasses.find((c) => c.id === classItem.id);
+    if (gymClass) {
+      setSelectedClass(gymClass);
+      setSelectedClassDate(classItem.date);
+      setSelectedClassTime(classItem.time);
+
+      // Calculate dayOfWeek from the date to ensure correct matching with database
+      const calculatedDayOfWeek = getDayOfWeek(classItem.date);
+      setSelectedClassDayOfWeek(calculatedDayOfWeek);
+
+      console.log('🔍 Class Details Modal - Setting:', {
+        date: classItem.date,
+        time: classItem.time,
+        calculatedDayOfWeek,
+        dayName: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][
+          calculatedDayOfWeek
+        ],
+      });
+    }
+  };
+
+  const handleCloseModal = () => {
+    setSelectedClass(null);
+    setSelectedClassDate('');
+    setSelectedClassTime('');
+    setSelectedClassDayOfWeek(undefined);
+    setBookingMessage(null);
+  };
+
+  const handleBookClass = async () => {
+    if (!selectedClass || !user?.id) return;
+
+    const normalizedTime = normalizeTime(selectedClassTime);
+    const bookingKey = `${selectedClass.id}-${selectedClassDate}-${normalizedTime}`;
+    const isAlreadyBooked = userBookings.includes(bookingKey);
+
+    console.log('🎯 BOOKING ACTION DEBUG:');
+    console.log('  Selected Class ID:', selectedClass.id);
+    console.log('  Selected Date:', selectedClassDate, typeof selectedClassDate);
+    console.log('  Selected Time (original):', selectedClassTime);
+    console.log('  Selected Time (normalized):', normalizedTime);
+    console.log('  Generated Key:', bookingKey);
+    console.log('  Is Already Booked?', isAlreadyBooked);
+    console.log('  Current userBookings:', userBookings);
+
+    try {
+      setIsBooking(true);
+
+      if (isAlreadyBooked) {
+        // Cancel booking - first find the booking ID
+        console.log('🔍 CANCEL BOOKING DEBUG:');
+        console.log('  Looking for booking with key:', bookingKey);
+        console.log('  Current userBookings:', userBookings);
+
+        const bookings = await bookingService.getMemberBookings(user.id);
+        console.log('  Fetched bookings from backend:', bookings);
+
+        const bookingToCancel = bookings.find((b: any) => {
+          const classId = b.slot?.class?.id || b.classId;
+          const date = b.booking_date || b.date;
+          const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+          const testKey = `${classId}-${date}-${startTime}`;
+          console.log(
+            `  Testing booking ${b.id}: ${testKey} === ${bookingKey}?`,
+            testKey === bookingKey,
+          );
+          return testKey === bookingKey;
+        });
+
+        if (!bookingToCancel) {
+          console.error('❌ CANCEL FAILED: Booking not found in database');
+          console.error('  Searched for key:', bookingKey);
+          console.error(
+            '  Available bookings:',
+            bookings.map((b: any) => ({
+              id: b.id,
+              key: `${b.slot?.class?.id || b.classId}-${b.booking_date || b.date}-${normalizeTime(
+                b.slot?.start_time || b.startTime,
+              )}`,
+            })),
+          );
+          setBookingMessage({
+            type: 'error',
+            text: 'Booking not found in database. Please refresh the page.',
+          });
+          setIsBooking(false);
+          return;
+        }
+
+        console.log('✅ Found booking to cancel:', bookingToCancel);
+
+        const result = await bookingService.cancelBooking(
+          (bookingToCancel as any).id, // Use the actual booking ID
+          user.id,
+          selectedClassDate,
+          selectedClassTime,
+        );
+
+        if (result.success) {
+          setBookingMessage({ type: 'success', text: 'Booking cancelled successfully!' });
+
+          // Reload user bookings from backend
+          const updatedBookings = await bookingService.getMemberBookings(user.id);
+          const bookingKeys = updatedBookings.map((b: any) => {
+            const classId = b.slot?.class?.id || b.classId;
+            const date = b.booking_date || b.date;
+            const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+            return `${classId}-${date}-${startTime}`;
+          });
+          console.log('📋 Updated booking keys after cancel:', bookingKeys);
+          setUserBookings(bookingKeys);
+
+          // Refresh classes to update enrollment
+          const classesData = await classService.getAll();
+          setLocalClasses(classesData);
+
+          setTimeout(handleCloseModal, 2000);
+        } else {
+          setBookingMessage({ type: 'error', text: result.message || 'Failed to cancel booking' });
+        }
+      } else {
+        // Book class
+        console.log('📝 CREATE BOOKING DEBUG:');
+        console.log('  classId:', selectedClass.id);
+        console.log('  bookingDate:', selectedClassDate);
+        console.log('  startTime:', selectedClassTime);
+        console.log('  dayOfWeek:', selectedClassDayOfWeek);
+
+        const result = await bookingService.bookClass(
+          selectedClass.id,
+          user.id,
+          selectedClassDate,
+          selectedClassTime,
+          selectedClassDayOfWeek, // Pass the pre-calculated dayOfWeek
+        );
+
+        console.log('📝 Booking result:', result);
+
+        if (result.success) {
+          setBookingMessage({ type: 'success', text: 'Class booked successfully!' });
+
+          // Reload user bookings from backend
+          const updatedBookings = await bookingService.getMemberBookings(user.id);
+          console.log('📋 Bookings after create:', updatedBookings);
+
+          const bookingKeys = updatedBookings.map((b: any) => {
+            const classId = b.slot?.class?.id || b.classId;
+            const date = b.booking_date || b.date;
+            const startTime = normalizeTime(b.slot?.start_time || b.startTime);
+            const key = `${classId}-${date}-${startTime}`;
+            console.log(`  Creating booking key: ${key}`, b);
+            return key;
+          });
+          console.log('📋 Updated booking keys after book:', bookingKeys);
+          setUserBookings(bookingKeys);
+
+          // Refresh classes to update enrollment
+          const classesData = await classService.getAll();
+          setLocalClasses(classesData);
+
+          setTimeout(handleCloseModal, 2000);
+        } else {
+          setBookingMessage({ type: 'error', text: result.message || 'Failed to book class' });
+        }
+      }
+    } catch (error) {
+      console.error('Booking error:', error);
+      setBookingMessage({ type: 'error', text: 'An error occurred. Please try again.' });
+    } finally {
+      setIsBooking(false);
+    }
+  };
+
+  // QR Code generation function
+  const generateNewQRCode = async () => {
+    if (!user) return;
+
+    try {
+      setIsGeneratingQR(true);
+
+      // Generate new QR code data
+      const newQRData = generateQRCodeData(
+        user.id || user.email, // Use ID or email as userId
+        user.email,
+        user.membershipType || 'Viking Warrior Basic',
+      );
+
+      // Generate QR code image
+      const qrImage = await generateQRCodeImage(newQRData);
+
+      // Store in localStorage for demo mode
+      storeQRCode(user.id || user.email, newQRData);
+
+      // Update state
+      setQRCodeData(newQRData);
+      setQRCodeImage(qrImage);
+
+      // Update quickStats to show new QR ID
+      setQuickStats((prev) => ({
+        ...prev,
+        qrCode: newQRData.checkInId,
+      }));
+
+      console.log('New QR code generated:', newQRData.checkInId);
+    } catch (error) {
+      console.error('Failed to generate QR code:', error);
+    } finally {
+      setIsGeneratingQR(false);
+    }
+  };
+
+  // Load existing QR code or generate new one
+  const loadOrGenerateQRCode = async () => {
+    if (!user) return;
+
+    const userId = user.id || user.email;
+    const existingQR = getUserQRCode(userId);
+
+    if (existingQR) {
+      // Use existing valid QR code
+      try {
+        const qrImage = await generateQRCodeImage(existingQR);
+        setQRCodeData(existingQR);
+        setQRCodeImage(qrImage);
+        setQuickStats((prev) => ({
+          ...prev,
+          qrCode: existingQR.checkInId,
+        }));
+        console.log('Loaded existing QR code:', existingQR.checkInId);
+      } catch (error) {
+        console.error('Failed to regenerate QR image:', error);
+        // Generate new QR if image generation fails
+        generateNewQRCode();
+      }
+    } else {
+      // Generate new QR code
+      generateNewQRCode();
+    }
+  };
+
+  // Auto-generate QR code when user changes
+  useEffect(() => {
+    if (user) {
+      loadOrGenerateQRCode();
+    }
+  }, [user]);
+
+  const handleGenerateQR = () => {
+    // Show QR modal and generate/load QR code
+    setShowQRModal(true);
+    if (!qrCodeData) {
+      loadOrGenerateQRCode();
+    }
+  };
+
+  const handleCloseQRModal = () => {
+    setShowQRModal(false);
+  };
+
+  const handleRegenerateQR = () => {
+    // Generate new QR code for check-in
+    generateNewQRCode();
+  };
+
+  return (
+    <div className="member-dashboard">
+      {/* Header Section */}
+      <div className="dashboard-header">
+        <div className="user-welcome">
+          <div className="user-avatar">
+            {userProfile.avatar ? (
+              <img
+                src={userProfile.avatar}
+                alt="User Avatar"
+                style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }}
+                onError={(e) => {
+                  // Fallback to default avatar if image fails to load
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div
+              className={userProfile.avatar ? 'hidden' : ''}
+              style={{
+                width: '60px',
+                height: '60px',
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '24px',
+                color: 'white',
+                fontWeight: 'bold',
+              }}
+            >
+              {userProfile.name.charAt(0).toUpperCase()}
+            </div>
+          </div>
+          <div className="welcome-text">
+            <h1>{t('dashboard.welcomeBack', { name: userProfile.name })}</h1>
+            <p className="membership-info">
+              {translatePlanName(userProfile.actualPlanName || userProfile.membershipType)}
+              {userProfile.joinDate && userProfile.joinDate.trim() !== '' && (
+                <>
+                  {' • '}
+                  {t('dashboard.memberSince', { date: formatDate(userProfile.joinDate) })}
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+        <div className="quick-actions">
+          <button className="btn btn-primary qr-code-btn" onClick={handleGenerateQR}>
+            <span className="icon">📱</span>
+            <span className="btn-text">
+              <strong>{t('dashboard.myQrCode')}</strong>
+              <small>{t('dashboard.showCheckInCode')}</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="stats-grid">
+        <div className="stat-card">
+          <div className="stat-icon">🏃‍♂️</div>
+          <div className="stat-content">
+            <h3>{userProfile.visitsThisMonth}</h3>
+            <p>{t('dashboard.visitsThisMonth')}</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">💪</div>
+          <div className="stat-content">
+            <h3>{userProfile.totalVisits}</h3>
+            <p>{t('dashboard.totalVisits')}</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">⏰</div>
+          <div className="stat-content">
+            <h3>{upcomingClasses.length}</h3>
+            <p>{t('dashboard.upcomingClassesCount')}</p>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🎯</div>
+          <div className="stat-content">
+            <h3>
+              {(() => {
+                const memberData = getFullMemberData();
+                const status = memberData?.status || 'active';
+                // Translate status
+                return t(
+                  `dashboard.status.${status}`,
+                  status.charAt(0).toUpperCase() + status.slice(1),
+                );
+              })()}
+            </h3>
+            <p>{t('dashboard.membershipStatus')}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="dashboard-content">
+        {/* Upcoming Classes */}
+        <div className="content-section">
+          <div className="section-header">
+            <h2>🗓️ {t('dashboard.upcomingClasses')}</h2>
+            {isLoadingClasses && (
+              <span className="loading-indicator">🔄 {t('common.loading')}</span>
+            )}
+            <button className="btn btn-link" onClick={() => onNavigate?.('classes')}>
+              {t('navigation.classes')}
+            </button>
+          </div>
+          <div className="classes-list">
+            {upcomingClasses.length === 0 ? (
+              <div className="no-classes">
+                <div className="no-classes-icon">📭</div>
+                <p>{t('dashboard.noClasses')}</p>
+                <small>{t('dashboard.noClassesMessage')}</small>
+              </div>
+            ) : (
+              upcomingClasses.map((classItem) => {
+                const bookingKey = `${classItem.id}-${classItem.date}-${normalizeTime(
+                  classItem.time,
+                )}`;
+                const isBooked = userBookings.includes(bookingKey);
+
+                return (
+                  <div
+                    key={`${classItem.id}-${classItem.date}-${classItem.time}`}
+                    className="class-card"
+                  >
+                    <div className="class-info">
+                      <h4>{classItem.className}</h4>
+                      <p className="instructor">
+                        {t('classes.with')} {classItem.instructor}
+                      </p>
+                      <div className="class-datetime">
+                        <span className="date">📅 {formatLocalizedDate(classItem.date)}</span>
+                        <span className="time">🕐 {classItem.time}</span>
+                      </div>
+                    </div>
+                    <div className="class-actions">
+                      <button
+                        className="btn btn-outline"
+                        onClick={() => handleShowDetails(classItem)}
+                      >
+                        {t('common.details') || 'Details'}
+                      </button>
+                      <button
+                        className={`btn ${isBooked ? 'btn-success' : 'btn-primary'}`}
+                        onClick={() => handleShowDetails(classItem)}
+                      >
+                        {isBooked ? `✅ ${t('classes.booked')}` : t('classes.book')}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Gym Announcements */}
+        <div className="content-section full-width">
+          <div className="section-header">
+            <h2>📢 {t('announcements.gymNews')}</h2>
+            {announcementsList.length > 3 && (
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowAllAnnouncements(!showAllAnnouncements)}
+                style={{ marginLeft: 'auto' }}
+              >
+                {showAllAnnouncements
+                  ? `📤 ${t('announcements.showLess')}`
+                  : `📥 ${t('announcements.showAll', { count: announcementsList.length })}`}
+              </button>
+            )}
+          </div>
+          <div className="announcements-list">
+            {announcementsList.length === 0 ? (
+              <div className="empty-state">
+                <p>📭 {t('announcements.noAnnouncements')}</p>
+              </div>
+            ) : (
+              (showAllAnnouncements ? announcementsList : announcementsList.slice(0, 3)).map(
+                (announcement: Announcement) => (
+                  <div key={announcement.id} className={`announcement-card ${announcement.type}`}>
+                    <div className="announcement-header">
+                      <h4>{announcement.title}</h4>
+                      <div className="announcement-actions">
+                        <span className="announcement-date">{formatDate(announcement.date)}</span>
+                        <button
+                          className="btn-dismiss"
+                          onClick={() => {
+                            setDismissConfirmModal({
+                              show: true,
+                              announcementId: announcement.id,
+                              title: announcement.title,
+                            });
+                          }}
+                          title={t('announcements.dismiss')}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                    <p>{announcement.message}</p>
+                  </div>
+                ),
+              )
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* QR Code Modal */}
+      {showQRModal && (
+        <div className="qr-modal-overlay" onClick={handleCloseQRModal}>
+          <div className="qr-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="qr-modal-header">
+              <h3>🎫 {t('qrCode.title')}</h3>
+              <button className="close-button" onClick={handleCloseQRModal}>
+                ✕
+              </button>
+            </div>
+            <div className="qr-modal-content">
+              <div className="qr-display">
+                {qrCodeImage ? (
+                  <img src={qrCodeImage} alt={t('qrCode.title')} className="qr-code-image" />
+                ) : (
+                  <div className="qr-loading">
+                    {isGeneratingQR ? (
+                      <div className="loading-content">
+                        <div className="spinner">🔄</div>
+                        <p>{t('common.loading')}...</p>
+                      </div>
+                    ) : (
+                      <div className="qr-pattern"></div>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="qr-info">
+                <p className="qr-instruction">{t('qrCode.instructions')}</p>
+                <p className="qr-id">
+                  {t('qrCode.memberId')}: {quickStats.qrCode}
+                </p>
+                {qrCodeData && (
+                  <div className="qr-details">
+                    <p>
+                      {t('qrCode.expires')}: {formatDate(qrCodeData.expiresAt)}
+                    </p>
+                    <p>
+                      {t('qrCode.generated')}: {new Date(qrCodeData.timestamp).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="qr-actions">
+                <button
+                  onClick={handleRegenerateQR}
+                  disabled={isGeneratingQR}
+                  className="btn btn-secondary"
+                >
+                  {isGeneratingQR ? t('qrCode.generating') : t('qrCode.generateNew')}
+                </button>
+                <button onClick={handleCloseQRModal} className="btn btn-primary">
+                  {t('qrCode.done')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Class Details Modal */}
+      {selectedClass && (
+        <ClassDetailsModal
+          gymClass={selectedClass}
+          selectedDate={selectedClassDate}
+          selectedTime={selectedClassTime}
+          onClose={handleCloseModal}
+          onBook={handleBookClass}
+          isBooked={userBookings.includes(
+            `${selectedClass.id}-${selectedClassDate}-${selectedClassTime}`,
+          )}
+          isBooking={isBooking}
+        />
+      )}
+
+      {/* Booking Message Toast */}
+      {bookingMessage && (
+        <div className={`booking-toast ${bookingMessage.type}`}>
+          {bookingMessage.type === 'success' ? '✅' : '❌'} {bookingMessage.text}
+        </div>
+      )}
+
+      {/* Announcement Popup */}
+      {showAnnouncementPopup && (
+        <AnnouncementPopup
+          announcements={unreadAnnouncements}
+          onClose={handleCloseAnnouncementPopup}
+          isLoading={isMarkingAnnouncements}
+        />
+      )}
+
+      {/* Dismiss Announcement Confirmation Modal */}
+      {dismissConfirmModal.show && (
+        <div
+          className="modal-overlay"
+          onClick={() => setDismissConfirmModal({ show: false, announcementId: '', title: '' })}
+        >
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📢 Dismiss Announcement</h3>
+              <button
+                className="modal-close-btn"
+                onClick={() =>
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' })
+                }
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-message">
+                Are you sure you want to dismiss "<strong>{dismissConfirmModal.title}</strong>"?
+              </p>
+              <p className="modal-submessage">
+                This announcement will be marked as read and removed from your dashboard.
+              </p>
+            </div>
+            <div className="modal-actions">
+              <button
+                className="btn btn-secondary"
+                onClick={() =>
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' })
+                }
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-primary"
+                onClick={async () => {
+                  const success = await dismissAnnouncement(dismissConfirmModal.announcementId);
+                  setDismissConfirmModal({ show: false, announcementId: '', title: '' });
+                  if (!success) {
+                    alert('❌ Failed to dismiss announcement. Please try again.');
+                  }
+                }}
+              >
+                Dismiss
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MemberDashboard;
