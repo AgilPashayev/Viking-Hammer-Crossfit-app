@@ -1,0 +1,1738 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "filter": "Filter",
+    "close": "Close",
+    "submit": "Submit",
+    "ok": "OK",
+    "back": "Back",
+    "next": "Next",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "details": "Details",
+    "minutes": "minutes",
+    "completed": "Completed",
+    "notAvailable": "N/A",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "profile": "My Profile",
+    "classes": "Classes",
+    "schedule": "Schedule",
+    "members": "Members",
+    "instructors": "Instructors",
+    "announcements": "Announcements",
+    "settings": "Settings",
+    "reception": "Reception",
+    "sparta": "Sparta",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "invalidCredentials": "Invalid email or password",
+    "loginSuccess": "Login successful!"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {{name}}!",
+    "welcomeBack": "Welcome back, {{name}}!",
+    "memberSince": "Member since {{date}}",
+    "membershipStatus": "Membership Status",
+    "upcomingClasses": "Upcoming Classes",
+    "myBookings": "My Bookings",
+    "announcements": "Latest Announcements",
+    "noClasses": "No upcoming classes scheduled",
+    "noClassesMessage": "Check back later or contact your instructor",
+    "noBookings": "You have no bookings yet",
+    "noAnnouncements": "No announcements available",
+    "myQrCode": "My QR Code",
+    "showCheckInCode": "Tap to show your check-in code",
+    "visitsThisMonth": "Visits This Month",
+    "totalVisits": "Total Visits",
+    "upcomingClassesCount": "Upcoming Classes",
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "pending": "Pending"
+    }
+  },
+  "classes": {
+    "title": "Classes",
+    "allClasses": "All Classes",
+    "browseClasses": "Browse and book any of our available classes",
+    "className": "Class Name",
+    "instructor": "Instructor",
+    "with": "with",
+    "modal": {
+      "schedule": "Schedule",
+      "date": "Date",
+      "time": "Time",
+      "description": "Description",
+      "addDescription": "Add description",
+      "instructors": "Instructors",
+      "noInstructors": "No instructors assigned",
+      "equipment": "Equipment",
+      "capacity": "Capacity",
+      "enrolled": "enrolled",
+      "spotsLeft": "spots left",
+      "price": "Price",
+      "close": "Close",
+      "bookNow": "Book Now",
+      "booked": "Booked (Click to Cancel)",
+      "processing": "Processing...",
+      "classFull": "Class Full"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "mixed": "Mixed"
+    },
+    "weekdays": {
+      "short": {
+        "sun": "Sun",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat"
+      },
+      "long": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      }
+    },
+    "months": {
+      "short": {
+        "jan": "Jan",
+        "feb": "Feb",
+        "mar": "Mar",
+        "apr": "Apr",
+        "may": "May",
+        "jun": "Jun",
+        "jul": "Jul",
+        "aug": "Aug",
+        "sep": "Sep",
+        "oct": "Oct",
+        "nov": "Nov",
+        "dec": "Dec"
+      }
+    },
+    "date": "Date",
+    "time": "Time",
+    "duration": "Duration",
+    "capacity": "Capacity",
+    "available": "Available",
+    "book": "Book",
+    "bookClass": "Book Class",
+    "booked": "Booked",
+    "full": "Full",
+    "cancel": "Cancel",
+    "enrolledMembers": "Enrolled Members",
+    "minutes": "{{count}} minutes",
+    "spotsLeft": "{{count}} spots left",
+    "loadingClasses": "Loading classes...",
+    "noClassesFound": "No classes found matching your filters.",
+    "next": "Next",
+    "enrolled": "enrolled",
+    "filters": {
+      "category": "Category",
+      "allCategories": "All Categories",
+      "cardio": "Cardio",
+      "strength": "Strength",
+      "flexibility": "Flexibility",
+      "mixed": "Mixed",
+      "specialized": "Specialized",
+      "difficulty": "Difficulty",
+      "allLevels": "All Levels",
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "tabs": {
+      "personal": "Personal Info",
+      "subscription": "My Subscription",
+      "emergency": "Emergency Contact",
+      "settings": "Settings"
+    },
+    "personalInfo": "Personal Information",
+    "personalInfoDescription": "Update your contact details and personal information",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "email": "Email",
+    "phone": "Phone",
+    "dateOfBirth": "Date of Birth",
+    "gender": "Gender",
+    "genderOptions": {
+      "select": "Select Gender",
+      "male": "Male",
+      "female": "Female",
+      "other": "Other",
+      "preferNotToSay": "Prefer not to say"
+    },
+    "membershipType": "Membership Type",
+    "subscriptionStatus": "Subscription Status",
+    "remainingEntries": "Remaining Entries",
+    "expiryDate": "Expiry Date",
+    "updateProfile": "Update Profile",
+    "changePassword": "Change Password",
+    "edit": "Edit",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "emergencyContact": "Emergency Contact",
+    "emergencyContactName": "Emergency Contact Name",
+    "emergencyContactPhone": "Emergency Contact Phone",
+    "emergencyContactDescription": "Update your emergency contact information (optional)",
+    "emergencyContactSaved": "Emergency Contact Saved!",
+    "informationUpdated": "Information Updated!",
+    "backToDashboard": "Back to Dashboard",
+    "notificationPreferences": "Notification Preferences",
+    "saveSettings": "Save Notification Preferences",
+    "settingsDescription": "Manage your app settings and notifications",
+    "resetToDefaults": "Reset to Defaults",
+    "subscription": {
+      "title": "My Subscription",
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "expired": "Expired",
+      "cancelled": "Cancelled",
+      "membership": "Membership",
+      "planName": "Plan Name",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "visitQuota": "Visit Quota",
+      "planPrice": "Plan Price",
+      "notes": "Notes",
+      "suspendedOn": "Suspended on",
+      "registeredOn": "Registered On",
+      "membershipHistory": "Membership History",
+      "totalRecords": "Total Records",
+      "memberSince": "Member Since",
+      "classesUsed": "Classes Used",
+      "loadingHistory": "Loading membership history...",
+      "noHistory": "No Membership History",
+      "noHistoryDesc": "You don't have any membership records yet.",
+      "subscriptionDesc": "Manage your membership and view subscription details",
+      "remaining": "remaining",
+      "perMonth": "per month",
+      "unlimited": "Unlimited",
+      "viewHistory": "View History",
+      "basicMembership": "Basic Membership",
+      "ongoing": "Ongoing",
+      "duration": "Duration",
+      "amount": "Amount",
+      "paymentMethod": "Payment Method",
+      "renewalType": "Renewal Type",
+      "classLimit": "Class Limit",
+      "classes": "classes",
+      "free": "Free"
+    },
+    "notifications": {
+      "pushNotifications": "Push Notifications",
+      "pushNotificationsDesc": "Receive push notifications on your device",
+      "emailNotifications": "Email Notifications",
+      "emailNotificationsDesc": "Receive email updates and announcements",
+      "emailAlerts": "Email Alerts",
+      "emailAlertsDesc": "Receive notifications via email",
+      "smsAlerts": "SMS Alerts",
+      "smsAlertsDesc": "Receive important updates via SMS",
+      "classReminders": "Class Reminders",
+      "classRemindersDesc": "Get notified before your scheduled classes",
+      "languageNote": "Language changes are saved automatically - no need to click \"Save Settings\"",
+      "languageLocalization": "Language & Localization"
+    }
+  },
+  "announcements": {
+    "title": "Announcements",
+    "gymNews": "Gym News & Announcements",
+    "newAnnouncement": "New Announcement",
+    "noAnnouncements": "No announcements at the moment. Check back later!",
+    "publishedOn": "Published on {{date}}",
+    "readMore": "Read More",
+    "markAsRead": "Mark as Read",
+    "dismiss": "Dismiss announcement",
+    "showLess": "Show Less",
+    "showAll": "Show All ({{count}})",
+    "priority": {
+      "high": "High Priority",
+      "normal": "Normal",
+      "low": "Low Priority"
+    }
+  },
+  "qrCode": {
+    "title": "Your Check-In QR Code",
+    "instructions": "Show this QR code to the reception desk to check in.",
+    "memberId": "Member ID",
+    "expires": "Expires",
+    "generated": "Generated",
+    "generateNew": "Generate New QR",
+    "generating": "Generating...",
+    "done": "Done",
+    "close": "Close"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "selectLanguage": "Select Language",
+    "changeLanguage": "Change Language",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "saveChanges": "Save Changes"
+  },
+  "errors": {
+    "genericError": "Something went wrong. Please try again.",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "Unauthorized. Please log in.",
+    "notFound": "Resource not found.",
+    "serverError": "Server error. Please try again later.",
+    "validationError": "Please check your input and try again."
+  },
+  "admin": {
+    "membership": {
+  "title": "Membership Manager",
+  "back": "← Back to Reception",
+      "plans": "Plans",
+      "subscriptions": "Subscriptions",
+      "companies": "Companies",
+      "createNewPlan": "Create New Plan",
+      "addSubscription": "Add Subscription",
+      "createCompany": "Create Company",
+      "mostPopular": "Most Popular",
+      "entryLimit": "Entry Limit",
+      "entries": "entries",
+      "unlimited": "Unlimited",
+      "edit": "Edit",
+      "activate": "Activate",
+      "deactivate": "Deactivate",
+      "delete": "Delete",
+      "renew": "Renew",
+      "suspend": "Suspend",
+      "cancel": "Cancel",
+      "name": "Name",
+      "email": "Email",
+      "company": "Company",
+      "plan": "Plan",
+      "totalVisits": "Total Visits",
+      "remainingVisits": "Remaining Visits",
+      "visitsRemaining": "visits",
+      "usedVisits": "Used Visits",
+      "nextPayment": "Next Payment",
+      "daysRemaining": "Days Remaining",
+      "searchPlaceholder": "Search {{tab}}...",
+      "off": "OFF",
+      "daysLeft": "{{count}} days left",
+      "expired": "EXPIRED",
+      "contact": "Contact",
+      "phone": "Phone",
+      "address": "Address",
+      "discount": "Discount",
+      "employees": "Employees",
+      "activeSubs": "Active Subs",
+      "contract": "Contract",
+      "editPlan": "Edit Membership Plan",
+      "createPlan": "Create New Membership Plan",
+      "editSubscription": "Edit Subscription",
+      "createSubscription": "Add New Subscription",
+      "editCompany": "Edit Company",
+      "planName": "Plan Name",
+      "planType": "Plan Type",
+      "price": "Price",
+      "description": "Description",
+      "duration": "Duration",
+      "features": "Features",
+      "addFeature": "Add Feature",
+      "limitations": "Limitations",
+      "addLimitation": "Add Limitation",
+      "activePlan": "Active Plan",
+      "markPopular": "Mark as Popular",
+      "discountPercentage": "Discount Percentage",
+      "savePlan": "Save Plan",
+      "saveSubscription": "Save Subscription",
+      "saveCompany": "Save Company",
+      "close": "Close",
+      "required": "Required",
+      "singleEntry": "Single Entry",
+      "monthlyLimited": "Monthly Limited",
+      "monthlyUnlimited": "Monthly Unlimited",
+      "companyPlan": "Company Plan",
+      "planNamePlaceholder": "e.g., Premium Monthly, Single Entry",
+      "descriptionPlaceholder": "Brief description of this plan",
+      "entryLimitPlaceholder": "Number of gym visits allowed",
+      "durationPlaceholder": "e.g., 30 days, 1 month, 1 year",
+      "member": "Member",
+      "selectMember": "Select a member",
+      "selectPlan": "Select a plan",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "ongoing": "Ongoing",
+      "ongoingNoEndDate": "Ongoing (No End Date)",
+      "paymentStatus": "Payment Status",
+      "companyName": "Company Name",
+      "contactPerson": "Contact Person",
+      "contractStart": "Contract Start Date",
+      "contractEnd": "Contract End Date",
+      "employeeCount": "Employee Count",
+      "accessDenied": "Access Denied",
+      "noPermission": "You don't have permission to access Membership Manager.",
+      "contactAdmin": "Please contact your administrator if you believe this is an error.",
+      "stats": {
+        "monthlyRevenue": "Monthly Revenue"
+      },
+      "filters": {
+        "allTypes": "All Types",
+        "companyPlans": "Company Plans",
+        "allStatus": "All Statuses"
+      },
+      "statusLabels": {
+        "expired": "Expired",
+        "suspended": "Suspended",
+        "paid": "Paid",
+        "overdue": "Overdue"
+      },
+      "countdown": {
+        "expired": "⚠️ EXPIRED",
+        "days": "⏱️ {{count}}d"
+      },
+      "planCard": {
+        "discount": "💰 {{discount}}% OFF",
+        "features": "✅ Features:",
+        "limitations": "⚠️ Limitations:",
+        "perDuration": "/ {{duration}}"
+      },
+      "planNames": {
+        "monthlyUnlimited": "Monthly Unlimited",
+        "monthlyLimited": "Monthly Limited",
+        "singleSession": "Single Session"
+      },
+      "planDescriptions": {
+        "monthlyUnlimited": "Unlimited monthly access",
+        "monthlyLimited": "Limited monthly plan - 12 visits",
+        "singleSession": "Single gym visit - pay as you go"
+      },
+      "planFeatures": {
+        "unlimitedGymVisits": "Unlimited gym visits",
+        "accessAllClasses": "Access to all classes",
+        "lockerPrivileges": "Locker privileges",
+        "guestPrivileges": "Guest privileges (2/month)",
+        "twelveVisitsPerMonth": "12 gym visits per month",
+        "flexibleSchedule": "Flexible schedule",
+        "accessAllEquipment": "Access to all equipment",
+        "validOneDay": "Valid for one day"
+      },
+      "planLimitations": {
+        "monthlyCommitment": "Monthly commitment",
+        "autoRenews": "Auto-renews",
+        "visitQuotaApplies": "Visit quota applies",
+        "noRollover": "No rollover of unused visits",
+        "singleEntryOnly": "Single entry only"
+      },
+      "durationDisplay": {
+        "days_one": "{{count}} day",
+        "days_other": "{{count}} days",
+        "months_one": "{{count}} month",
+        "months_other": "{{count}} months"
+      },
+      "subscriptionsSection": {
+        "memberInfo": "👤 Member Information",
+        "subscriptionDetails": "📋 Subscription Details",
+        "usageStats": "📊 Usage Statistics"
+      },
+      "dayCount_one": "{{count}} day",
+      "dayCount_other": "{{count}} days",
+      "dialogs": {
+        "titles": {
+          "validation": "⚠️ Validation Error",
+          "duplicate": "⚠️ Duplicate Plan",
+          "updateFailed": "❌ Update Failed",
+          "success": "✅ Success",
+          "creationFailed": "❌ Creation Failed",
+          "error": "❌ Error",
+          "deletePlan": "🗑️ Delete Membership Plan",
+          "deleteFailed": "❌ Delete Failed",
+          "renewSubscription": "🔄 Renew Subscription",
+          "renewalComplete": "✅ Renewal Complete",
+          "renewalFailed": "❌ Renewal Failed",
+          "suspendSubscription": "⏸️ Suspend Subscription",
+          "suspendSuccess": "✅ Suspended",
+          "suspendFailed": "❌ Suspend Failed",
+          "cancelSubscription": "🗑️ Cancel Subscription",
+          "cancelled": "✅ Cancelled",
+          "cancellationFailed": "❌ Cancellation Failed",
+          "removeCompany": "🗑️ Remove Company",
+          "contactCompany": "📞 Contact Company",
+          "changeCompanyStatus": "🔄 Change Status ({{status}})",
+          "statusUpdated": "✅ Status Updated"
+        },
+        "messages": {
+          "planNameRequired": "Please enter a plan name",
+          "planPriceInvalid": "Please enter a valid price (greater than 0)",
+          "duplicatePlan": "A plan with the name \"{{name}}\" already exists. Please choose a different name.",
+          "planUpdateFailed": "Failed to update plan: {{error}}\n\nPlease check your connection and try again.",
+          "planUpdateSuccess": "Plan updated successfully!",
+          "planCreationFailed": "Failed to create plan: {{error}}\n\nPlease check your connection and try again.",
+          "planCreationSuccess": "Plan created successfully!",
+          "genericError": "An unexpected error occurred. Please try again.",
+          "deletePlan": "Plan: {{name}}\nPrice: {{price}}\nType: {{type}}\n\n⚠️ WARNING: This action cannot be undone.\n\nAll subscriptions using this plan will be affected. Are you sure you want to delete this plan?",
+          "deletePlanFailed": "Failed to delete plan: {{error}}",
+          "deletePlanSuccess": "Plan deleted successfully!",
+          "subscriptionUpdateSuccess": "Subscription updated successfully!",
+          "subscriptionUpdateFailed": "Failed to update subscription:\n\n{{error}}",
+          "subscriptionUpdateError": "An unexpected error occurred while updating the subscription.",
+          "renewSubscriptionConfirm": "Member: {{member}}\nPlan: {{plan}}\nCurrent Status: {{status}}\nCurrent End Date: {{endDate}}\n\nThis will extend the subscription period and reset available visits (if applicable).\n\nDo you want to renew this subscription?",
+          "renewalSuccess": "Subscription renewed successfully!\n\nThe subscription period has been extended.",
+          "renewalFailed": "Failed to renew subscription:\n\n{{error}}",
+          "renewalError": "An unexpected error occurred while renewing the subscription.",
+          "suspendSubscriptionConfirm": "Member: {{member}}\nPlan: {{plan}}\nCurrent Status: {{status}}\n\nThe subscription will be paused temporarily and can be reactivated later.\n\nThe member will not be able to access gym facilities while suspended.\n\nDo you want to continue?",
+          "suspendSuccess": "Subscription suspended successfully!\n\nThe member will not be able to access gym facilities until reactivated.",
+          "suspendFailed": "Failed to suspend subscription:\n\n{{error}}",
+          "suspendError": "An unexpected error occurred while suspending the subscription.",
+          "cancelSubscriptionConfirm": "Member: {{member}}\nEmail: {{email}}\nPlan: {{plan}}\nStart Date: {{startDate}}\nEnd Date: {{endDate}}\n\n⚠️ WARNING: This will mark the subscription as INACTIVE.\n\nThe member will immediately lose access to all membership benefits and gym facilities.\n\nThis action can be reversed by creating a new subscription.\n\nAre you sure you want to cancel this subscription?",
+          "cancellationSuccess": "Subscription cancelled successfully!\n\nThe member no longer has access to gym facilities.",
+          "cancellationFailed": "Failed to cancel subscription:\n\n{{error}}",
+          "cancellationError": "An unexpected error occurred while cancelling the subscription.",
+          "removeCompany": "Are you sure you want to remove {{name}} from company partnerships?",
+          "contactCompany": "Contact: {{contact}}\nCompany: {{company}}\nPhone: {{phone}}\n\nHow would you like to reach them?",
+          "companyStatusChange": "Company: {{company}}\nCurrent Status: {{currentStatus}}\n\n{{action}}",
+          "companyStatus": {
+            "active": "✅ Activate this company partnership?",
+            "pending": "⏳ Set this company partnership to pending?",
+            "suspended": "⏸️ Suspend this company partnership?"
+          },
+          "companyStatusUpdated": "Company status changed to: {{status}}"
+        },
+        "confirm": {
+          "deletePlan": "Yes, Delete It",
+          "renew": "Yes, Renew",
+          "suspend": "Yes, Suspend",
+          "cancelSubscription": "Yes, Cancel It",
+          "keepSubscription": "No, Keep It",
+          "deleteCompany": "Yes, Remove Company",
+          "contactWhatsApp": "📱 WhatsApp",
+          "contactCall": "☎️ Regular Call",
+          "changeStatus": "Yes, Change Status"
+        }
+      },
+      "labels": {
+        "memberManagement": "Member Management"
+      },
+      "addSubscriptionModal": {
+        "info": {
+          "noteTitle": "Note:",
+          "noteDescription": "To add a new subscription, please use the {{page}} page to assign a membership plan to a member.",
+          "detail": "This ensures all member details and payment information are properly recorded."
+        },
+        "quickActions": {
+          "title": "Quick Actions:",
+          "step1": "✅ Go to {{page}}",
+          "step2": "✅ Select the member",
+          "step3": "✅ Click \"Assign Membership\"",
+          "step4": "✅ Choose a plan and set dates",
+          "step5": "✅ Subscription will appear here automatically"
+        },
+        "buttons": {
+          "goToReception": "📋 Go to Reception Dashboard"
+        }
+      }
+    },
+    "birthdays": {
+      "back": "← Back to Reception",
+      "title": "🎂 Upcoming Birthdays",
+      "stats": {
+        "today": "Today's Birthdays",
+        "week": "This Week",
+        "month": "This Month",
+        "total": "Total Upcoming"
+      },
+      "filters": {
+        "all": "🗓️ All Upcoming",
+        "today": "🎉 Today",
+        "week": "📅 This Week",
+        "month": "🗓️ This Month"
+      },
+      "searchPlaceholder": "Search members...",
+      "noResults": {
+        "title": "No Upcoming Birthdays",
+        "description": "No birthdays found for the selected filter."
+      },
+      "status": {
+        "today": "Today!",
+        "tomorrow": "Tomorrow",
+        "inDays": "In {{count}} days"
+      },
+      "age": "{{age}} years old",
+      "labels": {
+        "email": "Email:",
+        "phone": "Phone:",
+        "membership": "Membership:",
+        "memberSince": "Member since:"
+      },
+      "actions": {
+        "sendWish": "🎉 Send Birthday Wish",
+        "call": "📞 Call Member",
+        "email": "📧 Send Email"
+      },
+      "modal": {
+        "title": "🎉 Send Birthday Wish to {{name}}",
+        "turning": "Turning {{age}} on {{date}}",
+        "templateLabel": "Message Template:",
+        "messageLabel": "Birthday Message:",
+        "messagePlaceholder": "Write your birthday message here...",
+        "deliveryTitle": "Delivery Options:",
+        "cancel": "Cancel",
+        "confirm": "🎉 Send Birthday Wish"
+      },
+      "templateOptions": {
+        "default": "🎉 Default Celebration",
+        "formal": "👔 Formal Greeting",
+        "casual": "😄 Casual & Fun",
+        "motivational": "💪 Motivational"
+      },
+      "templates": {
+        "default": "🎉 Happy Birthday {{firstName}}! 🎂\n\nWishing you a fantastic day filled with joy, laughter, and amazing workouts! Thank you for being such a wonderful member of our Viking Hammer family.\n\nHave a great celebration! 💪\n\n- Viking Hammer CrossFit Team",
+        "formal": "Dear {{firstName}} {{lastName}},\n\nOn behalf of the entire Viking Hammer CrossFit team, we would like to wish you a very Happy Birthday!\n\nWe appreciate your dedication to fitness and your membership with us. We hope you have a wonderful day celebrating with family and friends.\n\nBest regards,\nViking Hammer CrossFit Team",
+        "casual": "Hey {{firstName}}! 🎉\n\nIt's your special day! Hope you're ready to celebrate with some epic workouts and birthday gains! 💪\n\nThanks for being awesome and part of our gym family. Have the best birthday ever!\n\nCheers! 🥳\nYour Viking Hammer Crew",
+        "motivational": "Happy Birthday {{firstName}}! 🏆\n\nAnother year stronger, another year more amazing! Your dedication to fitness inspires us all.\n\nMay this new year bring you even more personal records, achievements, and fitness goals conquered!\n\nKeep crushing it! 💪🔥\n\n- Viking Hammer CrossFit"
+      },
+      "delivery": {
+        "email": "📧 Email ({{email}})",
+        "sms": "📱 SMS ({{phone}})",
+        "whatsapp": "💬 WhatsApp ({{phone}})",
+        "inApp": "🔔 In-App Notification"
+      },
+      "channels": {
+        "email": "Email",
+        "sms": "SMS",
+        "whatsapp": "WhatsApp",
+        "inApp": "In-App"
+      },
+      "emailSubject": "🎉 Happy Birthday {{firstName}}!",
+      "alerts": {
+        "prepared": "✅ Birthday message prepared for: {{channels}}\n\nPlease review and send the message from your device's {{firstChannel}} app.",
+        "selectOne": "⚠️ Please select at least one delivery method."
+      },
+      "notificationTitle": "🎉 Happy Birthday!"
+    },
+    "reception": {
+      "title": "Reception Dashboard",
+      "subtitle": "Manage your gym operations efficiently",
+      "scanQR": "Scan Member QR",
+      "scanQRSubtitle": "Check-in members quickly",
+      "totalMembers": "Total Members",
+      "checkedInToday": "Checked In Today",
+      "instructors": "Instructors",
+      "activeClasses": "Active Classes",
+      "expiringSoon": "Expiring Soon (7 days)",
+      "upcomingBirthdays": "Upcoming Birthdays",
+      "memberManagement": "Member Management",
+      "memberManagementDesc": "Add, update, and manage member profiles",
+      "checkInHistory": "Check-In History",
+      "checkInHistoryDesc": "View and analyze member check-in data",
+      "classManagement": "Class Management",
+      "classManagementDesc": "Assign instructors and manage class schedules",
+      "announcements": "Announcements",
+      "announcementsDesc": "Send notifications to all members",
+      "membershipPlans": "Membership Plans",
+      "membershipPlansDesc": "Manage subscription plans and pricing",
+      "birthdaysCard": "Upcoming Birthdays",
+      "birthdaysCardDesc": "Celebrate member special days",
+      "members": "Members",
+      "today": "Today",
+      "active": "Active",
+      "plans": "Plans",
+      "new": "New",
+      "recentActivity": "Recent Activity",
+      "viewAll": "View All",
+      "activity": {
+        "profileUpdated": "profile updated",
+        "checkedIn": "checked in",
+        "birthdayUpcoming": "birthday upcoming",
+        "newMember": "New member",
+        "newClass": "New class added",
+        "classUpdated": "Class updated",
+        "instructorAdded": "Instructor added",
+        "instructorUpdated": "Instructor updated",
+        "scheduleCreated": "Schedule created",
+        "scheduleUpdated": "Schedule updated",
+        "announcementCreated": "Announcement created",
+        "announcementPublished": "Announcement published",
+        "announcementDeleted": "Announcement deleted",
+        "classDeleted": "Class deleted",
+        "instructorDeleted": "Instructor deleted",
+        "scheduleDeleted": "Schedule deleted",
+        "instructorAssigned": "Instructor assigned to class",
+        "instructorRemoved": "Instructor removed from class",
+        "membershipChanged": "membership changed to",
+        "by": "by",
+        "member": "Member"
+      },
+      "time": {
+        "secondsAgo": "{{count}}s ago",
+        "minuteAgo": "{{count}} minute ago",
+        "minutesAgo": "{{count}} minutes ago",
+        "hourAgo": "{{count}} hour ago",
+        "hoursAgo": "{{count}} hours ago",
+        "dayAgo": "{{count}} day ago",
+        "daysAgo": "{{count}} days ago"
+      },
+      "noRecentActivity": "No recent activity yet",
+      "page": "Page",
+      "of": "of",
+      "qrPositionText": "Position the QR code in front of your camera",
+      "qrScanner": {
+        "title": "QR Code Scanner",
+        "startCamera": "Start Camera",
+        "stopCamera": "Stop Camera",
+        "scanning": "Scanning for QR codes...",
+        "scanningAuto": "Scanning automatically...",
+        "checkInSuccessful": "Check-In Successful",
+        "checkInFailed": "Check-In Failed",
+        "scanAnother": "Scan Another",
+        "confirmationTitle": "Member Check-In Confirmation",
+        "membershipType": "Membership Type:",
+        "status": "Status:",
+        "visitsThisMonth": "Visits This Month:",
+        "remainingVisits": "Remaining Visits:",
+        "active": "Active",
+        "inactive": "Inactive",
+        "confirmCheckIn": "Confirm Check-In",
+        "cannotCheckIn": "Cannot Check-In",
+        "limitReached": "Monthly limit reached or membership expired",
+        "cancel": "Cancel"
+      }
+    },
+    "sparta": {
+      "title": "Sparta Dashboard",
+      "subtitle": "Thiss iss SPARTAAAA!"
+    },
+    "landingPage": {
+      "header": {
+        "brandName": "Viking Hammer CrossFit",
+        "welcome": "Welcome",
+        "dashboard": "Dashboard",
+        "logout": "Logout",
+        "login": "Sign In",
+        "signup": "Get Started"
+      },
+      "hero": {
+        "title": "VIKING HAMMER CROSSFIT",
+        "location": "BAKU, AZERBAIJAN",
+        "tagline": "Unleash Your Inner Strength. Build the Warrior Within.",
+        "description": "At Viking Hammer CrossFit, we believe strength is more than muscle — it's mindset, discipline, and community. Located in the heart of Baku, our box combines the power of CrossFit training, functional fitness, and personal coaching to help you become the best version of yourself.",
+        "getStarted": "Start Your Journey",
+        "scrollText": "Scroll to explore more"
+      },
+      "stats": {
+        "activeMembers": "Active Members",
+        "dailyClasses": "Daily Classes",
+        "expertTrainers": "Expert Trainers"
+      },
+      "features": {
+        "title": "What We Offer",
+        "groupWorkouts": {
+          "title": "Group Workouts",
+          "description": "High-intensity, community-driven sessions that challenge and motivate."
+        },
+        "personalTraining": {
+          "title": "Personal Training",
+          "description": "Tailored programs designed for your individual goals and fitness level."
+        },
+        "athleteDevelopment": {
+          "title": "Athlete Development",
+          "description": "Advanced training for professionals and competitors seeking peak performance."
+        },
+        "community": {
+          "title": "Supportive Community",
+          "description": "Train alongside like-minded athletes who push, inspire, and celebrate every milestone."
+        }
+      },
+      "whyChooseUs": {
+        "title": "Why Choose Us",
+        "item1": "Certified and experienced CrossFit coaches",
+        "item2": "State-of-the-art equipment and safe training environment",
+        "item3": "Flexible membership plans for every fitness journey",
+        "item4": "Real results. Real progress. Real community."
+      },
+      "gallery": {
+        "title": "Our Gym",
+        "subtitle": "Get a glimpse of our world-class facility and vibrant community",
+        "addYourPhoto": "Add gym photo here",
+        "addPhotosNote": "Add your gym photos to /public/images/ folder (gym1.jpg - gym6.jpg)",
+        "imageAlt": {
+          "gym1": "CrossFit Training Area",
+          "gym2": "Group Workout Session",
+          "gym3": "Personal Training",
+          "gym4": "Professional Gym Equipment",
+          "gym5": "Supportive Community",
+          "gym6": "Elite Athletes Training"
+        }
+      },
+      "contact": {
+        "title": "Visit Us",
+        "addressLabel": "Address",
+        "address": "Baku AZ1072, Azerbaijan",
+        "phoneLabel": "Phone",
+        "phone": "+994 50 300 33 23",
+        "followLabel": "Instagram",
+        "instagram": "@vikings__hammer",
+        "followButton": "Follow us on Instagram",
+        "mapTitle": "Viking Hammer CrossFit Location"
+      },
+      "footer": {
+        "brandName": "Viking Hammer CrossFit",
+        "tagline": "Transform your body, forge your spirit, and join the strongest community in Baku.",
+        "copyright": "© 2025 Viking Hammer CrossFit. All rights reserved."
+      }
+    },
+    "memberManagement": {
+      "pageTitle": "Viking Hammer Member Management",
+      "returnButton": "Return to Dashboard",
+      "returnTooltip": "Return to Reception Dashboard",
+      "addButton": "Add Member",
+      "addTooltip": "Add a new member",
+      "loading": "Loading members...",
+      "error": "Error",
+      "stats": {
+        "found": "Found",
+        "total": "Total",
+        "active": "Active",
+        "instructors": "Instructors",
+        "members": "Members"
+      },
+      "search": {
+        "placeholder": "Search Members by name, email, phone, or company...",
+        "clearTooltip": "Clear search"
+      },
+      "filters": {
+        "roleLabel": "Role:",
+        "allRoles": "All Roles",
+        "members": "Members",
+        "instructors": "Instructors",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Admin",
+        "membershipLabel": "Membership:",
+        "allTypes": "All Types",
+        "single": "Single",
+        "monthly": "Monthly",
+        "unlimited": "Unlimited",
+        "company": "Company",
+        "statusLabel": "Status:",
+        "allStatus": "All Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "clearButton": "Clear",
+        "clearTooltip": "Clear all filters"
+      },
+      "viewToggle": {
+        "cards": "Cards",
+        "list": "List"
+      },
+      "card": {
+        "personalInfo": "Member Contact Details",
+        "additionalInfo": "Account Information",
+        "collapseTooltip": "Collapse",
+        "expandTooltip": "Expand",
+        "statusLabel": "Status:",
+        "emailLabel": "Email:",
+        "phoneLabel": "Phone:",
+        "membershipLabel": "Membership:",
+        "roleLabel": "Role:",
+        "joinDateLabel": "Join Date:",
+        "dateOfBirthLabel": "Date of Birth:",
+        "genderLabel": "Gender:",
+        "lastCheckInLabel": "Last Check-in:",
+        "companyLabel": "Company:",
+        "emergencyContactLabel": "Emergency Contact:",
+        "addressLabel": "Address:",
+        "editButton": "Edit",
+        "editTooltip": "Edit Member",
+        "deleteButton": "Delete",
+        "deleteTooltip": "Delete Member"
+      },
+      "list": {
+        "nameColumn": "Name",
+        "membershipColumn": "Membership Type",
+        "phoneColumn": "Phone",
+        "roleColumn": "Role",
+        "statusColumn": "Status",
+        "actionsColumn": "Actions"
+      },
+      "modal": {
+        "editTitle": "Edit Member",
+        "addTitle": "Add Member",
+        "closeButton": "×",
+        "error": "Error",
+        "form": {
+          "firstNameLabel": "First Name",
+          "firstNamePlaceholder": "Thor",
+          "lastNameLabel": "Last Name",
+          "lastNamePlaceholder": "Hammer",
+          "emailLabel": "Email",
+          "emailPlaceholder": "user@vikinghammer.com",
+          "phoneLabel": "Phone",
+          "phonePlaceholder": "50 333 33 33",
+          "membershipLabel": "Membership Type",
+          "roleLabel": "Role",
+          "roleMember": "Member",
+          "roleReception": "Reception",
+          "roleInstructor": "Instructor",
+          "roleSpartaOption": "Sparta",
+          "roleAdmin": "Admin",
+          "dateOfBirthLabel": "Date of Birth (Optional)",
+          "datePreview": "Preview:",
+          "companyLabel": "Company (Optional)",
+          "noCompany": "No Company"
+        },
+        "actions": {
+          "cancelButton": "Cancel",
+          "working": "Working...",
+          "updateButton": "Update Member",
+          "addButton": "Add Member"
+        }
+      },
+      "roles": {
+        "member": "Member",
+        "instructor": "Instructor",
+        "reception": "Reception",
+        "sparta": "Sparta",
+        "admin": "Admin"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      },
+      "deleteModal": {
+        "title": "Confirm Deletion",
+        "message": "Are you sure you want to delete {{name}}?",
+        "warning": "⚠️ This action cannot be undone. All member data will be permanently deleted.",
+        "confirm": "Yes, Delete Member",
+        "cancel": "Cancel"
+      },
+      "deleteSuccess": "Member deleted successfully!"
+    },
+    "checkInHistory": {
+      "pageTitle": "Viking Army Check-In History",
+      "backButton": "Back to Command Center",
+      "stats": {
+        "weeklyCheckIn": "Weekly Check-In",
+        "resetsMonday": "Resets Monday 2am",
+        "todayCheckIn": "Today's Check-In",
+        "activeInstructors": "Active Instructors"
+      },
+      "filters": {
+        "advancedButton": "Advanced Battle Filters",
+        "searchPlaceholder": "Search Viking warriors...",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "thisYear": "This Year",
+        "statusLabel": "Status:",
+        "allStatus": "All Status",
+        "inBattle": "In Battle",
+        "battleComplete": "Battle Complete",
+        "membershipLabel": "Membership Type:",
+        "allTypes": "All Types",
+        "singleBattle": "Single Battle",
+        "monthlyWarrior": "Monthly Warrior",
+        "unlimitedViking": "Unlimited Viking",
+        "companyArmy": "Company Army",
+        "fromDateLabel": "From Date:",
+        "toDateLabel": "To Date:",
+        "applyButton": "Apply Battle Filters",
+        "clearButton": "Clear All",
+        "appliedFiltersLabel": "Applied Filters:",
+        "statusFilter": "Status: {{status}}",
+        "typeFilter": "Type: {{type}}",
+        "fromFilter": "From: {{date}}",
+        "toFilter": "To: {{date}}"
+      },
+      "table": {
+        "nameColumn": "Name",
+        "membershipColumn": "Membership Type",
+        "statusColumn": "Status",
+        "phoneColumn": "Phone Number",
+        "checkInColumn": "Check-In Time"
+      },
+      "emptyState": {
+        "title": "No Check-Ins Found",
+        "description": "Try adjusting your filters to see more warrior activity."
+      },
+      "memberPopup": {
+        "title": "Member Information",
+        "closeButton": "×",
+        "emailLabel": "Email:",
+        "phoneLabel": "Phone:",
+        "membershipLabel": "Membership:",
+        "statusLabel": "Status:",
+        "joinedLabel": "Joined:",
+        "lastCheckInLabel": "Last Check-In:",
+        "visitStatsTitle": "Visit Statistics",
+        "today": "Today",
+        "thisWeek": "This Week",
+        "thisMonth": "This Month",
+        "thisYear": "This Year",
+        "allTime": "All Time",
+        "checkInHistoryTitle": "Check-In History",
+        "noHistory": "No check-in history available",
+        "showingRecent": "Showing 10 most recent check-ins out of {{total}} total"
+      },
+      "status": {
+        "active": "Active",
+        "completed": "Completed"
+      },
+      "noValue": "—"
+    },
+    "classManagement": {
+      "pageTitle": "Class Management & Scheduling",
+      "backButton": "Back to Dashboard",
+      "tabs": {
+        "classes": "Classes",
+        "instructors": "Instructors",
+        "schedule": "Schedule"
+      },
+      "classes": {
+        "title": "Gym Classes Management",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add New Class",
+        "refresh": "Refresh",
+        "stats": {
+          "totalClasses": "Total Classes",
+          "activeClasses": "Active Classes",
+          "totalEnrollment": "Total Enrollment",
+          "fullClasses": "Full Classes"
+        },
+        "search": {
+          "placeholder": "Search classes..."
+        },
+        "filters": {
+          "category": "Category:",
+          "allCategories": "All Categories",
+          "mixed": "Mixed",
+          "strength": "Strength",
+          "cardio": "Cardio",
+          "flexibility": "Flexibility",
+          "status": "Status:",
+          "allStatus": "All Status",
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "difficulty": {
+          "beginner": "Beginner",
+          "intermediate": "Intermediate",
+          "advanced": "Advanced"
+        },
+        "spotsLeft": "{{count}} spots left",
+        "noInstructors": "No instructors assigned",
+        "showLess": "Show less",
+        "showMoreDays": "Show more days",
+        "moreCount": "+{{count}} more",
+        "table": {
+          "nameColumn": "Class Name",
+          "categoryColumn": "Category",
+          "durationColumn": "Duration",
+          "capacityColumn": "Capacity",
+          "instructorsColumn": "Instructors",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "assign": "Assign Instructor"
+        },
+        "emptyState": {
+          "title": "No Classes Found",
+          "description": "No classes match your filters. Try adjusting your search or filters."
+        },
+        "deleteConfirm": {
+          "title": "Delete Class Confirmation",
+          "message": "Are you sure you want to delete the class \"{{name}}\"?",
+          "warning": "This action cannot be undone.",
+          "warningTitle": "Warning: Class Has Active Dependencies",
+          "warningMessage": "This class cannot be deleted normally because it has active dependencies that would be affected:",
+          "removeScheduleSlots": "Active schedule slots will be removed",
+          "unlinkInstructors": "Instructor assignments will be unlinked",
+          "cancelBookings": "Member bookings will be cancelled",
+          "spartaAccessGranted": "Sparta Access Detected: You can force delete this class if needed",
+          "spartaAccessDenied": "Access Denied: Only Sparta users can force delete classes with dependencies",
+          "safeToDelete": "Safe to Delete",
+          "noDependencies": "This class has no active dependencies and can be safely deleted.",
+          "classLabel": "Class",
+          "activeScheduleSlots": "Active Schedule Slots",
+          "assignedInstructors": "Assigned Instructors",
+          "currentEnrollment": "Current Enrollment",
+          "members": "members",
+          "actions": {
+            "cancel": "Cancel",
+            "delete": "Delete Class",
+            "forceDelete": "FORCE DELETE",
+            "cannotDelete": "Cannot Delete"
+          },
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        }
+      },
+      "classModal": {
+        "titleAdd": "Add New Class",
+        "titleEdit": "Edit Class",
+        "form": {
+          "className": "Class Name",
+          "classNamePlaceholder": "Enter class name",
+          "description": "Description",
+          "descriptionPlaceholder": "Enter class description",
+          "duration": "Duration (minutes)",
+          "maxCapacity": "Max Capacity",
+          "difficulty": "Difficulty Level",
+          "beginner": "Beginner",
+          "intermediate": "Intermediate",
+          "advanced": "Advanced",
+          "category": "Category",
+          "price": "Price (₼)",
+          "pricePlaceholder": "0",
+          "status": "Status",
+          "instructors": "Instructors",
+          "schedule": "Class Schedule",
+          "scheduleHelper": "Select weekdays and set time for recurring classes (24-hour format)",
+          "setTimeHelper": "Set time for selected days (24-hour format)",
+          "addScheduleSlot": "Add Schedule Slot",
+          "dayOfWeek": "Day",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "timeTo": "to",
+          "removeSlot": "Remove"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "save": "Save Class",
+          "update": "Update Class"
+        }
+      },
+      "instructors": {
+        "title": "Instructors Management",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add New Instructor",
+        "spartaOnly": "SPARTA role required for instructor management",
+        "experienceYears": "y exp",
+        "specializationsLabel": "Specializations",
+        "availabilityLabel": "Availability",
+        "stats": {
+          "totalInstructors": "Total Instructors",
+          "activeInstructors": "Active Instructors",
+          "avgExperience": "Avg Experience",
+          "avgRating": "Average Rating",
+          "specializations": "Specializations",
+          "years": "Years"
+        },
+        "search": {
+          "placeholder": "Search instructors..."
+        },
+        "filters": {
+          "allStatus": "All Statuses",
+          "active": "Active",
+          "inactive": "Inactive",
+          "busy": "Busy"
+        },
+        "table": {
+          "nameColumn": "Name",
+          "specializationColumn": "Specialization",
+          "experienceColumn": "Experience",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "actions": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "schedule": "Schedule"
+        },
+        "spartaAccessRequired": "SPARTA access required",
+        "emptyState": {
+          "title": "No Instructors Found",
+          "description": "No instructors available.",
+          "filterMessage": "Try adjusting your filters to see more results.",
+          "addFirstMessage": "Add your first instructor to get started.",
+          "addButton": "Add Your First Instructor"
+        },
+        "deleteConfirm": {
+          "title": "Delete Instructor",
+          "message": "Are you sure you want to delete instructor \"{{name}}\"?",
+          "warning": "This action cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel"
+        }
+      },
+      "instructorModal": {
+        "titleAdd": "Add New Instructor",
+        "titleEdit": "Edit Instructor",
+        "selectMember": "Select Active Member",
+        "searchPlaceholder": "Search member by name or email...",
+        "selectedMember": "Selected",
+        "form": {
+          "name": "Full Name",
+          "namePlaceholder": "Enter instructor name",
+          "email": "Email",
+          "emailPlaceholder": "Enter email address",
+          "phone": "Phone",
+          "phonePlaceholder": "+994501234567",
+          "experience": "Experience (years)",
+          "experiencePlaceholder": "Enter years of experience",
+          "specialization": "Specializations (comma-separated)",
+          "specializationPlaceholder": "e.g., Yoga, Pilates, CrossFit",
+          "availability": "Weekly Availability",
+          "availabilityHelper": "Select weekdays when instructor is available",
+          "days": {
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday",
+            "sunday": "Sunday"
+          },
+          "certifications": "Certifications (comma-separated)",
+          "certificationsPlaceholder": "e.g., CPR Certified, Personal Trainer Level 3",
+          "bio": "Bio / Description",
+          "bioPlaceholder": "Brief description about the instructor...",
+          "status": "Status",
+          "statusActive": "Active",
+          "statusInactive": "Inactive",
+          "statusBusy": "Busy"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "add": "Add Instructor",
+          "update": "Update Instructor"
+        }
+      },
+      "deleteInstructorModal": {
+        "title": "Delete Instructor",
+        "warningTitle": "Permanent Action Warning",
+        "warningMessage": "You are about to permanently delete instructor:",
+        "actionWillTitle": "This action will",
+        "consequence1": "Permanently remove the instructor from the system",
+        "consequence2": "Remove them from all assigned classes",
+        "consequence3": "Cannot be undone",
+        "alternativeTitle": "Alternative",
+        "alternativeMessage": "Consider setting the instructor status to \"Inactive\" instead of deleting.",
+        "actions": {
+          "cancel": "Cancel",
+          "delete": "Delete Permanently"
+        }
+      },
+      "schedule": {
+        "title": "Weekly Schedule",
+        "lastUpdated": "Last updated: {{time}}",
+        "addButton": "Add Schedule Slot",
+        "loadingSchedule": "Loading schedule...",
+        "slotsCount": "{{count}} slots",
+        "noClasses": "No classes scheduled",
+        "enrolled": "{{count}} enrolled",
+        "unknownInstructor": "Unknown Instructor",
+        "stats": {
+          "totalSlots": "Total Slots",
+          "scheduled": "Scheduled",
+          "completed": "Completed",
+          "totalEnrollments": "Total Enrollments"
+        },
+        "filters": {
+          "day": "Day:",
+          "allDays": "All Days",
+          "class": "Class:",
+          "allClasses": "All Classes",
+          "instructor": "Instructor:",
+          "allInstructors": "All Instructors"
+        },
+        "table": {
+          "dayColumn": "Day",
+          "timeColumn": "Time",
+          "classColumn": "Class",
+          "instructorColumn": "Instructor",
+          "enrolledColumn": "Enrolled",
+          "statusColumn": "Status",
+          "actionsColumn": "Actions"
+        },
+        "days": {
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday"
+        },
+        "status": {
+          "scheduled": "Scheduled",
+          "completed": "Completed",
+          "cancelled": "Cancelled"
+        },
+        "actions": {
+          "viewRoster": "View Roster",
+          "edit": "Edit",
+          "cancel": "Cancel Slot",
+          "delete": "Delete"
+        },
+        "emptyState": {
+          "title": "No Schedule Slots",
+          "description": "No schedule slots match your filters."
+        }
+      },
+      "scheduleModal": {
+        "titleAdd": "Add New Schedule Slot",
+        "titleEdit": "Edit Schedule Slot",
+        "form": {
+          "class": "Class",
+          "selectClass": "Select Class",
+          "instructor": "Instructor",
+          "selectInstructor": "Select Instructor",
+          "dayOfWeek": "Day of Week",
+          "date": "Date",
+          "startTime": "Start Time",
+          "endTime": "End Time",
+          "status": "Status"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "save": "Save Slot",
+          "update": "Update Slot"
+        }
+      },
+      "scheduleSlotModal": {
+        "titleAdd": "Add New Schedule Slot",
+        "titleEdit": "Edit Schedule Slot",
+        "form": {
+          "class": "Class",
+          "selectClass": "Select a class",
+          "instructor": "Instructor",
+          "selectInstructor": "Select an instructor",
+          "dayOfWeek": "Day of Week",
+          "days": {
+            "sunday": "Sunday",
+            "monday": "Monday",
+            "tuesday": "Tuesday",
+            "wednesday": "Wednesday",
+            "thursday": "Thursday",
+            "friday": "Friday",
+            "saturday": "Saturday"
+          },
+          "date": "Date",
+          "startTime": "Start Time (24h)",
+          "endTime": "End Time (24h)",
+          "status": "Status",
+          "statusScheduled": "Scheduled",
+          "statusCompleted": "Completed",
+          "statusCancelled": "Cancelled"
+        },
+        "actions": {
+          "cancel": "Cancel",
+          "add": "Add Schedule Slot",
+          "update": "Update Schedule Slot"
+        }
+      },
+      "rosterModal": {
+        "title": "Enrolled Members",
+        "instructor": "Instructor",
+        "unassigned": "Unassigned",
+        "seats": "seats",
+        "enrolled": "enrolled",
+        "refresh": "Refresh",
+        "refreshing": "Refreshing...",
+        "loadingRoster": "Loading roster...",
+        "noMembers": "No members have booked this slot yet.",
+        "table": {
+          "name": "Name",
+          "email": "Email",
+          "status": "Status",
+          "bookedOn": "Booked On"
+        },
+        "actions": {
+          "close": "Close"
+        }
+      },
+      "classEnrolledModal": {
+        "title": "Enrolled Members",
+        "totalEnrollment": "Total Enrollment",
+        "class": "Class",
+        "enrolled": "enrolled",
+        "maxCapacity": "max capacity",
+        "category": "Category",
+        "noMembers": "No members are enrolled in this class yet.",
+        "table": {
+          "name": "Name",
+          "phone": "Phone",
+          "status": "Status",
+          "enrolledOn": "Enrolled On"
+        },
+        "actions": {
+          "close": "Close"
+        }
+      },
+      "assignModal": {
+        "title": "Assign Instructors to",
+        "currentInstructors": "Instructors",
+        "availableInstructors": "Available Instructors",
+        "noInstructors": "No instructors assigned",
+        "maxInstructors": "Maximum instructors assigned",
+        "moreCanAssign": "{{count}} more can be assigned",
+        "full": "FULL",
+        "available": "AVAILABLE",
+        "assigned": "Assigned",
+        "assign": "Assign",
+        "maxAllowed": "Maximum of 5 instructors allowed",
+        "actions": {
+          "assign": "Assign",
+          "remove": "Remove",
+          "close": "Close",
+          "done": "Done"
+        }
+      },
+      "scheduleAssignModal": {
+        "title": "Class Assignment for {{name}}",
+        "subtitle": "Manage instructor's class schedule",
+        "availableClasses": "Available Classes",
+        "helpText": "Click to assign or remove classes from this instructor",
+        "currentlyAssigned": "Currently Assigned",
+        "maxCapacity": "max",
+        "weeklySchedule": "Weekly Schedule",
+        "clickToAssign": "Click to Assign",
+        "clickToRemove": "Click to Remove",
+        "completeAssignment": "Complete Assignment",
+        "days": {
+          "sun": "Sun",
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat"
+        }
+      },
+      "deleteScheduleModal": {
+        "title": "Delete Schedule Slot Confirmation",
+        "message": "Are you sure you want to permanently delete this schedule slot?",
+        "slotDetails": "Schedule Slot Details",
+        "class": "Class",
+        "instructor": "Instructor",
+        "date": "Date",
+        "time": "Time",
+        "enrolledMembers": "Enrolled Members",
+        "warningTitle": "This action cannot be undone and will",
+        "consequence1": "Cancel the scheduled session",
+        "consequence2": "Remove enrolled members from this slot",
+        "actions": {
+          "cancel": "Cancel",
+          "delete": "Delete Slot"
+        },
+        "errorMessage": "Error deleting schedule slot. Please try again."
+      },
+      "notifications": {
+        "instructorAssigned": "Instructor successfully assigned to \"{{className}}\"",
+        "instructorRemoved": "Instructor successfully removed from \"{{className}}\""
+      },
+      "common": {
+        "loading": "Loading...",
+        "error": "Error",
+        "minutes": "min",
+        "years": "years",
+        "capacity": "{{current}}/{{max}}"
+      },
+      "announcementManager": {
+        "header": {
+          "backButton": "Back to Reception",
+          "title": "Announcement Manager"
+        },
+        "stats": {
+          "total": "Total Announcements",
+          "published": "Published",
+          "drafts": "Drafts",
+          "scheduled": "Scheduled",
+          "totalViews": "Total Views",
+          "readRate": "Read Rate"
+        },
+        "controls": {
+          "createButton": "Create Announcement",
+          "searchPlaceholder": "Search announcements..."
+        },
+        "filters": {
+          "type": {
+            "all": "All Types",
+            "general": "General",
+            "class": "Class",
+            "maintenance": "Maintenance",
+            "event": "Event",
+            "promotion": "Promotion"
+          },
+          "status": {
+            "all": "All Status",
+            "draft": "Draft",
+            "published": "Published",
+            "scheduled": "Scheduled",
+            "expired": "Expired"
+          },
+          "priority": {
+            "all": "All Priorities",
+            "low": "Low",
+            "normal": "Normal",
+            "high": "High",
+            "urgent": "Urgent"
+          }
+        },
+        "emptyState": {
+          "title": "No Announcements Found",
+          "description": "Create your first announcement to get started!"
+        }
+      }
+    },
+    "announcementManager": {
+      "header": {
+        "backButton": "← Back to Reception",
+        "title": "Announcement Management"
+      },
+      "stats": {
+        "total": "Total Announcements",
+        "published": "Published",
+        "drafts": "Drafts",
+        "scheduled": "Scheduled",
+        "totalViews": "Total Views",
+        "readRate": "Read Rate"
+      },
+      "controls": {
+        "createButton": "+ Create New Announcement",
+        "searchPlaceholder": "Search announcements..."
+      },
+      "filters": {
+        "type": {
+          "all": "All Types",
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        },
+        "status": {
+          "all": "All Status",
+          "draft": "Draft",
+          "published": "Published",
+          "scheduled": "Scheduled",
+          "expired": "Expired"
+        },
+        "priority": {
+          "all": "All Priorities",
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        }
+      },
+      "emptyState": {
+        "title": "No Announcements Yet",
+        "description": "Create your first announcement to keep members informed!"
+      },
+      "card": {
+        "recipients": "Recipients",
+        "created": "Created",
+        "published": "Published",
+        "scheduled": "Scheduled for",
+        "views": "views",
+        "reads": "reads"
+      },
+      "recipientTypes": {
+        "all": "All Members",
+        "members": "Members Only",
+        "instructors": "Instructors Only",
+        "staff": "Staff Only",
+        "custom": "Custom List"
+      },
+      "actions": {
+        "preview": "👁️ Preview",
+        "edit": "✏️ Edit",
+        "publish": "📤 Publish",
+        "delete": "🗑️ Delete"
+      },
+      "modal": {
+        "createTitle": "Create New Announcement",
+        "editTitle": "Edit Announcement",
+        "previewTitle": "Announcement Preview",
+        "close": "✕",
+        "cancel": "Cancel",
+        "save": "Save",
+        "update": "Update Announcement",
+        "publish": "Publish",
+        "fields": {
+          "title": "Title",
+          "titlePlaceholder": "Enter announcement title",
+          "content": "Content",
+          "contentPlaceholder": "Enter announcement content",
+          "type": "Type",
+          "priority": "Priority",
+          "recipients": "Recipients",
+          "status": "Status",
+          "scheduledDate": "Scheduled Date",
+          "scheduledPlaceholder": "Select scheduled date",
+          "tags": "Tags (comma-separated)",
+          "tagsPlaceholder": "e.g., classes, promotion, maintenance",
+          "expiryDate": "Expiry Date (optional)",
+          "expiryPlaceholder": "Select expiry date",
+          "datePreview": "Preview"
+        },
+        "typeOptions": {
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        },
+        "priorityOptions": {
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        },
+        "recipientOptions": {
+          "all": "All Users",
+          "members": "Members Only",
+          "instructors": "Instructors Only",
+          "staff": "Staff Only",
+          "custom": "Custom Selection"
+        },
+        "statusOptions": {
+          "draft": "Save as Draft",
+          "published": "Publish Immediately",
+          "scheduled": "Schedule for Later"
+        },
+        "previewDetails": {
+          "recipients": "Recipients",
+          "createdBy": "Created by",
+          "created": "Created",
+          "published": "Published",
+          "expires": "Expires"
+        }
+      },
+      "deleteModal": {
+        "title": "Confirm Delete",
+        "question": "Are you sure you want to delete this announcement?",
+        "infoTitle": "Title",
+        "infoType": "Type",
+        "infoStatus": "Status",
+        "warning": "This action cannot be undone. The announcement will be permanently deleted.",
+        "cancel": "Cancel",
+        "confirm": "Yes, Delete"
+      },
+      "badges": {
+        "priority": {
+          "low": "Low",
+          "normal": "Normal",
+          "high": "High",
+          "urgent": "Urgent"
+        },
+        "status": {
+          "draft": "Draft",
+          "published": "Published",
+          "scheduled": "Scheduled",
+          "expired": "Expired"
+        },
+        "type": {
+          "general": "General",
+          "class": "Class",
+          "maintenance": "Maintenance",
+          "event": "Event",
+          "promotion": "Promotion"
+        }
+      }
+    }
+  },
+  "register": {
+    "title": "Complete Your Registration",
+    "titlePassword": "Create Your Password",
+    "subtitle": "Welcome! Create your account to join our community.",
+    "subtitlePassword": "Set your password to activate your account",
+    "validatingInvitation": "Validating invitation...",
+    "invalidInvitation": "Invalid Invitation",
+    "invitationInfo": {
+      "name": "Name",
+      "email": "Email",
+      "membership": "Membership"
+    },
+    "form": {
+      "firstName": "First Name",
+      "firstNamePlaceholder": "John",
+      "lastName": "Last Name",
+      "lastNamePlaceholder": "Doe",
+      "phone": "Phone Number (optional)",
+      "phonePlaceholder": "+1234567890",
+      "dateOfBirth": "Date of Birth (optional)",
+      "password": "Password",
+      "passwordPlaceholder": "At least 6 characters",
+      "passwordHint": "Minimum 6 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Re-enter password",
+      "agreeToTermsPrefix": "I agree to the",
+      "termsOfService": "Terms of Service",
+      "agreeToTermsMiddle": "and",
+      "privacyPolicy": "Privacy Policy",
+      "agreeToTermsSuffix": "",
+      "required": "*"
+    },
+    "actions": {
+      "createAccount": "🚀 Create My Account",
+      "creating": "Creating Account...",
+      "cancel": "Cancel",
+      "returnHome": "Return to Home"
+    },
+    "footer": {
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In"
+    },
+    "errors": {
+      "invalidToken": "Invalid or expired invitation link",
+      "validationFailed": "Failed to validate invitation. Please try again.",
+      "enterFullName": "Please enter your full name",
+      "passwordLength": "Password must be at least 6 characters",
+      "passwordMismatch": "Passwords do not match",
+      "agreeToTermsRequired": "Please agree to the terms and conditions",
+      "registrationFailed": "Registration failed. Please try again."
+    },
+    "success": {
+      "registrationComplete": "Registration completed"
+    }
+  }
+}

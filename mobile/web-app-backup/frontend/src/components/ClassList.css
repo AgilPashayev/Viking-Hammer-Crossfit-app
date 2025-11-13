@@ -1,0 +1,238 @@
+.class-list {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.class-list-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.class-list-header h1 {
+  color: var(--viking-primary);
+  margin-bottom: 10px;
+}
+
+.class-list-header p {
+  color: var(--viking-text-secondary);
+  font-size: 1.1rem;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.loading-spinner {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.filters {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: rgba(61, 165, 255, 0.05);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.filter-group label {
+  font-weight: 600;
+  color: var(--viking-text);
+  font-size: 0.9rem;
+}
+
+.filter-group select {
+  padding: 8px 12px;
+  border: 2px solid rgba(61, 165, 255, 0.2);
+  border-radius: 8px;
+  background: white;
+  color: var(--viking-text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.filter-group select:focus {
+  outline: none;
+  border-color: var(--viking-primary);
+}
+
+.classes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-top: 20px;
+}
+
+.class-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.class-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(61, 165, 255, 0.15);
+  border-color: rgba(61, 165, 255, 0.2);
+}
+
+.class-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.class-card-header h3 {
+  color: var(--viking-text);
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.difficulty-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.difficulty-badge.beginner {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4CAF50;
+}
+
+.difficulty-badge.intermediate {
+  background: rgba(255, 193, 7, 0.1);
+  color: #FFC107;
+}
+
+.difficulty-badge.advanced {
+  background: rgba(244, 67, 54, 0.1);
+  color: #F44336;
+}
+
+.class-card-body {
+  margin-bottom: 20px;
+}
+
+.class-description {
+  color: var(--viking-text-secondary);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.class-details {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.class-details span {
+  padding: 6px 12px;
+  background: rgba(61, 165, 255, 0.1);
+  color: var(--viking-primary);
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.next-session {
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border-left: 4px solid #4CAF50;
+}
+
+.next-session strong {
+  color: #2E7D32;
+  font-size: 0.95rem;
+}
+
+.class-capacity {
+  color: var(--viking-text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.class-card-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.class-card-footer .btn {
+  width: 100%;
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.no-classes {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  background: rgba(61, 165, 255, 0.05);
+  border-radius: 16px;
+  color: var(--viking-text-secondary);
+}
+
+.no-classes p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .class-list {
+    padding: 15px;
+  }
+  
+  .classes-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .filters {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .class-card {
+    padding: 20px;
+  }
+  
+  .class-details {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

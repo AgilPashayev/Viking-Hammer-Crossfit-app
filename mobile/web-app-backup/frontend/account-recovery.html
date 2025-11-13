@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viking Hammer - Account Recovery</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .info {
+            background: #f0f9ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .success {
+            background: #f0fdf4;
+            border-left: 4px solid #22c55e;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error {
+            background: #fef2f2;
+            border-left: 4px solid #ef4444;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #5a67d8;
+        }
+        .btn-secondary {
+            background: #6b7280;
+        }
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        pre {
+            background: #f9fafb;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Account Recovery Tool</h1>
+        
+        <div class="info">
+            <strong>ℹ️ Information:</strong><br>
+            This tool helps you restore or check your demo account in localStorage.
+        </div>
+
+        <div class="success" id="successMsg">
+            <strong>✅ Success!</strong><br>
+            <span id="successText"></span>
+        </div>
+
+        <div class="error" id="errorMsg">
+            <strong>❌ Error!</strong><br>
+            <span id="errorText"></span>
+        </div>
+
+        <h3>Check Existing Accounts</h3>
+        <button onclick="checkAccounts()">Check Demo Users</button>
+
+        <h3 style="margin-top: 30px;">Restore Agil's Account</h3>
+        <label>Email:</label>
+        <input type="email" id="email" value="agil83p@yahoo.com" readonly>
+        
+        <label>Password (enter the password you want to use):</label>
+        <input type="password" id="password" placeholder="Enter password">
+        
+        <button onclick="restoreAccount()">Restore Account</button>
+
+        <h3 style="margin-top: 30px;">Test Login</h3>
+        <label>Email:</label>
+        <input type="email" id="testEmail" placeholder="email@example.com">
+        
+        <label>Password:</label>
+        <input type="password" id="testPassword" placeholder="password">
+        
+        <button onclick="testLogin()" class="btn-secondary">Test Login</button>
+
+        <div style="margin-top: 30px;">
+            <button onclick="goToApp()" class="btn-secondary">← Back to App</button>
+        </div>
+
+        <pre id="output" style="margin-top: 20px; display: none;"></pre>
+    </div>
+
+    <script>
+        function showSuccess(message) {
+            document.getElementById('successMsg').style.display = 'block';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('successText').textContent = message;
+        }
+
+        function showError(message) {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('successMsg').style.display = 'none';
+            document.getElementById('errorText').textContent = message;
+        }
+
+        function showOutput(data) {
+            const output = document.getElementById('output');
+            output.textContent = JSON.stringify(data, null, 2);
+            output.style.display = 'block';
+        }
+
+        function checkAccounts() {
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                showError('No demo users found in localStorage');
+                document.getElementById('output').style.display = 'none';
+                return;
+            }
+
+            try {
+                const users = JSON.parse(stored);
+                const userList = Object.keys(users).map(email => ({
+                    email,
+                    name: `${users[email].profile.firstName} ${users[email].profile.lastName}`,
+                    membership: users[email].profile.membershipType
+                }));
+                
+                showSuccess(`Found ${userList.length} user(s)`);
+                showOutput(userList);
+            } catch (error) {
+                showError('Error parsing demo users: ' + error.message);
+            }
+        }
+
+        function restoreAccount() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!password) {
+                showError('Please enter a password');
+                return;
+            }
+
+            const stored = localStorage.getItem('viking_demo_users');
+            const users = stored ? JSON.parse(stored) : {};
+
+            const registrationDate = new Date('2025-09-15T00:00:00Z').toISOString();
+
+            users[email] = {
+                password: password,
+                profile: {
+                    id: 'demo-agil-001',
+                    email: email,
+                    firstName: 'Agil',
+                    lastName: 'Pashayev',
+                    phone: '0501234567',
+                    countryCode: '+994',
+                    dateOfBirth: '01-01-1990',
+                    gender: 'male',
+                    emergencyContactName: '',
+                    emergencyContactPhone: '',
+                    emergencyContactCountryCode: '+994',
+                    membershipType: 'Viking Warrior Pro',
+                    joinDate: registrationDate,
+                    isActive: true,
+                    createdAt: registrationDate,
+                    updatedAt: registrationDate
+                }
+            };
+
+            localStorage.setItem('viking_demo_users', JSON.stringify(users));
+            showSuccess(`Account restored! You can now login with ${email}`);
+            showOutput(users[email].profile);
+        }
+
+        function testLogin() {
+            const email = document.getElementById('testEmail').value;
+            const password = document.getElementById('testPassword').value;
+
+            if (!email || !password) {
+                showError('Please enter both email and password');
+                return;
+            }
+
+            const stored = localStorage.getItem('viking_demo_users');
+            if (!stored) {
+                showError('No demo users found');
+                return;
+            }
+
+            try {
+                const users = JSON.parse(stored);
+                const user = users[email];
+
+                if (!user) {
+                    showError(`User not found: ${email}`);
+                    showOutput({ availableUsers: Object.keys(users) });
+                    return;
+                }
+
+                if (user.password !== password) {
+                    showError('Password mismatch!');
+                    return;
+                }
+
+                showSuccess('Login would succeed!');
+                showOutput(user.profile);
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        function goToApp() {
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

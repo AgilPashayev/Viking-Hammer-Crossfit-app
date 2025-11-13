@@ -1,0 +1,347 @@
+/* InvitationRegistration.css */
+
+.invitation-registration-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.invitation-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.invitation-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.invitation-header h2 {
+  color: #333;
+  font-size: 28px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.invitation-subtitle {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+.invitation-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border-left: 4px solid #2196f3;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #1976d2;
+  margin-right: 10px;
+  min-width: 60px;
+}
+
+.info-value {
+  color: #0d47a1;
+  font-weight: 500;
+}
+
+.info-note {
+  color: #1976d2;
+  font-size: 14px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.required {
+  color: #d32f2f;
+}
+
+.form-group input {
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background-color: #ffebee;
+  border: 1px solid #ef5350;
+  border-radius: 8px;
+  color: #c62828;
+}
+
+.error-icon {
+  font-size: 20px;
+}
+
+.error-text {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.btn-cancel,
+.btn-submit,
+.btn-secondary {
+  padding: 14px 28px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn-cancel {
+  flex: 1;
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: #e0e0e0;
+}
+
+.btn-submit {
+  flex: 2;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-submit:disabled,
+.btn-cancel:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.btn-secondary {
+  width: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.registration-footer {
+  text-align: center;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footer-text {
+  color: #999;
+  font-size: 13px;
+  margin: 0;
+}
+
+/* Loading state */
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 6px solid #f3f3f3;
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+.validating-text {
+  text-align: center;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Error state */
+.error-icon {
+  font-size: 60px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.error-title {
+  color: #d32f2f;
+  font-size: 24px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.error-message {
+  color: #666;
+  font-size: 16px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+/* Success state */
+.success-card {
+  text-align: center;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  font-weight: bold;
+  margin: 0 auto 20px;
+  animation: successPop 0.5s ease-out;
+}
+
+@keyframes successPop {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.success-title {
+  color: #4caf50;
+  font-size: 28px;
+  margin-bottom: 15px;
+}
+
+.success-message {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .invitation-card {
+    padding: 30px 20px;
+  }
+
+  .invitation-header h2 {
+    font-size: 24px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+  }
+}
