@@ -630,15 +630,30 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
       <div className="sparta-dashboard">
         <div className="sparta-welcome">
           <div className="sparta-avatar">
-            <img
-              src="/tenor.gif"
-              alt="Sparta Logo"
-              onError={(e) => {
-                // Fallback to emoji if GIF not found
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.innerHTML = '⚔️';
-              }}
-            />
+            {user?.avatar_url || user?.profilePhoto ? (
+              <img
+                src={user.avatar_url || user.profilePhoto}
+                alt="Sparta Profile"
+                onError={(e) => {
+                  // Fallback to GIF then emoji if profile photo fails
+                  e.currentTarget.src = '/tenor.gif';
+                  e.currentTarget.onerror = () => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.parentElement!.innerHTML = '⚔️';
+                  };
+                }}
+              />
+            ) : (
+              <img
+                src="/tenor.gif"
+                alt="Sparta Logo"
+                onError={(e) => {
+                  // Fallback to emoji if GIF not found
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.innerHTML = '⚔️';
+                }}
+              />
+            )}
           </div>
           <div className="welcome-text">
             <h1>{t('admin.sparta.title')}</h1>
