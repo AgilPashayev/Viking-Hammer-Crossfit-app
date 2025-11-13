@@ -1,4 +1,5 @@
 # Viking Hammer CrossFit Application
+
 ## Final Production Readiness Assessment Report
 
 **Assessment Date:** November 12, 2025  
@@ -16,7 +17,7 @@ The Viking Hammer CrossFit application is a sophisticated, feature-rich gym mana
 ### Top 5 Critical Findings (BLOCKERS)
 
 1. **🔴 BLOCKER** - JWT Secret exposed in code with weak fallback defaults
-2. **🔴 BLOCKER** - Hardcoded Supabase credentials in test/HTML files  
+2. **🔴 BLOCKER** - Hardcoded Supabase credentials in test/HTML files
 3. **🔴 BLOCKER** - Missing rate limiting on authentication endpoints
 4. **🔴 BLOCKER** - JWT stored in localStorage (XSS vulnerable)
 5. **🔴 BLOCKER** - No environment-specific configuration management
@@ -34,6 +35,7 @@ The Viking Hammer CrossFit application is a sophisticated, feature-rich gym mana
 ## A. ARCHITECTURE & PROJECT STRUCTURE
 
 ### ✅ Strengths
+
 - Clean separation of concerns: Frontend (React/Vite) and Backend (Node.js/Express)
 - Well-organized service layer pattern in backend
 - Middleware-based architecture for auth/authorization
@@ -43,14 +45,18 @@ The Viking Hammer CrossFit application is a sophisticated, feature-rich gym mana
 ### 🔴 Critical Issues
 
 **BLOCKER #1: Hardcoded Secrets with Weak Fallbacks**
+
 - **Location:** `middleware/authMiddleware.js:4`, `services/authService.js:9`
-- **Issue:** 
+- **Issue:**
+
 ```javascript
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production-12345';
 ```
+
 - **Risk:** If `JWT_SECRET` env var is not set, application runs with predictable default
 - **Impact:** Complete authentication bypass possible
-- **Fix:** 
+- **Fix:**
+
 ```javascript
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET || JWT_SECRET.length < 32) {
@@ -60,12 +66,15 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 ```
 
 **BLOCKER #2: Hardcoded Credentials in Repository**
+
 - **Location:** `test-membership-history.html:14-15`
 - **Issue:** Supabase URL and anon key hardcoded in HTML test file
+
 ```javascript
 const SUPABASE_URL = 'https://nqseztalzjcfucfeljkf.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOi...';  // Full anon key visible
+const SUPABASE_KEY = 'eyJhbGciOi...'; // Full anon key visible
 ```
+
 - **Risk:** Credentials leaked in version control
 - **Impact:** Unauthorized database access if anon key permissions too broad
 - **Fix:** Remove all test HTML files from production build, use env vars only
@@ -73,10 +82,12 @@ const SUPABASE_KEY = 'eyJhbGciOi...';  // Full anon key visible
 ### 🟠 High Priority Issues
 
 **Missing Environment Strategy**
+
 - **Location:** Root directory structure
 - **Issue:** Only `env/.env.dev` exists, no `.env.production`, `.env.staging`
 - **Risk:** Same config used across all environments
 - **Fix:** Create environment-specific config files:
+
 ```
 env/
 ├── .env.development
@@ -86,18 +97,20 @@ env/
 ```
 
 **Health Check Too Basic**
+
 - **Location:** `backend-server.js:55-62`
 - **Issue:** Health check doesn't verify database connectivity
 - **Fix:**
+
 ```javascript
 app.get('/api/health', async (req, res) => {
   const checks = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: 'unknown'
+    database: 'unknown',
   };
-  
+
   try {
     await supabase.from('users_profile').select('count').limit(1);
     checks.database = 'connected';
@@ -105,7 +118,7 @@ app.get('/api/health', async (req, res) => {
     checks.database = 'disconnected';
     checks.status = 'degraded';
   }
-  
+
   res.status(checks.database === 'connected' ? 200 : 503).json(checks);
 });
 ```
@@ -115,6 +128,7 @@ app.get('/api/health', async (req, res) => {
 ## B. AUTHENTICATION & ROLE-BASED ACCESS CONTROL
 
 ### ✅ Strengths
+
 - JWT-based authentication implemented
 - bcrypt password hashing with appropriate salt rounds (10)
 - Comprehensive role system: Sparta, Admin, Instructor, Reception, Member
@@ -124,10 +138,12 @@ app.get('/api/health', async (req, res) => {
 ### 🔴 Critical Issues
 
 **BLOCKER #3: Missing Rate Limiting**
+
 - **Location:** All authentication endpoints
 - **Issue:** No rate limiting on `/api/auth/signin`, `/api/auth/signup`
 - **Risk:** Brute force attacks, credential stuffing
 - **Fix:** Implement `express-rate-limit`:
+
 ```javascript
 const rateLimit = require('express-rate-limit');
 
@@ -139,32 +155,41 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.post('/api/auth/signin', authLimiter, asyncHandler(async (req, res) => {
-  // ... existing code
-}));
+app.post(
+  '/api/auth/signin',
+  authLimiter,
+  asyncHandler(async (req, res) => {
+    // ... existing code
+  }),
+);
 ```
 
 **BLOCKER #4: JWT Storage Vulnerability**
+
 - **Location:** Frontend - `services/authService.ts` (implied from App.tsx usage)
 - **Issue:** JWT tokens stored in `localStorage`
+
 ```javascript
-localStorage.getItem('userData');  // Contains JWT token
+localStorage.getItem('userData'); // Contains JWT token
 ```
+
 - **Risk:** XSS attacks can steal tokens, no httpOnly protection
 - **Impact:** Account takeover, session hijacking
 - **Fix:** Use httpOnly cookies for JWT storage:
 
 Backend:
+
 ```javascript
 res.cookie('auth_token', token, {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict',
-  maxAge: 7 * 24 * 60 * 60 * 1000
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 ```
 
 Frontend:
+
 ```javascript
 // Remove localStorage.setItem('token', ...)
 // Cookies automatically sent with requests
@@ -173,14 +198,17 @@ Frontend:
 ### 🟠 High Priority Issues
 
 **Token Refresh Not Implemented**
+
 - **Issue:** 7-day token expiry with no refresh mechanism
 - **Impact:** User must re-login every 7 days even if actively using app
 - **Fix:** Implement refresh token rotation pattern
 
 **Password Complexity Not Enforced**
+
 - **Location:** `services/authService.js:signUp`
 - **Issue:** No validation on password strength
 - **Fix:**
+
 ```javascript
 function validatePassword(password) {
   if (password.length < 8) return 'Password must be at least 8 characters';
@@ -192,11 +220,14 @@ function validatePassword(password) {
 ```
 
 **Authorization Middleware Gap**
+
 - **Location:** `middleware/authorizationMiddleware.js:38`
 - **Issue:** `isAdmin` includes only `['sparta', 'reception']` but not `'admin'`
+
 ```javascript
 const adminRoles = ['sparta', 'reception']; // Missing 'admin' role
 ```
+
 - **Fix:** Add admin role to array: `['sparta', 'admin', 'reception']`
 
 ---
@@ -204,6 +235,7 @@ const adminRoles = ['sparta', 'reception']; // Missing 'admin' role
 ## C. DATABASE SCHEMA, RLS, AND DATA INTEGRITY
 
 ### ✅ Strengths
+
 - Comprehensive migration system (19 migration files)
 - Foreign keys with proper ON DELETE actions
 - Row Level Security enabled on tables
@@ -213,6 +245,7 @@ const adminRoles = ['sparta', 'reception']; // Missing 'admin' role
 ### 🟠 High Priority Issues
 
 **Missing Database Indices**
+
 - **Location:** Migration files
 - **Issue:** No indices visible on frequently queried columns:
   - `users_profile.email` (login queries)
@@ -222,6 +255,7 @@ const adminRoles = ['sparta', 'reception']; // Missing 'admin' role
   - `announcements.published` (active announcement filters)
 - **Impact:** Slow queries as dataset grows beyond 500 members
 - **Fix:** Add indices migration:
+
 ```sql
 CREATE INDEX IF NOT EXISTS idx_users_profile_email ON users_profile(email);
 CREATE INDEX IF NOT EXISTS idx_users_profile_role ON users_profile(role);
@@ -231,6 +265,7 @@ CREATE INDEX IF NOT EXISTS idx_announcements_published ON announcements(publishe
 ```
 
 **Incomplete RLS Policies**
+
 - **Location:** Migration files
 - **Issue:** RLS policies not documented in migrations
 - **Risk:** Members may access other members' data if RLS not properly configured
@@ -239,18 +274,21 @@ CREATE INDEX IF NOT EXISTS idx_announcements_published ON announcements(publishe
 ### 🟡 Medium Priority
 
 **Missing Check Constraints**
+
 - **Tables:** memberships, class_bookings
 - **Issue:** No validation that `end_date > start_date`, `capacity >= enrolled`
 - **Fix:**
+
 ```sql
-ALTER TABLE memberships 
+ALTER TABLE memberships
   ADD CONSTRAINT check_date_range CHECK (end_date >= start_date);
-  
+
 ALTER TABLE schedule_slots
   ADD CONSTRAINT check_capacity CHECK (capacity >= 0 AND enrolled <= capacity);
 ```
 
 **Cascade Delete Risks**
+
 - **Location:** `users_profile` → `memberships` (ON DELETE CASCADE)
 - **Issue:** Deleting user permanently erases membership history
 - **Recommendation:** Soft delete pattern or archive table
@@ -260,6 +298,7 @@ ALTER TABLE schedule_slots
 ## D. API ENDPOINTS (NODE/EXPRESS + SUPABASE)
 
 ### ✅ Strengths
+
 - RESTful design
 - Comprehensive CRUD operations
 - Error handling with `asyncHandler`
@@ -269,18 +308,22 @@ ALTER TABLE schedule_slots
 ### 🔴 Critical Issues
 
 **BLOCKER #5: CORS Configuration Unknown**
+
 - **Location:** `backend-server.js:38`
 - **Issue:** `app.use(cors());` with no options = allows all origins
+
 ```javascript
-app.use(cors());  // ⚠️ Too permissive
+app.use(cors()); // ⚠️ Too permissive
 ```
+
 - **Risk:** CSRF attacks from malicious sites
 - **Fix:**
+
 ```javascript
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:5173',
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 app.use(cors(corsOptions));
 ```
@@ -288,8 +331,10 @@ app.use(cors(corsOptions));
 ### 🟠 High Priority Issues
 
 **No Request Validation Library**
+
 - **Issue:** Manual validation in each endpoint prone to errors
 - **Fix:** Use `joi` or `zod` for schema validation
+
 ```javascript
 const Joi = require('joi');
 
@@ -304,9 +349,11 @@ app.post('/api/auth/signup', validate(signupSchema), asyncHandler(...));
 ```
 
 **Error Messages May Leak Information**
+
 - **Location:** Various service files
 - **Issue:** Database errors returned directly to client
 - **Fix:** Generic error messages in production:
+
 ```javascript
 if (process.env.NODE_ENV === 'production') {
   res.status(500).json({ error: 'Internal server error' });
@@ -316,6 +363,7 @@ if (process.env.NODE_ENV === 'production') {
 ```
 
 **No API Versioning**
+
 - **Issue:** Breaking changes will affect all clients
 - **Fix:** Version API routes: `/api/v1/auth/signin`
 
@@ -324,6 +372,7 @@ if (process.env.NODE_ENV === 'production') {
 ## E. FRONTEND (REACT/VITE)
 
 ### ✅ Strengths
+
 - Modern React 18 with TypeScript
 - Vite for fast development
 - Component-based architecture
@@ -333,17 +382,20 @@ if (process.env.NODE_ENV === 'production') {
 ### 🟠 High Priority Issues
 
 **XSS Vulnerability via User-Generated Content**
+
 - **Location:** Components rendering announcement body, member names
 - **Issue:** If using `dangerouslySetInnerHTML` anywhere
 - **Verification Needed:** Search codebase for XSS vectors
 - **Fix:** Sanitize all user input with `DOMPurify`
 
 **No Client-Side Pagination Visible**
+
 - **Issue:** Large lists (members, classes, announcements) may load all at once
 - **Impact:** Poor performance with 1000+ members
 - **Fix:** Implement virtualized lists or pagination
 
 **State Management Concerns**
+
 - **Issue:** Using only React useState (no global state management)
 - **Risk:** Prop drilling, state duplication
 - **Recommendation:** Consider Context API or Zustand for shared state
@@ -351,11 +403,13 @@ if (process.env.NODE_ENV === 'production') {
 ### 🟡 Medium Priority
 
 **Bundle Size Not Optimized**
+
 - **Check:** Run `npm run build` and analyze bundle size
 - **Target:** Main bundle < 500KB gzipped
 - **Tools:** Use `vite-plugin-bundle-analyzer`
 
 **Missing PWA Features**
+
 - **Issue:** No service worker, no offline support
 - **Impact:** App unusable without internet
 - **Nice-to-have:** Add PWA manifest and caching
@@ -365,51 +419,61 @@ if (process.env.NODE_ENV === 'production') {
 ## F. CORE BUSINESS FLOWS
 
 ### Member Lifecycle ✅ IMPLEMENTED
+
 - Registration with invitation system ✅
 - Profile management with photos ✅
 - Emergency contacts ✅
 - Status management (active/suspended) ✅
 
 **Testing Gaps:**
+
 - End-to-end test for full registration → booking → check-in flow
 - Test suspended member attempting to book class
 
 ### Membership Plans & Subscriptions ✅ IMPLEMENTED
+
 - Multiple plan tiers ✅
 - Subscription CRUD ✅
 - Renewal, suspension, reactivation ✅
 - Automatic expiration ⚠️ **Not verified in background jobs**
 
 **Missing:**
+
 - Background job service for expiration (cron/scheduled task)
 - Email notifications for expiring subscriptions
 
 ### Class & Schedule Management ✅ IMPLEMENTED
+
 - Weekly scheduling ✅
 - Instructor assignment ✅
 - Capacity management ✅
 - Booking system ✅
 
 **Testing Gaps:**
+
 - Race condition: 2 users booking last slot simultaneously
 - Overbooking prevention verification
 
 ### Booking System ✅ IMPLEMENTED
+
 - Member reservations ✅
 - Cancellation ✅
 - Attendance marking ✅
 - Booking history ✅
 
 **Missing:**
+
 - Waitlist implementation (mentioned in spec, not found in code)
 - Automatic waitlist promotion when slot opens
 
 ### Check-in via QR ✅ IMPLEMENTED
+
 - QR code generation ✅
 - QR scanning ✅
 - Activity logging ✅
 
 **Security Concern:**
+
 - QR token expiration enforcement needs verification
 - QR code reuse prevention needs testing
 
@@ -418,6 +482,7 @@ if (process.env.NODE_ENV === 'production') {
 ## G. NOTIFICATIONS, ANNOUNCEMENTS & BACKGROUND JOBS
 
 ### ✅ Implemented
+
 - System-wide announcements ✅
 - Read/unread tracking ✅
 - Priority levels ✅
@@ -426,6 +491,7 @@ if (process.env.NODE_ENV === 'production') {
 ### 🔴 Critical Missing
 
 **NO BACKGROUND JOB PROCESSOR**
+
 - **Issue:** Spec mentions:
   - Automatic subscription expiration
   - Birthday notifications
@@ -435,6 +501,7 @@ if (process.env.NODE_ENV === 'production') {
 - **Fix Required:** Implement background job system
 
 **Recommendation:**
+
 ```javascript
 // Use node-cron or bull queue
 const cron = require('node-cron');
@@ -448,6 +515,7 @@ cron.schedule('0 3 * * *', async () => {
 ```
 
 **Email Notifications Not Integrated**
+
 - **Issue:** `resend` package installed but not used in production code
 - **Missing:** Welcome emails, password reset emails, booking confirmations
 
@@ -456,6 +524,7 @@ cron.schedule('0 3 * * *', async () => {
 ## H. INTERNATIONALIZATION (i18n)
 
 ### ✅ Strengths
+
 - Three languages supported: English, Azerbaijani, Russian
 - `react-i18next` properly configured
 - Language persistence in localStorage
@@ -465,11 +534,13 @@ cron.schedule('0 3 * * *', async () => {
 ### 🟡 Medium Priority
 
 **Incomplete Translation Coverage**
+
 - Some error messages still in English only
 - API responses not translated
 - Email templates (if implemented) need i18n
 
 **Date/Time Localization**
+
 - Verify date formats follow locale conventions
 - Time zone handling needs review (all dates in UTC?)
 
@@ -478,31 +549,37 @@ cron.schedule('0 3 * * *', async () => {
 ## I. FILE UPLOADS & STORAGE
 
 ### ✅ Implemented
+
 - Profile photo uploads via Supabase Storage ✅
 - Avatar URLs in database ✅
 
 ### 🟠 High Priority Issues
 
 **Missing File Upload Validation**
+
 - **Issue:** No MIME type checking visible in upload code
 - **Risk:** Users upload malware disguised as images
 - **Fix:**
+
 ```javascript
 const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
 if (!allowedTypes.includes(file.type)) {
   throw new Error('Invalid file type');
 }
-if (file.size > 5 * 1024 * 1024) { // 5MB
+if (file.size > 5 * 1024 * 1024) {
+  // 5MB
   throw new Error('File too large');
 }
 ```
 
 **Orphaned Files**
+
 - **Issue:** Updating profile photo doesn't delete old file
 - **Impact:** Storage bloat
 - **Fix:** Delete old file before uploading new one
 
 **Public Access Control**
+
 - **Verification Needed:** Ensure storage bucket RLS configured
 - **Test:** Can unauthenticated user access profile photos?
 
@@ -512,31 +589,35 @@ if (file.size > 5 * 1024 * 1024) { // 5MB
 
 ### 🔴 Critical Security Issues (Summary)
 
-| # | Issue | Severity | Location | Status |
-|---|-------|----------|----------|--------|
-| 1 | JWT secret fallback | BLOCKER | authMiddleware.js:4 | ❌ OPEN |
-| 2 | Hardcoded credentials | BLOCKER | test-membership-history.html | ❌ OPEN |
-| 3 | No rate limiting | BLOCKER | All auth endpoints | ❌ OPEN |
-| 4 | localStorage JWT | BLOCKER | Frontend auth | ❌ OPEN |
-| 5 | Permissive CORS | BLOCKER | backend-server.js:38 | ❌ OPEN |
-| 6 | No input sanitization lib | HIGH | All endpoints | ❌ OPEN |
-| 7 | Password complexity missing | HIGH | authService.js | ❌ OPEN |
-| 8 | No HTTPS enforcement | HIGH | Deployment config | ⚠️ UNKNOWN |
+| #   | Issue                       | Severity | Location                     | Status     |
+| --- | --------------------------- | -------- | ---------------------------- | ---------- |
+| 1   | JWT secret fallback         | BLOCKER  | authMiddleware.js:4          | ❌ OPEN    |
+| 2   | Hardcoded credentials       | BLOCKER  | test-membership-history.html | ❌ OPEN    |
+| 3   | No rate limiting            | BLOCKER  | All auth endpoints           | ❌ OPEN    |
+| 4   | localStorage JWT            | BLOCKER  | Frontend auth                | ❌ OPEN    |
+| 5   | Permissive CORS             | BLOCKER  | backend-server.js:38         | ❌ OPEN    |
+| 6   | No input sanitization lib   | HIGH     | All endpoints                | ❌ OPEN    |
+| 7   | Password complexity missing | HIGH     | authService.js               | ❌ OPEN    |
+| 8   | No HTTPS enforcement        | HIGH     | Deployment config            | ⚠️ UNKNOWN |
 
 ### Additional Security Recommendations
 
 **SQL Injection Protection**
+
 - ✅ Using Supabase client (parameterized queries)
 - No raw SQL string concatenation found
 
 **CSRF Protection**
+
 - ⚠️ Not implemented (mitigated if switching to httpOnly cookies + SameSite)
 
 **Content Security Policy**
+
 - ❌ Not implemented
 - Recommendation: Add CSP headers
 
 **Security Headers Missing**
+
 ```javascript
 const helmet = require('helmet');
 app.use(helmet());
@@ -549,6 +630,7 @@ app.use(helmet());
 ### 🟠 Critical Performance Concerns
 
 **No Pagination Implementation Visible**
+
 - **Endpoints Affected:**
   - `GET /api/users` - All members
   - `GET /api/bookings` - All bookings
@@ -556,32 +638,35 @@ app.use(helmet());
   - `GET /api/announcements` - All announcements
 - **Impact:** At 1000 members, single query returns all records
 - **Fix:** Add pagination to all list endpoints:
+
 ```javascript
 app.get('/api/users', authenticate, async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 50;
   const offset = (page - 1) * limit;
-  
+
   const { data, error, count } = await supabase
     .from('users_profile')
     .select('*', { count: 'exact' })
     .range(offset, offset + limit - 1);
-    
+
   res.json({
     data,
     page,
     limit,
     total: count,
-    totalPages: Math.ceil(count / limit)
+    totalPages: Math.ceil(count / limit),
   });
 });
 ```
 
 **No Caching Strategy**
+
 - Frequently accessed data (plans, instructors) fetched every time
 - Recommendation: Redis for session storage and data caching
 
 **N+1 Query Risks**
+
 - Verify: When loading member list, are subscriptions/memberships fetched individually?
 - Fix: Use JOINs or eager loading
 
@@ -590,6 +675,7 @@ app.get('/api/users', authenticate, async (req, res) => {
 ## L. ERROR HANDLING, LOGGING & MONITORING
 
 ### ✅ Implemented
+
 - `asyncHandler` wrapper for async routes ✅
 - Basic request logging ✅
 - Console error logging ✅
@@ -597,11 +683,13 @@ app.get('/api/users', authenticate, async (req, res) => {
 ### 🔴 Critical Missing
 
 **NO PRODUCTION LOGGING SOLUTION**
+
 - **Issue:** Only `console.log` used
 - **Impact:** No log aggregation, no searchable logs
 - **Fix Required:** Implement Winston + log shipping
 
 **Example:**
+
 ```javascript
 const winston = require('winston');
 
@@ -615,17 +703,21 @@ const logger = winston.createLogger({
 });
 
 if (process.env.NODE_ENV !== 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.simple(),
-  }));
+  logger.add(
+    new winston.transports.Console({
+      format: winston.format.simple(),
+    }),
+  );
 }
 ```
 
 **No Error Monitoring**
+
 - Missing: Sentry, Rollbar, or similar
 - Impact: Production errors go unnoticed
 
 **No Application Monitoring**
+
 - Missing: Uptime monitoring (UptimeRobot, Pingdom)
 - Missing: Performance monitoring (New Relic, DataDog)
 
@@ -636,6 +728,7 @@ if (process.env.NODE_ENV !== 'production') {
 ### 🔴 Deployment Blockers
 
 **No Environment Variable Documentation**
+
 - **Issue:** Required env vars not listed in single place
 - **Fix:** Create `ENV_VARS_REQUIRED.md`:
 
@@ -643,6 +736,7 @@ if (process.env.NODE_ENV !== 'production') {
 ## Required Environment Variables
 
 ### Backend
+
 - `SUPABASE_URL` - Supabase project URL (required)
 - `SUPABASE_KEY` - Supabase anon key (required)
 - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service key (required)
@@ -652,28 +746,33 @@ if (process.env.NODE_ENV !== 'production') {
 - `ALLOWED_ORIGINS` - Comma-separated CORS origins (required)
 
 ### Frontend
+
 - `VITE_API_URL` - Backend API base URL (required)
 - `VITE_SUPABASE_URL` - Same as backend (required)
 - `VITE_SUPABASE_KEY` - Same as backend (required)
 ```
 
 **No Database Backup Strategy**
+
 - Missing: Automated daily backups
 - Missing: Backup restoration testing
 - Missing: Point-in-time recovery plan
 - Fix: Configure Supabase automatic backups + export scripts
 
 **No Migration Rollback Plan**
+
 - Issue: Forward-only migrations
 - Risk: Bad migration = manual recovery
 - Fix: Test rollback procedures
 
 **No Health Monitoring**
+
 - Missing: Automated health check polling
 - Missing: Alerting when health check fails
 - Recommendation: UptimeRobot + PagerDuty
 
 **No Deployment Pipeline**
+
 - Missing: CI/CD configuration
 - Missing: Automated testing before deploy
 - Missing: Blue-green or canary deployment strategy
@@ -689,6 +788,7 @@ if (process.env.NODE_ENV !== 'production') {
 **E2E Tests:** ❌ NOT FOUND
 
 **Critical Test Cases Missing:**
+
 1. Authentication flow (signup → login → token refresh)
 2. Role-based access control (member can't access admin endpoints)
 3. Booking race conditions (simultaneous bookings for last slot)
@@ -702,12 +802,14 @@ if (process.env.NODE_ENV !== 'production') {
 ### Code Quality Assessment
 
 **Positive:**
+
 - Consistent code style
 - Good separation of concerns
 - Service layer pattern
 - Meaningful variable names
 
 **Concerns:**
+
 - No TypeScript on backend (only frontend)
 - Some functions exceed 100 lines
 - Missing JSDoc comments on complex functions
@@ -719,31 +821,31 @@ if (process.env.NODE_ENV !== 'production') {
 
 ### High Risk Items (Production Showstoppers)
 
-| Risk | Probability | Impact | Mitigation Priority |
-|------|-------------|--------|---------------------|
-| JWT secret compromise | High | Critical | IMMEDIATE |
-| Account takeover via XSS | Medium | Critical | IMMEDIATE |
-| Brute force attacks | High | High | IMMEDIATE |
-| Database query performance | High | High | HIGH |
-| Background jobs not running | Certain | High | HIGH |
-| No monitoring/alerting | Certain | High | HIGH |
+| Risk                        | Probability | Impact   | Mitigation Priority |
+| --------------------------- | ----------- | -------- | ------------------- |
+| JWT secret compromise       | High        | Critical | IMMEDIATE           |
+| Account takeover via XSS    | Medium      | Critical | IMMEDIATE           |
+| Brute force attacks         | High        | High     | IMMEDIATE           |
+| Database query performance  | High        | High     | HIGH                |
+| Background jobs not running | Certain     | High     | HIGH                |
+| No monitoring/alerting      | Certain     | High     | HIGH                |
 
 ### Medium Risk Items
 
-| Risk | Probability | Impact | Mitigation Priority |
-|------|-------------|--------|---------------------|
-| Orphaned storage files | Medium | Medium | MEDIUM |
-| Memory leaks from unclosed connections | Low | High | MEDIUM |
-| Race conditions in booking | Low | Medium | MEDIUM |
-| CORS bypass attacks | Low | Medium | MEDIUM |
+| Risk                                   | Probability | Impact | Mitigation Priority |
+| -------------------------------------- | ----------- | ------ | ------------------- |
+| Orphaned storage files                 | Medium      | Medium | MEDIUM              |
+| Memory leaks from unclosed connections | Low         | High   | MEDIUM              |
+| Race conditions in booking             | Low         | Medium | MEDIUM              |
+| CORS bypass attacks                    | Low         | Medium | MEDIUM              |
 
 ### Low Risk Items
 
-| Risk | Probability | Impact | Mitigation Priority |
-|------|-------------|--------|---------------------|
-| Translation inconsistencies | Medium | Low | LOW |
-| UI polish issues | Low | Low | LOW |
-| Documentation gaps | High | Low | LOW |
+| Risk                        | Probability | Impact | Mitigation Priority |
+| --------------------------- | ----------- | ------ | ------------------- |
+| Translation inconsistencies | Medium      | Low    | LOW                 |
+| UI polish issues            | Low         | Low    | LOW                 |
+| Documentation gaps          | High        | Low    | LOW                 |
 
 ---
 
@@ -796,6 +898,7 @@ if (process.env.NODE_ENV !== 'production') {
 ## POST-LAUNCH MONITORING PLAN
 
 ### Week 1 Post-Launch
+
 1. **Monitor health endpoints every 1 minute**
 2. **Review error logs daily**
 3. **Check database performance (slow queries)**
@@ -803,6 +906,7 @@ if (process.env.NODE_ENV !== 'production') {
 5. **Verify background jobs executing**
 
 ### Month 1 Post-Launch
+
 1. **Analyze user feedback on UX**
 2. **Review performance metrics (page load times)**
 3. **Check storage usage growth**
@@ -810,6 +914,7 @@ if (process.env.NODE_ENV !== 'production') {
 5. **Test backup restoration procedure**
 
 ### Ongoing
+
 - Weekly database backup verification
 - Monthly security patch updates
 - Quarterly penetration testing
@@ -820,18 +925,21 @@ if (process.env.NODE_ENV !== 'production') {
 ## RECOMMENDED IMMEDIATE ACTIONS
 
 ### Day 1 (Today)
+
 1. Add JWT_SECRET validation with process.exit if missing
 2. Delete all test HTML files with hardcoded credentials
 3. Add rate limiting to auth endpoints
 4. Configure restrictive CORS
 
 ### Day 2-3
+
 1. Move JWT to httpOnly cookies
 2. Add database indices
 3. Implement pagination
 4. Set up Winston logging
 
 ### Week 1
+
 1. Implement background job processor
 2. Set up Sentry error monitoring
 3. Configure health check monitoring
@@ -865,4 +973,3 @@ Once security issues are fixed and monitoring is in place, the application will 
 **Report Prepared By:** CodeArchitect Pro AI Senior Architect  
 **Contact for Questions:** Via GitHub Issues or Development Team  
 **Next Review Date:** After BLOCKER fixes implemented
-
