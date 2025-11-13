@@ -1,7 +1,17 @@
 // middleware/authMiddleware.js - JWT Authentication Middleware
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production-12345';
+// Validate JWT_SECRET - CRITICAL for security
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error(
+    '❌ FATAL SECURITY ERROR: JWT_SECRET environment variable must be set and at least 32 characters long',
+  );
+  console.error(
+    "💡 Generate a secure secret with: node -e \"console.log(require('crypto').randomBytes(32).toString('hex'))\"",
+  );
+  process.exit(1);
+}
 
 /**
  * Middleware to verify JWT token from Authorization header

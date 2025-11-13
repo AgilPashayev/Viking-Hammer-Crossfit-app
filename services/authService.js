@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 const { supabase } = require('../supabaseClient');
 
 const SALT_ROUNDS = 10;
-const JWT_SECRET = process.env.JWT_SECRET || 'viking-hammer-secret-key-change-in-production';
+
+// Get JWT_SECRET directly - already validated in authMiddleware at startup
+const JWT_SECRET = process.env.JWT_SECRET;
 
 /**
  * Transform user data for frontend compatibility
@@ -45,9 +47,35 @@ function transformUserForFrontend(user) {
   return user;
 }
 
+/**
+ * Validate password strength requirements
+ * Returns error message if invalid, null if valid
+ */
+function validatePassword(password) {
+  if (!password || password.length < 8) {
+    return 'Password must be at least 8 characters long';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+  if (!/[0-9]/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+  return null; // Password is valid
+}
+
 async function signUp(userData) {
   try {
     const { email, password, firstName, lastName, phone, role = 'member', dateOfBirth } = userData;
+
+    // Validate password strength
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return { error: passwordError, status: 400 };
+    }
 
     // Check if user already exists (might be in pending state from invitation)
     const { data: existingUser } = await supabase
@@ -307,4 +335,5 @@ module.exports = {
   verifyToken,
   updatePassword,
   resetUserPassword,
+  validatePassword, // Export for potential frontend use
 };

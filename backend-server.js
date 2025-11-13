@@ -3,6 +3,7 @@
 
 const express = require('express');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const { supabase, testConnection } = require('./supabaseClient');
 
 // Import middleware
@@ -33,8 +34,34 @@ const activityService = require('./services/activityService');
 const app = express();
 const PORT = process.env.PORT || 4001;
 
+// Rate limiting for authentication endpoints - prevent brute force attacks
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: 'Too many authentication attempts from this IP, please try again after 15 minutes',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  skipSuccessfulRequests: false, // Count successful requests
+});
+
+// General API rate limiting
+const apiLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 100, // Limit each IP to 100 requests per minute
+  message: 'Too many requests from this IP, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
+);
 app.use(express.json());
 
 // Request logging middleware
@@ -66,6 +93,7 @@ app.get('/api/health', (req, res) => {
  */
 app.post(
   '/api/auth/signup',
+  authLimiter, // Apply rate limiting
   asyncHandler(async (req, res) => {
     const result = await authService.signUp(req.body);
 
@@ -82,6 +110,7 @@ app.post(
  */
 app.post(
   '/api/auth/signin',
+  authLimiter, // Apply rate limiting
   asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -126,6 +155,7 @@ app.post(
  */
 app.post(
   '/api/auth/forgot-password',
+  authLimiter, // Apply rate limiting to prevent abuse
   asyncHandler(async (req, res) => {
     const { email } = req.body;
 
