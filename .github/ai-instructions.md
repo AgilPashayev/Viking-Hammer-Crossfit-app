@@ -99,4 +99,524 @@ Explanation on Demand: Be prepared to provide a detailed, technical explanation 
 
 [AGENT INSTRUCTION END]
 
+---
+
+## APPENDIX A: DESIGN SYSTEM REFERENCE - VIKING HAMMER CROSSFIT
+
+### COLOR PALETTE (EXACT VALUES - USE THESE FOR PIXEL-PERFECT MIGRATION)
+
+**Primary Brand Colors:**
+```
+--viking-primary: #3da5ff        (Lighter primary blue)
+--viking-secondary: #4565d6      (Deep blue for text/UI accents)
+--viking-accent: #6ec1ff         (Soft accent blue)
+--viking-light: #f6faff          (Very light blue background)
+--viking-medium: #eef6ff         (Light blue backgrounds)
+--viking-subtle: #dbeeff         (Subtle blue tints)
+--viking-text: #243b6b           (Readable deep blue-gray text)
+--viking-gray: #757575           (Secondary text/placeholders)
+```
+
+**Gradients:**
+```
+--viking-grad-primary: linear-gradient(45deg, #3da5ff, #6ec1ff)
+--viking-grad-deep: linear-gradient(45deg, #4565d6, #3da5ff)
+--viking-grad-hero: linear-gradient(135deg, #3da5ff, #6ec1ff)
+```
+
+**Status Colors:**
+```
+Success Green: #27ae60 → #2ecc71 (gradient)
+Warning Orange: #ff9800
+Danger Red: #e74c3c → #c0392b (gradient)
+Info Blue: #2196f3
+```
+
+**Sparta Dashboard Colors:**
+```
+--sparta-red-dark: #b71c1c
+--sparta-red: #d32f2f
+--sparta-red-light: #e53935
+--sparta-accent: #ff6b6b
+Background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)
+```
+
+### TYPOGRAPHY SCALE (EXACT VALUES)
+
+**Font Sizes (rem → pts conversion: 1rem = 16pts):**
+```
+H1 Title: 2rem (32pts), weight: 700-800, letter-spacing: 0.5px
+H2 Subtitle: 1.75rem (28pts), weight: 700-800, letter-spacing: 0.3px
+H3 Section: 1.5rem (24pts), weight: 600-700, letter-spacing: 0.2px
+Body Large: 1rem (16pts), weight: 400-500
+Body Regular: 0.95rem (15.2pts), weight: 400-500
+Small: 0.875rem (14pts), weight: 400
+Tiny: 0.75rem (12pts), weight: 400
+Badge: 0.8-0.9rem (13-14pts), weight: 600-700
+```
+
+**Font Weights:**
+```
+Extra Bold: 800 (Titles, Headers)
+Bold: 700 (Section Labels, Stats)
+Semi-Bold: 600 (Subheadings)
+Medium: 500 (Body Text)
+Regular: 400 (Descriptions, Paragraphs)
+```
+
+**Letter Spacing Standards:**
+```
+Titles: 0.5-1px
+Headers: 0.3-0.5px
+Body: 0.2-0.3px
+Buttons: 0.5-1px
+Badges: 0.5px
+```
+
+### SPACING SYSTEM (EXACT VALUES)
+
+```
+Card Padding: 28px
+Section Padding: 24px
+Section Gaps: 20px
+Element Gaps: 12px
+Badge Padding: 8-14px
+Button Padding Vertical: 10-12px
+Button Padding Horizontal: 16-24px
+Modal Padding: 24px
+Input Padding: 12px 16px
+```
+
+### BORDER RADIUS SYSTEM
+
+```
+Extra Small: 4px (inputs, small badges)
+Small: 6px (badges, tags)
+Medium: 8px (buttons, inputs)
+Large: 12px (cards, panels)
+Extra Large: 16px (modals, containers)
+Rounded: 50% (avatars, circular icons)
+```
+
+### SHADOW SYSTEM
+
+```
+Light: 0 2px 4px rgba(0, 0, 0, 0.1)
+Medium: 0 4px 8px rgba(0, 0, 0, 0.15)
+Heavy: 0 8px 16px rgba(0, 0, 0, 0.2)
+Glow (Hover): 0 6px 20px rgba(61, 165, 255, 0.3)
+Card Hover: 0 8px 24px rgba(0, 0, 0, 0.12)
+```
+
+### ANIMATION TIMINGS
+
+```
+Fast: 0.2s ease (fades, quick transitions)
+Standard: 0.3s ease (general animations)
+Slide: 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) (modals, drawers)
+Button Hover: 0.25s cubic-bezier(0.4, 0, 0.2, 1)
+Icon Pulse: 2s ease-in-out infinite
+```
+
+---
+
+## APPENDIX B: CSS TO REACT NATIVE STYLESHEET CONVERSION GUIDE
+
+### CRITICAL CONVERSION RULES
+
+**Layout Properties:**
+```
+Web CSS                          → React Native
+-----------------------------------------------------------
+display: flex                    → flexDirection: 'row' (RN defaults to 'column')
+flex-direction: row              → flexDirection: 'row'
+flex-direction: column           → flexDirection: 'column'
+justify-content: center          → justifyContent: 'center'
+align-items: center              → alignItems: 'center'
+gap: 12px                        → Use marginRight/marginBottom (no gap support)
+```
+
+**Spacing Properties:**
+```
+padding: 20px                    → padding: 20
+padding: 20px 30px               → paddingVertical: 20, paddingHorizontal: 30
+padding: 10px 20px 15px 30px     → paddingTop: 10, paddingRight: 20, paddingBottom: 15, paddingLeft: 30
+margin: 20px                     → margin: 20
+(Same pattern for margin)
+```
+
+**Border Properties:**
+```
+border: 2px solid #3da5ff        → borderWidth: 2, borderColor: '#3da5ff', borderStyle: 'solid'
+border-left: 4px solid #3da5ff   → borderLeftWidth: 4, borderLeftColor: '#3da5ff'
+border-radius: 8px               → borderRadius: 8
+border-top-left-radius: 12px     → borderTopLeftRadius: 12
+```
+
+**Color & Background:**
+```
+background: #3da5ff              → backgroundColor: '#3da5ff'
+color: #243b6b                   → color: '#243b6b'
+background: linear-gradient(...) → Use 'react-native-linear-gradient' library
+                                   <LinearGradient colors={['#3da5ff', '#6ec1ff']} />
+opacity: 0.8                     → opacity: 0.8 (same)
+```
+
+**Typography:**
+```
+font-size: 1rem (16px)           → fontSize: 16
+font-weight: 700                 → fontWeight: '700' (STRING)
+font-family: 'Segoe UI'          → fontFamily: 'Segoe UI' (register custom fonts)
+letter-spacing: 1px              → letterSpacing: 1
+line-height: 1.6                 → lineHeight: 25.6 (multiply fontSize * 1.6)
+text-align: center               → textAlign: 'center'
+text-transform: uppercase        → textTransform: 'uppercase'
+```
+
+**Shadow Properties (PLATFORM-SPECIFIC):**
+```
+box-shadow: 0 4px 8px rgba(0,0,0,0.15)
+
+→ iOS:
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.15,
+  shadowRadius: 8,
+
+→ Android:
+  elevation: 4,
+```
+
+**Positioning:**
+```
+position: absolute               → position: 'absolute'
+top: 10px                        → top: 10
+left: 20px                       → left: 20
+z-index: 10                      → zIndex: 10
+```
+
+**Special Cases:**
+```
+cursor: pointer                  → N/A (use <TouchableOpacity> or <Pressable>)
+hover: {...}                     → Use Pressable with onPressIn/onPressOut state
+backdrop-filter: blur(10px)      → Use '@react-native-community/blur' library
+overflow: hidden                 → overflow: 'hidden'
+```
+
+### COMPONENT REPLACEMENTS
+
+```
+<div>                            → <View>
+<span>                           → <Text>
+<p>                              → <Text>
+<button>                         → <TouchableOpacity> or <Pressable>
+<input>                          → <TextInput>
+<img>                            → <Image>
+<a>                              → <TouchableOpacity> with navigation
+```
+
+---
+
+## APPENDIX C: COMPONENT MIGRATION QUALITY CHECKLIST
+
+### FOR EACH MIGRATED COMPONENT, VERIFY ALL ITEMS:
+
+#### ✅ LAYER 1: VISUAL FIDELITY (PIXEL-PERFECT)
+
+- [ ] Colors match EXACTLY (cross-reference APPENDIX A color values)
+- [ ] Font sizes match EXACTLY (use conversion: 1rem = 16pts)
+- [ ] Font weights match EXACTLY (ensure string format: '700' not 700)
+- [ ] Letter spacing matches EXACTLY
+- [ ] Padding matches EXACTLY (convert shorthand to specific properties)
+- [ ] Margins match EXACTLY
+- [ ] Border widths match EXACTLY
+- [ ] Border colors match EXACTLY
+- [ ] Border radius match EXACTLY
+- [ ] Shadows replicated (iOS: shadow*, Android: elevation)
+- [ ] Gradients replicated using react-native-linear-gradient
+- [ ] Background colors match EXACTLY
+- [ ] Text colors match EXACTLY
+- [ ] Icon sizes match EXACTLY
+- [ ] Animation timings match (0.3s → 300ms in Animated API)
+- [ ] Layout structure preserved (flex direction, alignment, justification)
+
+#### ✅ LAYER 2: BUSINESS LOGIC PRESERVATION
+
+- [ ] All state variables migrated (useState hooks preserved)
+- [ ] All event handlers preserved (onClick → onPress)
+- [ ] All useEffect hooks migrated
+- [ ] API calls use SAME endpoints (http://localhost:4001)
+- [ ] API request payloads IDENTICAL
+- [ ] API response handling IDENTICAL
+- [ ] Data transformations IDENTICAL
+- [ ] Form validation rules IDENTICAL
+- [ ] Error handling logic IDENTICAL
+- [ ] Loading states IDENTICAL
+- [ ] Conditional rendering logic IDENTICAL
+- [ ] Service functions imported correctly (from services/)
+- [ ] Utility functions imported correctly (from utils/)
+- [ ] Context providers work identically (DataContext)
+
+#### ✅ LAYER 3: SECURITY COMPLIANCE
+
+- [ ] JWT tokens stored in Keychain (iOS) / Keystore (Android) - NOT AsyncStorage
+- [ ] API calls use HTTPS in production
+- [ ] No sensitive data in console.log statements
+- [ ] Rate limiting respected (same as web: 5 auth/15min, 100 API/min)
+- [ ] Password validation identical (8+ chars, uppercase, lowercase, number)
+- [ ] CORS origin whitelist maintained
+- [ ] No hardcoded credentials
+- [ ] Session timeout identical to web
+
+#### ✅ LAYER 4: UX TRANSLATION & MOBILE OPTIMIZATION
+
+- [ ] Click → Tap gesture works (TouchableOpacity/Pressable)
+- [ ] Hover effects replaced with Pressable states (onPressIn/onPressOut)
+- [ ] Long-press gestures added where appropriate
+- [ ] Swipe gestures added where appropriate (lists, cards)
+- [ ] Pull-to-refresh implemented (if list/data view)
+- [ ] Loading indicators match web timing
+- [ ] Error messages IDENTICAL text
+- [ ] Success messages IDENTICAL text
+- [ ] Form validation errors IDENTICAL text
+- [ ] Modal/Alert animations match web timing
+- [ ] Keyboard behavior handled (KeyboardAvoidingView)
+- [ ] Safe area handled (iOS notch, Android navigation)
+
+#### ✅ INTEGRATION & TESTING
+
+- [ ] Component renders without errors
+- [ ] All interactive elements functional
+- [ ] Navigation works (if screen component)
+- [ ] i18n translations work (EN/AZ/RU switching)
+- [ ] Backend API returns expected data
+- [ ] No TypeScript errors
+- [ ] No linting errors
+- [ ] Performance acceptable (no lag/stutter)
+- [ ] Screenshot matches web version visually
+
+---
+
+## APPENDIX D: WEB-TO-MOBILE FILE STRUCTURE MAPPING
+
+### SOURCE (WEB APP BACKUP):
+```
+mobile/web-app-backup/frontend/src/
+├── components/
+│   ├── LandingPage.tsx
+│   ├── LandingPage.css
+│   ├── AuthForm.tsx
+│   ├── AuthForm.css
+│   ├── MemberDashboard.tsx
+│   └── MemberDashboard.css
+├── services/
+│   ├── authService.ts         (EXACT COPY - no changes)
+│   ├── supabaseService.ts     (EXACT COPY - no changes)
+│   └── qrCodeService.ts       (adapt for react-native-camera)
+├── contexts/
+│   └── DataContext.tsx        (EXACT COPY - adapt localStorage)
+├── utils/
+│   ├── validators.ts          (EXACT COPY - no changes)
+│   └── confirmDialog.ts       (adapt for React Native Alert)
+└── public/locales/
+    ├── en/translation.json    (EXACT COPY)
+    ├── az/translation.json    (EXACT COPY)
+    └── ru/translation.json    (EXACT COPY)
+```
+
+### DESTINATION (MOBILE APP):
+```
+mobile/app/src/
+├── screens/                   (Components → Screens)
+│   ├── LandingScreen.tsx
+│   ├── AuthScreen.tsx
+│   ├── MemberDashboardScreen.tsx
+│   └── SpartaDashboardScreen.tsx
+├── styles/                    (CSS → StyleSheet)
+│   ├── landingStyles.ts
+│   ├── authStyles.ts
+│   ├── memberDashboardStyles.ts
+│   └── spartaStyles.ts
+├── services/                  (EXACT COPY)
+│   ├── authService.ts
+│   ├── supabaseService.ts
+│   └── qrCodeService.ts       (adapted)
+├── contexts/                  (EXACT COPY with adaptations)
+│   └── DataContext.tsx
+├── utils/                     (EXACT COPY with adaptations)
+│   ├── validators.ts
+│   ├── secureStorage.ts       (NEW - Keychain/Keystore wrapper)
+│   └── alerts.ts              (NEW - Alert wrapper)
+├── navigation/
+│   └── AppNavigator.tsx       (NEW - React Navigation setup)
+├── i18n/
+│   ├── i18n.config.ts
+│   └── translations/
+│       ├── en.json            (EXACT COPY)
+│       ├── az.json            (EXACT COPY)
+│       └── ru.json            (EXACT COPY)
+└── components/                (Reusable UI components)
+    ├── Button.tsx
+    ├── Card.tsx
+    └── Input.tsx
+```
+
+### MAPPING RULES:
+
+1. **Components → Screens**:
+   - Web: `components/LandingPage.tsx` → Mobile: `screens/LandingScreen.tsx`
+   - Keep TSX structure, convert JSX elements to RN components
+
+2. **CSS Files → StyleSheet Files**:
+   - Web: `components/LandingPage.css` → Mobile: `styles/landingStyles.ts`
+   - Convert using APPENDIX B conversion guide
+   - Export as `StyleSheet.create({...})`
+
+3. **Services → EXACT COPY**:
+   - Copy services/ directory entirely
+   - Only modify if browser-specific APIs used (localStorage → secureStorage)
+   - Keep ALL business logic identical
+
+4. **Utils → EXACT COPY with Adaptations**:
+   - Pure JS functions: EXACT COPY (validators.ts)
+   - Browser-specific: Adapt (confirmDialog.ts → alerts.ts using React Native Alert)
+
+5. **Contexts → EXACT COPY with Storage Adaptation**:
+   - DataContext structure preserved
+   - localStorage → secureStorage for sensitive data
+   - AsyncStorage for non-sensitive data
+
+6. **Translations → EXACT COPY**:
+   - Copy all JSON files
+   - Use react-i18next with react-native-localize
+
+---
+
+## APPENDIX E: MIGRATION TESTING PROTOCOL
+
+### BEFORE MOVING TO NEXT COMPONENT:
+
+#### 1. VISUAL COMPARISON TEST
+```
+□ Open web app: http://localhost:5173
+□ Open mobile app: iOS Simulator / Android Emulator
+□ Take screenshot of web version
+□ Take screenshot of mobile version
+□ Compare side-by-side:
+  - Colors match
+  - Spacing matches
+  - Typography matches
+  - Layout structure matches
+  - Icons match
+  - Shadows/gradients match
+```
+
+#### 2. FUNCTIONAL TESTING
+```
+□ Test EVERY button/touchable element
+□ Verify SAME data displays from API
+□ Confirm API responses identical (use network inspector)
+□ Test all form validations
+□ Test error scenarios (wrong password, network error, etc.)
+□ Test loading states
+□ Test success states
+□ Test navigation flows
+□ Test i18n language switching (EN/AZ/RU)
+```
+
+#### 3. PERFORMANCE VERIFICATION
+```
+□ Loading times ≈ similar to web (or faster)
+□ No stuttering during scroll
+□ No lag during animations
+□ Smooth transitions
+□ No memory leaks (use React DevTools Profiler)
+```
+
+#### 4. INTEGRATION TESTING
+```
+□ Backend API responds correctly (localhost:4001)
+□ JWT authentication works
+□ Rate limiting works (5 auth attempts/15min)
+□ Session persistence works (Keychain/Keystore)
+□ Data context updates propagate correctly
+```
+
+#### 5. MANDATORY REPORT FORMAT
+```
+Component: [ComponentName]
+
+Done:
+- ✅ Migrated all UI elements (100% visual match confirmed via screenshot)
+- ✅ Migrated [feature] logic ([details])
+- ✅ Migrated i18n (EN/AZ/RU switching tested)
+- ✅ API integration tested (endpoint: [endpoint], status: working)
+
+Collateral Impact Assessment:
+- No unintended functionality affected
+- OR: [Specific side effects with justification]
+
+Stability Check:
+- ✅ All 24 checklist items passed (APPENDIX C)
+- ✅ Visual comparison test passed
+- ✅ Functional testing passed (all buttons/interactions working)
+- ✅ Performance verification passed (smooth, no lag)
+- ✅ Integration testing passed (API working, auth working)
+
+Testing Evidence:
+- Screenshots: [web vs mobile comparison link/file]
+- API test results: [success responses]
+- Performance metrics: [if applicable]
+
+Next Steps:
+- Proceed to [NextComponent] migration
+- OR: [Pending approval for X]
+```
+
+---
+
+## APPENDIX F: CRITICAL MIGRATION CONSTRAINTS
+
+### FROZEN ELEMENTS (NEVER MODIFY):
+
+```
+❌ FORBIDDEN TO CHANGE:
+- backend-server.js
+- services/ (authService.js, supabaseService.js - backend)
+- middleware/ (authMiddleware.js, etc.)
+- infra/supabase/ (database schemas, RLS policies)
+- env/.env.dev (environment variables)
+- Any database migrations
+- Any API endpoint routes
+- Any API request/response structures
+```
+
+### ALWAYS REFERENCE BEFORE ANY ACTION:
+
+```
+✅ MANDATORY REFERENCES:
+1. This file (.github/ai-instructions.md) - Overall protocol
+2. APPENDIX A - Design System (colors, typography, spacing)
+3. APPENDIX B - CSS to RN Conversion Guide
+4. APPENDIX C - Quality Checklist (24 items per component)
+5. APPENDIX D - File Structure Mapping
+6. APPENDIX E - Testing Protocol
+7. mobile/web-app-backup/frontend/ - Source of truth for ALL web code
+```
+
+### CHECKPOINT-BASED EXECUTION:
+
+```
+1. Read web component source (TSX + CSS)
+2. Extract design values (colors, sizes, spacing) using APPENDIX A
+3. Convert CSS to StyleSheet using APPENDIX B
+4. Create mobile screen/component
+5. Run through APPENDIX C checklist (all 24 items)
+6. Execute APPENDIX E testing protocol
+7. Generate mandatory report
+8. WAIT for approval/confirmation before next component
+```
+
+---
+
 ## Custom Guidelines
