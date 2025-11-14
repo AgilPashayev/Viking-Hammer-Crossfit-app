@@ -201,7 +201,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   // Load plans from backend API (replaced direct Supabase access)
   const loadPlansFromDatabase = async () => {
     try {
-      const response = await fetch('http://localhost:4001/api/plans');
+      const response = await fetch(`${API_BASE_URL}/plans`);
       const result = await response.json();
 
       if (!result.success || !result.data) {
@@ -260,7 +260,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
   // Load subscriptions from backend API
   const loadSubscriptionsFromDatabase = async () => {
     try {
-      const response = await fetch('http://localhost:4001/api/subscriptions');
+      const response = await fetch(`${API_BASE_URL}/subscriptions`);
       const result = await response.json();
 
       if (result.success && result.data) {
@@ -504,7 +504,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
 
       if (editingPlanId) {
         // Update existing plan via backend API
-        const response = await fetch(`http://localhost:4001/api/plans/${editingPlanId}`, {
+        const response = await fetch(`${API_BASE_URL}/plans/${editingPlanId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -543,7 +543,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
         setEditingPlanId(null);
       } else {
         // Create new plan via backend API
-        const response = await fetch('http://localhost:4001/api/plans', {
+        const response = await fetch(`${API_BASE_URL}/plans`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -699,7 +699,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
       const token = localStorage.getItem('authToken') || '';
 
       // Delete via backend API
-      const response = await fetch(`http://localhost:4001/api/plans/${planId}`, {
+      const response = await fetch(`${API_BASE_URL}/plans/${planId}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -762,19 +762,16 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (!editingSubscriptionId) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:4001/api/subscriptions/${editingSubscriptionId}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            start_date: editingSubscription.startDate,
-            end_date: editingSubscription.endDate,
-            remaining_visits: editingSubscription.remainingEntries,
-            status: editingSubscription.status,
-          }),
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/subscriptions/${editingSubscriptionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          start_date: editingSubscription.startDate,
+          end_date: editingSubscription.endDate,
+          remaining_visits: editingSubscription.remainingEntries,
+          status: editingSubscription.status,
+        }),
+      });
 
       const result = await response.json();
 
@@ -834,13 +831,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:4001/api/subscriptions/${subscriptionId}/renew`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionId}/renew`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const result = await response.json();
 
@@ -896,13 +890,10 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(
-        `http://localhost:4001/api/subscriptions/${subscriptionId}/suspend`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-        },
-      );
+      const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionId}/suspend`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
 
       const result = await response.json();
 
@@ -960,7 +951,7 @@ const MembershipManager: React.FC<MembershipManagerProps> = ({ onBack }) => {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`http://localhost:4001/api/subscriptions/${subscriptionId}`, {
+      const response = await fetch(`${API_BASE_URL}/subscriptions/${subscriptionId}`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
       });
