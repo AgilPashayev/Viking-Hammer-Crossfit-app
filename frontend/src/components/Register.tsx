@@ -3,9 +3,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL } from '../config/api';
 import './Register.css';
-
-const API_URL = 'http://localhost:4001/api';
 
 interface RegisterProps {
   token: string;
@@ -69,7 +68,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
       setValidating(true);
       setError('');
 
-      const response = await fetch(`${API_URL}/invitations/${token}`);
+      const response = await fetch(`${API_BASE_URL}/invitations/${token}`);
       const result = await response.json();
 
       if (!response.ok || !result.valid) {
@@ -163,7 +162,7 @@ export default function Register({ token, onSuccess, onCancel }: RegisterProps) 
           };
 
       // Register using invitation token
-      const response = await fetch(`${API_URL}/invitations/${token}/accept`, {
+      const response = await fetch(`${API_BASE_URL}/invitations/${token}/accept`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(registrationData),

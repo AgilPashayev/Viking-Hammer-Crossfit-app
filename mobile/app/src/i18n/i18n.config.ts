@@ -20,10 +20,11 @@ const resources = {
 };
 
 // Get device language
-const deviceLanguage = Localization.locale.split('-')[0]; // 'en-US' → 'en'
+const locales = Localization.getLocales?.() ?? [];
+const deviceLanguage = locales[0]?.languageCode ?? 'en';
 
 i18n.use(initReactI18next).init({
-  compatibilityJSON: 'v3', // Important for React Native
+  compatibilityJSON: 'v4',
   resources,
   lng: deviceLanguage || 'en', // Default to device language or English
   fallbackLng: 'en',

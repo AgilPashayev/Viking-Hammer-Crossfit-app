@@ -5,6 +5,7 @@ import { classService, GymClass } from '../services/classManagementService';
 import { bookingService } from '../services/bookingService';
 import ClassDetailsModal from './ClassDetailsModal';
 import { formatDate } from '../utils/dateFormatter';
+import { API_BASE_URL } from '../config/api';
 import {
   generateQRCodeData,
   generateQRCodeImage,
@@ -186,7 +187,7 @@ const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate, user }) =
       if (user?.id) {
         try {
           console.log('💳 Loading subscription for dashboard:', user.id);
-          const response = await fetch(`http://localhost:4001/api/subscriptions/user/${user.id}`, {
+          const response = await fetch(`${API_BASE_URL}/subscriptions/user/${user.id}`, {
             headers: {
               'Content-Type': 'application/json',
             },

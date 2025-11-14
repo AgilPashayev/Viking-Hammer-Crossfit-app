@@ -8,6 +8,7 @@ import MembershipManager from './MembershipManager';
 import UpcomingBirthdays from './UpcomingBirthdays';
 import jsQR from 'jsqr';
 import { useData, Activity } from '../contexts/DataContext';
+import { API_BASE_URL } from '../config/api';
 import './Sparta.css';
 
 interface SpartaProps {
@@ -515,7 +516,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     try {
       // Call backend API to verify QR code with membership limits
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4001/api/qr/verify', {
+      const response = await fetch('${API_BASE_URL}/qr/verify', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -562,7 +563,7 @@ const Sparta: React.FC<SpartaProps> = ({ onNavigate, user }) => {
     try {
       // Call backend to create check-in record
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4001/api/check-ins', {
+      const response = await fetch('${API_BASE_URL}/check-ins', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

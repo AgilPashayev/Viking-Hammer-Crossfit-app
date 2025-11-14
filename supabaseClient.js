@@ -2,7 +2,7 @@
 // Supabase client configuration and initialization
 
 const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config({ path: './env/.env.dev', override: true });
+// Don't load dotenv here - it's loaded in load-env.js before this module
 
 // Validate environment variables
 const supabaseUrl = process.env.SUPABASE_URL;

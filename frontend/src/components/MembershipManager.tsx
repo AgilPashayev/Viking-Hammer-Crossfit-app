@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { showConfirmDialog } from '../utils/confirmDialog';
 import { useTranslation } from 'react-i18next';
+import { API_BASE_URL } from '../config/api';
 import './MembershipManager.css';
 import './MembershipManager-additions.css';
 

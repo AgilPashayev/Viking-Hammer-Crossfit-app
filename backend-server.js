@@ -1,6 +1,7 @@
 // backend-server.js - PRODUCTION-READY with Supabase + bcrypt
 // Complete backend with database persistence, password hashing, and full CRUD operations
 
+require('./load-env'); // Load environment variables first
 const express = require('express');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
